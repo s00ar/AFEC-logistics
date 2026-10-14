@@ -11,6 +11,144 @@
     font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
     font-size:15px;
 }
+
+.toolbar, .card-actions, .installation-actions, .row-actions, .dialog-actions, .pagination {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.toolbar {
+    margin-bottom: 28px;
+}
+.toolbar .button-primary, .dialog-actions .button-primary {
+    width: auto;
+    margin: 0;
+    min-height: 42px;
+}
+.card-actions {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+}
+.card-actions button, .row-actions button, .installation-actions button {
+    font-size: .75rem;
+}
+.installation-actions {
+    padding: 0 25px 20px;
+}
+.row-actions {
+    flex-wrap: nowrap;
+}
+.retired-label {
+    display: block;
+    color: var(--muted);
+    font-size: .7rem;
+    margin-top: 5px;
+}
+.retired-row {
+    color: var(--muted);
+}
+.pagination {
+    justify-content: center;
+    margin: 30px 0;
+    font-size: .85rem;
+}
+.pending-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 18px;
+    margin-bottom: 25px;
+    border: 1px solid var(--accent);
+    border-radius: 9px;
+}
+.pending-banner p {
+    margin: 0;
+}
+.editor-dialog {
+    width: min(620px, calc(100vw - 32px));
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+}
+.editor-dialog::backdrop {
+    background: #050910d9;
+}
+.dialog-heading {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 15px;
+}
+.dialog-heading h2 {
+    margin-bottom: 15px;
+}
+.editor-dialog label {
+    display: block;
+    font-size: .85rem;
+    margin: 18px 0 8px;
+}
+.editor-dialog input:not([type="checkbox"]), .editor-dialog textarea, .editor-dialog select {
+    display: block;
+    width: 100%;
+    font: inherit;
+    padding: 12px;
+    margin-top: 9px;
+    color: var(--text);
+    background: #0d141f;
+    border: 1px solid #344256;
+    border-radius: 7px;
+}
+.editor-dialog textarea {
+    resize: vertical;
+}
+.editor-dialog input:disabled, .editor-dialog select:disabled, .editor-dialog textarea:disabled {
+    opacity: .7;
+}
+.form-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+.confirm-row {
+    line-height: 1.65;
+}
+.confirm-row input {
+    margin-right: 10px;
+}
+.dialog-actions {
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+.history-dialog {
+    width: min(740px, calc(100vw - 32px));
+}
+.history-entry {
+    border-top: 1px solid var(--line);
+    padding: 20px 0 5px;
+}
+.history-entry h3 {
+    font-size: .85rem;
+}
+.history-entry p {
+    font-size: .85rem;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+.toast.is-success {
+    border-color: var(--cyan);
+}
+@media(max-width: 600px) {
+    .form-columns { grid-template-columns: 1fr; gap: 0; }
+    .editor-dialog { padding: 22px; }
+    .pending-banner { flex-direction: column; align-items: start; }
+}
 * {
     box-sizing:border-box;
 }

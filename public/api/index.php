@@ -5,6 +5,8 @@ ini_set('display_errors', '0');
 use Afec\Http\HttpError;
 use Afec\Http\Request;
 use Afec\Http\Response;
+use Afec\Http\PlanningController;
+use Afec\Repositories\PlanningRepository;
 use Afec\Repositories\ProgressRepository;
 use Afec\Repositories\UserRepository;
 
@@ -19,6 +21,11 @@ try {
     if (!is_string($route)) {
         throw new HttpError(400, 'invalid_route', 'Ruta no válida.');
     }
+    $archiveFilter = static function() use ($app): bool {
+        $flag = Request::flag($_GET['include_archived'] ?? null);
+        if ($flag) { $app->auth()->requirePlanner(); }
+        return $flag;
+    };
     switch ($route) {
         case 'session':
             Request::method('GET');
@@ -35,22 +42,51 @@ try {
             $app->session()->logout();
             Response::json(['data' => ['user' => null, 'csrf_token' => $app->session()->csrf()]]);
         case 'systems':
+            if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') { PlanningController::write($app, $route); }
             Request::method('GET');
             if (!$app->config['app']['public_read']) {
                 $app->auth()->requireUser();
             }
-            Response::json(['data' => (new ProgressRepository($app->database))->systems()]);
+            $listing = (new ProgressRepository($app->database))->systems(Request::page($_GET['list_page'] ?? null), $archiveFilter());
+            Response::json(['data' => $listing['items'], 'pagination' => ['page' => $listing['page'], 'has_more' => $listing['has_more']]]);
         case 'system':
+            if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') { PlanningController::write($app, $route); }
             Request::method('GET');
             if (!$app->config['app']['public_read']) {
                 $app->auth()->requireUser();
             }
-            Response::json(['data' => (new ProgressRepository($app->database))->system(Request::positiveId($_GET['id'] ?? null))]);
+            Response::json(['data' => (new ProgressRepository($app->database))->system(Request::positiveId($_GET['id'] ?? null), $archiveFilter(), Request::page($_GET['list_page'] ?? null))]);
+        case 'installation':
+            if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') { PlanningController::write($app, $route); }
+            if (!$app->config['app']['public_read']) { $app->auth()->requireUser(); }
+            Response::json(['data' => (new PlanningRepository($app->database))->installation(Request::positiveId($_GET['id'] ?? null))]);
+        case 'installations':
+        case 'system/restore':
+        case 'installation/restore':
+        case 'requirement':
+            PlanningController::write($app, $route);
+        case 'planning/history':
+            Request::method('GET');
+            $app->auth()->requirePlanner();
+            $type = $_GET['type'] ?? null;
+            if (!is_string($type) || !in_array($type, ['system', 'installation', 'requirement'], true)) {
+                throw new HttpError(422, 'invalid_type', 'Tipo de historial no válido.');
+            }
+            $id = Request::positiveId($_GET['id'] ?? null);
+            $repository = new PlanningRepository($app->database);
+            if ($type === 'system') { $repository->system($id); } else { $repository->installation($id); }
+            $commodityId = $type === 'requirement' ? Request::positiveId($_GET['commodity_id'] ?? null) : null;
+            if ($type === 'requirement' && !$repository->requirement($id, $commodityId)) {
+                throw new HttpError(404, 'not_found', 'No se encontró el objetivo.');
+            }
+            $listing = $repository->history($type, $id, $commodityId, Request::page($_GET['list_page'] ?? null));
+            Response::json(['data' => $listing['items'], 'pagination' => ['page' => $listing['page'], 'has_more' => $listing['has_more']]]);
         case 'admin/users':
             Request::method('GET');
             $app->auth()->requireAdmin();
             Response::json(['data' => (new UserRepository($app->database))->list()]);
         case 'commodities':
+            if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') { PlanningController::write($app, $route); }
             Request::method('GET');
             if (!$app->config['app']['public_read']) { $app->auth()->requireUser(); }
             $rows = $app->database->connection()->query('SELECT CAST(id AS CHAR) AS id, code, name_es, name_en FROM commodities WHERE active = 1 ORDER BY name_es')->fetchAll();

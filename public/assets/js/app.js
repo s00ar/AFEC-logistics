@@ -1,22 +1,5 @@
-'use strict';
-
-const apiUrl = document.querySelector('meta[name="api-url"]').content;
+import { request } from './http.js';
 const homeUrl = document.querySelector('meta[name="home-url"]').content;
-let csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
-async function send(route, payload = {}) {
-  const response = await fetch(`${apiUrl}?route=${encodeURIComponent(route)}`, {
-    method: 'POST', credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
-    body: JSON.stringify(payload),
-  });
-  let result;
-  try { result = await response.json(); }
-  catch { throw new Error('No se pudo leer la respuesta. Intentá de nuevo.'); }
-  if (!response.ok) throw new Error(result.error?.message || 'No se pudo completar la operación.');
-  if (result.data?.csrf_token) csrfToken = result.data.csrf_token;
-  return result.data;
-}
 
 document.querySelector('#login-form')?.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -29,7 +12,7 @@ document.querySelector('#login-form')?.addEventListener('submit', async (event) 
   button.disabled = true;
   button.textContent = 'Ingresando…';
   try {
-    await send('login', { username: form.elements.username.value, password: form.elements.password.value });
+    await request('login', { method: 'POST', body: { username: form.elements.username.value, password: form.elements.password.value } });
     window.location.assign(homeUrl);
   } catch (failure) {
     error.textContent = failure.message || 'No hay conexión. Intentá de nuevo.';
@@ -50,7 +33,7 @@ document.querySelector('#toggle-password')?.addEventListener('click', (event) =>
 document.querySelector('#logout')?.addEventListener('click', async (event) => {
   const button = event.currentTarget;
   button.disabled = true;
-  try { await send('logout'); window.location.assign(homeUrl); }
+  try { await request('logout', { method: 'POST' }); window.location.assign(homeUrl); }
   catch (failure) {
     const message = document.querySelector('#global-message');
     message.textContent = failure.message || 'No se pudo cerrar la sesión.';

@@ -4,9 +4,9 @@ Aplicación de colonización de Elite Dangerous. Monolito PHP + PDO MySQL/MariaD
 
 ## Estado
 
-Primera fase implementada y verificada localmente: autenticación, sesiones/CSRF, roles, esquema relacional y panel público de sistemas, instalaciones, materiales y progreso. Administración de cuentas consultable solo por administrador. Alcance y resultados en [docs/FASE_1.md](docs/FASE_1.md).
+Fases 1 y 2 implementadas y verificadas localmente: autenticación, sesiones/CSRF, roles, esquema relacional, panel público y CRUD de sistemas, instalaciones y objetivos para operadores/administradores, con archivo/restauración e historial. Materiales nuevos y consulta de cuentas solo por administrador. Alcance y resultados en [docs/FASE_1.md](docs/FASE_1.md) y [docs/FASE_2.md](docs/FASE_2.md).
 
-Todavía no están habilitados creación/edición de sistemas e instalaciones, registro/reversión de entregas ni importación de Sheets. No está desplegada ni se ha aplicado el esquema en Hostinger.
+Todavía no están habilitados registro/reversión de entregas, administración editable de cuentas, comandantes/carriers ni importación de Sheets. No se ha desplegado desde este entorno ni aplicado el esquema en Hostinger.
 
 La consulta pública y los aportes registrados por operadores en nombre de terceros están confirmados en [docs/DECISIONES.md](docs/DECISIONES.md). El resto de políticas sigue documentado como pendiente. El material de origen permanece intacto en `AFEC_Logistica_Handoff_Codex/`; el diagnóstico está en `ANALISIS_AFEC_LOGISTICA.md`.
 
@@ -48,10 +48,22 @@ Entrada: `public/api/index.php?route=...` (funciona sin reglas de rewrite).
 | POST | `login`, `logout` | Token CSRF; login devuelve errores genéricos y limita intentos |
 | GET | `systems` | Público |
 | GET | `system&id=ID` | Público; instalaciones y requerimientos |
+| GET | `installation&id=ID` | Público; metadatos de instalación |
 | GET | `commodities` | Catálogo activo público |
+| POST | `systems` | Operador/admin; crear sistema |
+| PATCH / DELETE | `system&id=ID` | Operador/admin; editar / archivar |
+| POST | `system/restore&id=ID` | Operador/admin; restaurar |
+| POST | `installations&system_id=ID` | Operador/admin; crear instalación |
+| PATCH / DELETE | `installation&id=ID` | Operador/admin; editar / archivar |
+| POST | `installation/restore&id=ID` | Operador/admin; restaurar |
+| PUT / DELETE | `requirement&installation_id=ID&commodity_id=ID` | Operador/admin; guardar/restaurar / retirar objetivo |
+| GET | `planning/history&type=system|installation|requirement&id=ID` | Operador/admin; historial; objetivo requiere `commodity_id` |
+| POST | `commodities` | Administrador; alta de material |
 | GET | `admin/users` | Administrador |
 
 IDs y cantidades se devuelven como cadenas decimales para conservar precisión. Las operaciones nuevas de entrega usarán `commander_id` y `created_by_user_id`, separado del usuario autenticado que las registra.
+
+Las escrituras de planificación requieren `X-CSRF-Token` e `Idempotency-Key` (16–100 caracteres ASCII alfanuméricos, `_` o `-`). Editar/retirar/restaurar requiere la `version` recibida al consultar y un `reason`. Un objetivo nuevo usa versión `"0"` y `required_quantity` como cadena decimal; las bajas requieren `confirmed=true`. Repetir exactamente la operación con la misma clave devuelve el resultado guardado. Los listados admiten `list_page`; sistemas e instalaciones archivadas requieren operador/admin e `include_archived=1`.
 
 ## Pruebas y despliegue
 

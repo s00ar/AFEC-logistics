@@ -57,9 +57,10 @@ class Client:
     def __init__(self):
         self.cookies = http.cookiejar.CookieJar()
         self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cookies))
-    def call(self, route, method='GET', payload=None, token=None, raw=None, content_type='application/json'):
+    def call(self, route, method='GET', payload=None, token=None, raw=None, content_type='application/json', key=None):
         headers = {}
         if token is not None: headers['X-CSRF-Token'] = token
+        if key is not None: headers['Idempotency-Key'] = key
         body = raw if raw is not None else (json.dumps(payload).encode() if payload is not None else None)
         if body is not None: headers['Content-Type'] = content_type
         req = urllib.request.Request(BASE + '/api/index.php?route=' + route, data=body, headers=headers, method=method)
@@ -113,7 +114,7 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         check(anonymous.call('admin/users')[0] == 401, 'Anonymous cannot read account administration')
         check(anonymous.call('system&id=999999')[0] == 404, 'Unknown system returns JSON 404')
         check(anonymous.call('system&id=1%20OR%201=1')[0] == 422, 'Identifier SQL injection is rejected')
-        check(anonymous.call('systems', 'POST', {})[0] == 405, 'Public cannot write through a read endpoint')
+        check(anonymous.call('systems', 'POST', {})[0] == 401, 'Public cannot write through the systems endpoint')
         check(anonymous.call('login', 'GET')[0] == 405, 'Login rejects GET')
         check(anonymous.call('login', 'POST', {'username':'admin','password':'wrong'})[0] == 403, 'Login requires CSRF')
         token = anonymous.session()['csrf_token']
@@ -138,6 +139,9 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         check(status == 200 and len(result['data']) == 3 and 'password_hash' not in json.dumps(result), 'Admin account list excludes hashes')
         viewer = Client(); check(viewer.login('viewer')[0] == 200, 'Viewer can authenticate')
         check(viewer.call('admin/users')[0] == 403, 'Viewer cannot bypass admin permission through API')
+        operator = Client(); check(operator.login('operator')[0] == 200, 'Operator can authenticate for planning')
+        from planning_http import run_planning_checks
+        run_planning_checks(anonymous, admin, viewer, operator, check, command, env, php, ROOT)
         command('tests/fixture.php','deactivate_viewer')
         check(viewer.session()['user'] is None, 'Deactivation invalidates an existing session')
         operator = Client(); check(operator.login('operator')[0] == 200, 'Operator can authenticate')

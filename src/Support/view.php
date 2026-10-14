@@ -12,3 +12,8 @@ function units(mixed $value): string
     $text = (string) $value;
     return preg_replace('/\B(?=(\d{3})+(?!\d))/', '.', $text) ?? $text;
 }
+
+function record_attribute(array $value): string
+{
+    return e(json_encode($value, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+}

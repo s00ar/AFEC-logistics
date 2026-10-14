@@ -19,6 +19,10 @@ try {
         throw new HttpError(404, 'not_found', 'No se encontró esta página.');
     }
     $user = $app->auth()->current();
+    $canPlan = in_array($user['role'] ?? null, ['admin', 'operator'], true);
+    $includeArchived = Request::flag($_GET['include_archived'] ?? null);
+    if ($includeArchived) { $app->auth()->requirePlanner(); }
+    $listPage = Request::page($_GET['list_page'] ?? null);
     $csrf = $app->session()->csrf();
     $page = $_GET['page'] ?? 'dashboard';
     if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login'], true)) {
@@ -33,11 +37,14 @@ try {
         $title = 'Usuarios';
         $view = 'users';
     } elseif ($page === 'system') {
-        $system = (new ProgressRepository($app->database))->system(Request::positiveId($_GET['id'] ?? null));
+        $system = (new ProgressRepository($app->database))->system(Request::positiveId($_GET['id'] ?? null), $includeArchived, $listPage);
+        $pagination = $system['pagination'];
         $title = $system['name'];
         $view = 'system';
     } else {
-        $systems = (new ProgressRepository($app->database))->systems();
+        $listing = (new ProgressRepository($app->database))->systems($listPage, $includeArchived);
+        $systems = $listing['items'];
+        $pagination = ['page' => $listing['page'], 'has_more' => $listing['has_more']];
         $title = 'Sistemas de colonización';
         $view = 'dashboard';
     }

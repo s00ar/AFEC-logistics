@@ -41,4 +41,20 @@ final class Request
         }
         return $value;
     }
+
+    public static function page(mixed $value): int
+    {
+        if ($value === null) { return 1; }
+        if (!is_string($value) || !preg_match('/^[1-9][0-9]{0,5}$/D', $value)) {
+            throw new HttpError(422, 'invalid_page', 'Página no válida.');
+        }
+        return (int)$value;
+    }
+
+    public static function flag(mixed $value): bool
+    {
+        if ($value === null || $value === '0') { return false; }
+        if ($value === '1') { return true; }
+        throw new HttpError(422, 'invalid_flag', 'Filtro no válido.');
+    }
 }

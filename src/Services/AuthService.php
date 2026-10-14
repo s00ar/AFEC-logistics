@@ -42,6 +42,15 @@ final class AuthService
         return $user;
     }
 
+    public function requirePlanner(): array
+    {
+        $user = $this->requireUser();
+        if (!in_array($user['role'], ['admin', 'operator'], true)) {
+            throw new HttpError(403, 'forbidden', 'No tenés permiso para modificar la planificación.');
+        }
+        return $user;
+    }
+
     public function login(array $input, string $address): array
     {
         $username = $input['username'] ?? null;
