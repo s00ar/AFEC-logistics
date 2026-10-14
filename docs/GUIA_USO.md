@@ -8,6 +8,8 @@ Abrir [AFEC Logística](https://logistica.afec.space/) para consultar el progres
 
 Las cuentas de la demo local no se publican mediante Git. El primer administrador, la configuración privada de MySQL y las migraciones se preparan según [DESPLIEGUE.md](DESPLIEGUE.md). Un push publica código; no crea cuentas ni ejecuta SQL. Si el sitio devuelve 403/500 o un error de conexión, todavía no se puede dar la instalación por operativa.
 
+Para la base vacía se entregó un SQL privado de instalación inicial con el catálogo y una cuenta `admin`. La contraseña está en `ACCESO_ADMINISTRADOR.txt` junto al SQL, fuera de Git. Importación y acceso en [IMPORTAR_PHPMYADMIN.md](IMPORTAR_PHPMYADMIN.md). Después de importar, crear las demás cuentas desde **Usuarios**. Las referencias ya vienen cargadas; no hay que precargar otra vez el catálogo.
+
 Estado comprobado el 14/10/2026 tras publicar: login y API de sesión disponibles (200), recursos CSS/JavaScript de la nueva versión y logo accesibles (200), panel y API de sistemas no disponibles (503). La configuración/conexión/esquema MySQL remotos requieren revisión; no se dispone de acceso al servidor para precisar cuál falla. El login visible no confirma que existan usuarios ni que se pueda autenticar todavía.
 
 ## Ingresar a la demo

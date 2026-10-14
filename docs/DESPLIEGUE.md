@@ -48,6 +48,8 @@ Crear `storage/sessions` y `storage/logs` en ubicación privada, escribible por 
 
 ## Esquema y primer administrador
 
+Para la base vacía confirmada por el propietario se preparó un paquete privado completo, con esquema, catálogo y administrador, importable desde phpMyAdmin sin SSH. Archivo, verificación y pasos en [IMPORTAR_PHPMYADMIN.md](IMPORTAR_PHPMYADMIN.md). Es una alternativa para la instalación inicial; el migrador CLI continúa siendo el procedimiento para aplicar versiones posteriores. No importar este paquete sobre una base existente.
+
 `database/migrations/001_initial.sql` es la estructura inicial; `002_user_management.sql`, `003_logistics_lists.sql` y `004_password_operation_verifier.sql` habilitan cuentas y logística de fase 3. No contienen datos reales ni cuentas predeterminadas; solo un mutex técnico de cuentas. `database/migration_registry.sql` define el registro de versiones. Antes de aplicarlos verificar motor compatible (MySQL 8.0.16+ o MariaDB 10.11+), base vacía o estado registrado, InnoDB, backup y checksums. Registrar cada versión y checksum en `schema_migrations` mediante el migrador.
 
 MySQL puede confirmar DDL implícitamente: un rollback de transacción no deshace una instalación parcial. No repetir CREATE sobre una instalación incompleta; revisar el estado y restaurar el backup conforme al procedimiento acordado.
@@ -66,7 +68,7 @@ El primer administrador se crea mediante una herramienta CLI privada:
 php tools/create-admin.php --username=admin --name="Administrador AFEC" --password-file=RUTA_PRIVADA
 ```
 
-Guardar el archivo de contraseña fuera del webroot y retirarlo después. El comando se niega a crear otro administrador si ya existen cuentas. Si el hosting no dispone de CLI/SSH, se preparará una inicialización alternativa revisable; no se publicará un instalador permanente.
+Guardar el archivo de contraseña fuera del webroot y retirarlo después. El comando se niega a crear otro administrador si ya existen cuentas. El paquete privado de phpMyAdmin ya crea su propio primer administrador; no ejecutar este comando después de importarlo. No se publica un instalador HTTP permanente.
 
 ## Verificación y rollback
 
