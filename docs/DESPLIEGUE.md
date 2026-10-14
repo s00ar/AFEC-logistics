@@ -6,7 +6,7 @@ Crear un sitio personalizado PHP/HTML vacío. PHP 8.4 recomendado; activar `pdo_
 
 El propietario confirmó que Hostinger despliega la carpeta raíz completa del repositorio. No mover archivos ni cambiar el document root a `public/` para esta instalación. En la raíz quedan `index.php` (entrada HTML), `api/index.php` (entrada JSON), `.htaccess` y todas las carpetas del proyecto. Las dos entradas delegan en los controladores existentes; no hay lógica de negocio duplicada.
 
-El HTML de esta disposición carga `/public/assets/css/app.css` y `/public/assets/js/{app,http,planning}.js`. `.htaccess` permite únicamente esas rutas, `/`, `/index.php` y `/api/index.php`; bloquea cualquier otra ruta con 403. Las carpetas privadas conservan además sus reglas locales. No sirve documentación, SQL, tests, herramientas CLI, ZIP/handoff, Git, archivos de configuración ni almacenamiento.
+El HTML de esta disposición carga `/public/assets/css/app.css`, `/public/assets/js/{app,http,planning,logistics}.js` y `/public/assets/img/afec-logistica.png`. `.htaccess` permite únicamente esas rutas, `/`, `/index.php` y `/api/index.php`; bloquea cualquier otra ruta con 403. Las carpetas privadas conservan además sus reglas locales. No sirve documentación, SQL, tests, herramientas CLI, ZIP/handoff, Git, archivos de configuración ni almacenamiento.
 
 Requisito: Apache/LiteSpeed compatible con `mod_rewrite`, autorización de Apache 2.4 y overrides `.htaccess`. Una configuración que ignore `.htaccess` no es compatible con este despliegue. El servidor integrado de PHP ignora esas reglas y solo se usa con `-t public` en desarrollo. No quitar las reglas de protección para resolver un error de servidor.
 
@@ -24,7 +24,7 @@ Crear `storage/sessions` y `storage/logs` en ubicación privada, escribible por 
 
 ## Esquema y primer administrador
 
-`database/migrations/001_initial.sql` es únicamente la estructura; no contiene datos reales ni cuentas predeterminadas. `database/migration_registry.sql` define el registro técnico de versiones. Antes de aplicarlos verificar motor compatible (MySQL 8.0.16+ o MariaDB 10.11+), base vacía, InnoDB, backup y checksums. Registrar la versión aplicada y el checksum del SQL en `schema_migrations`.
+`database/migrations/001_initial.sql` es la estructura inicial; `002_user_management.sql`, `003_logistics_lists.sql` y `004_password_operation_verifier.sql` habilitan cuentas y logística de fase 3. No contienen datos reales ni cuentas predeterminadas; solo un mutex técnico de cuentas. `database/migration_registry.sql` define el registro de versiones. Antes de aplicarlos verificar motor compatible (MySQL 8.0.16+ o MariaDB 10.11+), base vacía o estado registrado, InnoDB, backup y checksums. Registrar cada versión y checksum en `schema_migrations` mediante el migrador.
 
 MySQL puede confirmar DDL implícitamente: un rollback de transacción no deshace una instalación parcial. No repetir CREATE sobre una instalación incompleta; revisar el estado y restaurar el backup conforme al procedimiento acordado.
 
@@ -40,11 +40,11 @@ Guardar el archivo de contraseña fuera del webroot y retirarlo después. El com
 
 ## Verificación y rollback
 
-Antes de habilitar el sitio: comprobar `/`, `/index.php`, API, CSS y módulos JavaScript; lectura anónima, login/logout y CRUD de operador. Solicitar directamente `/config/config.local.php`, `/database/migrations/001_initial.sql`, `/.git/HEAD`, `/storage/`, `/tools/preflight.php`, `/README.md` y el ZIP de handoff: deben devolver 403 sin contenido privado. Si alguna ruta entrega contenido, retirar acceso público y revisar la configuración del servidor. La configuración, esquema y primer administrador son pasos necesarios antes de usar la aplicación; un push no incluye secretos ni inicializa MySQL.
+Antes de habilitar el sitio: comprobar `/`, `/index.php`, API, CSS, logo y módulos JavaScript; lectura anónima, login/logout, CRUD de operador/usuarios y privacidad de listas personal/flota. Solicitar directamente `/config/config.local.php`, `/database/migrations/001_initial.sql`, `/.git/HEAD`, `/storage/`, `/tools/preflight.php`, `/README.md` y el ZIP de handoff: deben devolver 403 sin contenido privado. Si alguna ruta entrega contenido, retirar acceso público y revisar la configuración del servidor. La configuración, esquema y primer administrador son pasos necesarios antes de usar la aplicación; un push no incluye secretos ni inicializa MySQL.
 
 El servidor y la base remotos no se han verificado desde este PC. No ejecutar automáticamente migraciones ni importaciones al desplegar código. Las pruebas locales de Apache no sustituyen la comprobación del servidor real.
 
-La fase 2 habilita CRUD de planificación y objetivos; no habilita carga de entregas. No necesita migración nueva sobre la estructura de fase 1. El rollback de una instalación real restaura una versión de archivos previamente verificada para la misma disposición raíz y conserva configuración privada, base y backups. No restaurar una versión que carezca de entrada raíz o bloqueo HTTP en un webroot que exponga todo el repositorio. Nunca eliminar registros reales para repetir una instalación. Ensayar restauración aislada antes de futuras migraciones.
+La fase 3 requiere migraciones 002/003/004 y habilita cuentas, entregas/correcciones, estados, listas y abastecimiento. El rollback de una instalación real restaura una versión de archivos previamente verificada para la misma disposición raíz y conserva configuración privada, base y backups. Mantener las migraciones aplicadas y sus checksums; no usar un migrador antiguo que las desconozca. No restaurar una versión sin entrada raíz o bloqueo HTTP en un webroot que exponga todo el repositorio. Nunca eliminar registros reales para repetir una instalación. Ensayar restauración aislada antes de futuras migraciones.
 
 La adaptación raíz está separada del commit CRUD `26e7c2e`: en desarrollo puede revertirse para volver al modo `public/`, manteniendo datos y auditoría. Todavía no hay despliegue real ejecutado por el agente.
 

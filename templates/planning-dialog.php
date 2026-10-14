@@ -17,7 +17,7 @@
     <label>Nombre de la instalación<input name="name" maxlength="255" required></label>
     <div class="form-columns"><label>Cuerpo<input name="body_name" maxlength="255"></label><label>Ubicación<input name="location_label" maxlength="255"></label></div>
     <div class="form-columns"><label>Tier<input name="tier" maxlength="20"></label><label>Tipo<input name="type" maxlength="80"></label></div>
-    <div class="form-columns"><label>Estado<input name="state" maxlength="60" value="planned"></label><label>Orden visual<input name="sort_order" type="number" step="1" min="-2147483648" max="2147483647" value="0" required></label></div>
+    <input name="state" type="hidden" value="planned"><label>Orden visual<input name="sort_order" type="number" step="1" min="-2147483648" max="2147483647" value="0" required></label><p class="muted">Las instalaciones nuevas comienzan En construcción. Podés terminarlas o reabrirlas desde su panel.</p>
     <label>Motivo<textarea name="reason" maxlength="1000" rows="2"></textarea></label>
 </template>
 <template id="form-requirement">
@@ -27,7 +27,7 @@
 </template>
 <template id="form-archive">
     <label>Motivo<textarea name="reason" maxlength="1000" rows="2" required></textarea></label>
-    <label class="confirm-row"><input name="confirmed" type="checkbox" required>Confirmo el archivo y la conservación del historial.</label>
+    <label class="confirm-row"><input name="confirmed" type="checkbox" required>Confirmo la baja y la conservación del historial.</label>
 </template>
 <template id="form-commodity">
     <label>Código del material<input name="code" maxlength="120" required></label>

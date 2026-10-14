@@ -7,8 +7,9 @@ if ($cfg['app']['environment']!=='test'||!in_array($cfg['database']['host'],['12
 $db=$app->database->connection(); $action=$argv[1]??'seed';
 if ($action==='reset') {
     $db->exec('DROP TRIGGER IF EXISTS afec_test_fail_revision');
+    $db->exec('DROP TRIGGER IF EXISTS afec_test_fail_audit');
     $db->exec('SET FOREIGN_KEY_CHECKS=0');
-    try { foreach (['audit_log','movements','requirement_revisions','operations','import_items','import_runs','requirements','installations','systems','commodities','users','commanders','carriers','login_attempts'] as $table) { $db->exec('TRUNCATE TABLE '.$table); } }
+    try { foreach (['wishlist_entries','commodity_sources','audit_log','movements','requirement_revisions','operations','import_items','import_runs','requirements','installations','systems','commodities','users','commanders','carriers','login_attempts'] as $table) { $db->exec('TRUNCATE TABLE '.$table); } }
     finally { $db->exec('SET FOREIGN_KEY_CHECKS=1'); }
     echo "Local fixture reset.\n"; exit;
 }

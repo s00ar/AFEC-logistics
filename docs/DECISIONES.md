@@ -8,14 +8,20 @@
 - Operadores y administradores pueden crear, consultar, editar y archivar/restaurar sistemas e instalaciones, y crear, editar, retirar/restaurar objetivos de materiales. Las bajas conservan registros, revisiones y movimientos.
 - En movimientos, `commander_id` identifica a quien entrega y `created_by_user_id` a quien registra. Este último siempre proviene de la sesión; el cliente no puede imponerlo. Fecha, cantidad y pareja instalación/material corresponden al movimiento.
 - MySQL en Hostinger usa `localhost:3306`. Los valores privados están en `config/config.local.php`, ignorado por Git. `localhost` se refiere al servidor donde ejecuta PHP; no permite desde el PC alcanzar la base de Hostinger.
+- Listas personal (privada a la cuenta) y de flota (compartida por todos los usuarios autenticados). Cada usuario modifica la propia y la flota, nunca la de otros.
+- Listas calculadas con faltantes actuales, excluyendo instalaciones terminadas y archivadas. La misma instalación puede estar en ambas listas sin duplicarse dentro de cada una.
+- Se permite marcar Terminada manualmente aunque queden faltantes, para compensar desfasajes. Reapertura auditada; no se alteran las entregas reales.
+- Se permiten correcciones mediante retiros parciales/completos vinculados al original, sin borrarlo. Se admiten sobreentregas, sin compensar automáticamente otra instalación/material.
+- Todos los usuarios autenticados pueden agregar, corregir y retirar lugares de abastecimiento compartidos por mercancía.
+- Autorizada la ampliación y el CRUD de usuarios con asignación de roles. Se mantiene administración de cuentas solo para administrador y la prohibición de escrituras públicas.
 
 ## Pendiente para las siguientes fases
 
-- Permisos de correcciones, administración de comandantes/carriers, catálogo y usuarios. Por ahora, solo el administrador da de alta materiales de catálogo.
-- Sobreentregas/sobrantes, límites de cantidad, reversión completa/parcial y saldos negativos.
-- Confirmar que las cargas son entregas recibidas por la instalación. Embarques en carrier serían otro flujo y no se suman como entregas.
+- Administración completa de comandantes/carriers y catálogo; por ahora, solo el administrador da de alta materiales de catálogo.
+- Reservas/cargas en tránsito y reconciliación de saldos negativos históricos. Los retiros nuevos no pueden exceder la entrega original ni crear un saldo negativo.
+- Las cargas implementadas son entregas recibidas por la instalación; no se cuentan embarques o mercadería en tránsito como entregada.
 - Fórmula global propuesta: cantidad cubierta limitada por objetivo, ponderada por unidades; objetivos cero sin porcentaje; archivadas excluidas del progreso operativo.
-- Tipos, tiers y estados; identidades/aliases y deduplicación.
+- Catálogo verificado de tipos/tiers, identidades/aliases y deduplicación. Los estados formales En construcción/Terminada ya están definidos e implementados.
 - Fuentes Apps Script, export completo e historial de Sheets. Terminal AFEC sigue sin fuentes verificables.
 - URL y versión real de PHP/MySQL en Hostinger, y verificación de la protección HTTP en la disposición raíz confirmada. Corte e importación requieren aprobación específica.
 
@@ -25,9 +31,15 @@ Alcance: esquema inicial, configuración, sesiones/CSRF, roles, lectura pública
 
 Las restricciones de reversión completa del esquema son provisionales; no hay servicio de reversión habilitado. El modelo puede ajustarse mediante una migración posterior antes del primer uso real. Los datos de prueba son sintéticos y locales.
 
+La fase 3 reemplaza esa restricción provisional mediante `003_logistics_lists.sql`, habilitando compensaciones parciales repetidas y acotadas.
+
 ## Fase 2
 
 CRUD de planificación para operadores, archivo/restauración y revisiones auditadas, transacciones, control de versiones, idempotencia y formularios responsive. Listas de sistemas, instalaciones e historial paginadas de 25 en 25. No incluye aún entregas ni importación. Resultado en [FASE_2.md](FASE_2.md).
+
+## Fase 3
+
+CRUD administrativo de cuentas y roles incorporados; estados de construcción; entregas propias/de terceros y retiros compensatorios; listas personal/flota; abastecimiento compartido y uso del logo. Decisiones de implementación: Comandante corrige sus entregas, operador/admin las de terceros; no hay roles personalizados ni registro público. Las bajas son reversibles y conservan referencias. Resultado y límites en [FASE_3.md](FASE_3.md).
 
 ## Disposición de despliegue confirmada
 

@@ -23,12 +23,35 @@ const definitions = {
   'requirement-edit': { template: 'requirement', title: 'Editar objetivo', route: 'requirement', method: 'PUT', edit: true },
   'requirement-archive': { template: 'archive', title: 'Retirar objetivo', route: 'requirement', method: 'DELETE', query: r => ({ installation_id: r.installation_id, commodity_id: r.commodity_id }), archive: true },
   'commodity-create': { template: 'commodity', title: 'Agregar material al catálogo', route: 'commodities', method: 'POST', fields: ['code', 'name_es', 'name_en'] },
+  'user-create': { template: 'user', title: 'Crear usuario', route: 'admin/users', method: 'POST', fields: ['username','display_name','role','password','reason'], secret: true, scope: 'admin.user.create', userAction: true },
+  'user-edit': { template: 'user', title: 'Editar usuario y rol', route: 'admin/user', method: 'PATCH', fields: ['username','display_name','role','active','reason'], query: r => ({id:r.id}), edit: true, userAction: true },
+  'user-password': { template: 'user-password', title: 'Restablecer contraseña', route: 'admin/user/password', method: 'POST', fields: ['password','reason'], query: r => ({id:r.id}), edit: true, secret: true, scope: 'admin.user.password', userAction: true },
+  'user-delete': { template: 'archive', title: 'Eliminar usuario', route: 'admin/user', method: 'DELETE', query: r => ({id:r.id}), archive: true, userAction: true },
+  'user-restore': { template: 'archive', title: 'Restaurar usuario', route: 'admin/user/restore', method: 'POST', query: r => ({id:r.id}), userAction: true },
+  'installation-status': { template: 'status', title: 'Cambiar estado de construcción', route: 'installation/status', method: 'PATCH', fields: ['construction_status','reason','confirmed'], query: r => ({id:r.id}), edit: true },
+  'list-add': { template: 'list', title: 'Añadir instalación a lista', route: 'wishlist/entries', method: 'POST', fields: ['scope'], query: r => ({installation_id:r.installation_id}), keepPage: true },
+  'list-remove': { template: 'list', title: 'Quitar instalación de esta lista', route: 'wishlist/entry', method: 'DELETE', fields: ['scope','reason'], query: r => ({installation_id:r.installation_id}), edit: true, keepPage: true },
+  'source-create': { template: 'source', title: 'Agregar lugar de abastecimiento', route: 'sources', method: 'POST', fields: ['system_name','facility_name','facility_type','notes','reason'], commodityBody: true, keepPage: true },
+  'source-edit': { template: 'source', title: 'Editar lugar de abastecimiento', route: 'source', method: 'PATCH', fields: ['system_name','facility_name','facility_type','notes','reason'], query: r => ({id:r.id}), edit: true, keepPage: true },
+  'source-delete': { template: 'archive', title: 'Retirar lugar de abastecimiento', route: 'source', method: 'DELETE', query: r => ({id:r.id}), archive: true, keepPage: true },
+  'source-restore': { template: 'archive', title: 'Restaurar lugar de abastecimiento', route: 'source/restore', method: 'POST', query: r => ({id:r.id}), keepPage: true },
+  'delivery-create': { template: 'delivery', title: 'Registrar entrega recibida', route: 'deliveries', method: 'POST', fields: ['quantity','commander_id','commander_name','carrier_id','carrier_name','carrier_code','occurred_at','reason'], query: r => ({installation_id:r.installation_id,commodity_id:r.commodity_id}), keepPage: true },
+  'movement-withdraw': { template: 'withdraw', title: 'Retirar / corregir material registrado', route: 'movement/withdraw', method: 'POST', fields: ['quantity','reason','confirmed'], query: r => ({id:r.id}), keepPage: true },
 };
 let active = null;
 let pending = null;
 let storageBlocked = false;
 let busy = false;
 let editorGeneration = 0;
+const scopes = {
+  'system-create':'planning.system.create','system-edit':'planning.system.update','system-archive':'planning.system.archive','system-restore':'planning.system.restore',
+  'installation-create':'planning.installation.create','installation-edit':'planning.installation.update','installation-archive':'planning.installation.archive','installation-restore':'planning.installation.restore',
+  'requirement-create':'planning.requirement.save','requirement-edit':'planning.requirement.save','requirement-archive':'planning.requirement.remove','commodity-create':'planning.commodity.create',
+  'user-create':'admin.user.create','user-edit':'admin.user.update','user-delete':'admin.user.delete','user-restore':'admin.user.restore','user-password':'admin.user.password',
+  'installation-status':'logistics.status','list-add':'logistics.list.add','list-remove':'logistics.list.remove',
+  'source-create':'logistics.source.create','source-edit':'logistics.source.update','source-delete':'logistics.source.delete','source-restore':'logistics.source.restore',
+  'delivery-create':'logistics.delivery','movement-withdraw':'logistics.withdraw',
+};
 
 function toast(message, success = false) {
   const box = document.querySelector('#global-message');
@@ -65,6 +88,7 @@ function readPending() {
 function freeze(on) {
   for (const control of fields.querySelectorAll('input, select, textarea')) control.disabled = on;
   if (!on && active?.record.commodity_id && form.elements.commodity_id) form.elements.commodity_id.disabled = true;
+  if (!busy && pending?.secretMissing && form.elements.password) form.elements.password.disabled = false;
 }
 
 function busyState(on) {
@@ -87,11 +111,21 @@ async function openEditor(action, record = {}, resume = false) {
   reloadButton.hidden = true;
   document.querySelector('#editor-title').textContent = action === 'requirement-edit' && !Number(record.active) ? 'Restaurar objetivo' : definition.title;
   document.querySelector('#editor-description').textContent = definition.archive
-    ? 'Saldrá de la planificación activa. Los registros y movimientos permanecerán disponibles.'
-    : record.name || record.commodity_name || 'Completá los datos de la planificación.';
+    ? (definition.userAction ? 'Se revocará el acceso de la cuenta. Sus entregas e historial se conservarán.' : action === 'source-delete' ? 'El lugar dejará de aparecer como abastecimiento activo. Su historial se conservará.' : 'Saldrá de la planificación activa. Los registros y movimientos permanecerán disponibles.')
+    : record.name || record.display_name || record.commodity_name || 'Completá los datos de la operación.';
   for (const control of fields.querySelectorAll('[name]')) {
-    if (Object.hasOwn(record, control.name) && control.type !== 'checkbox') control.value = record[control.name] ?? '';
+    if (Object.hasOwn(record, control.name)) control.type === 'checkbox' ? control.checked = Boolean(record[control.name]) : control.value = record[control.name] ?? '';
   }
+  if (definition.template === 'user') {
+    const hide = action === 'user-edit' ? form.elements.password : form.elements.active;
+    hide.required = false; hide.closest('label').hidden = true;
+  }
+  if (definition.template === 'status') {
+    form.elements.construction_status.value = record.next_status;
+    if (record.next_status !== 'completed') { form.elements.confirmed.required = false; form.elements.confirmed.closest('label').hidden = true; }
+  }
+  if (definition.template === 'list' && action === 'list-add') { form.elements.reason.required = false; form.elements.reason.closest('label').hidden = true; }
+  if (definition.template === 'withdraw') form.elements.quantity.value = record.available_quantity;
   if (definition.edit && form.elements.reason) form.elements.reason.required = true;
   if (definition.template === 'archive' && !definition.archive) {
     const check = form.elements.confirmed;
@@ -101,11 +135,33 @@ async function openEditor(action, record = {}, resume = false) {
   if (resume) {
     for (const [name, value] of Object.entries(pending.request.body)) {
       const control = form.elements[name];
-      if (control) control.type === 'checkbox' ? control.checked = value : control.value = value ?? '';
+      if (control) {
+        if (control.type === 'checkbox') control.checked = value;
+        else if (name === 'occurred_at' && value) {
+          const date = new Date(value); const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+          control.value = local.toISOString().slice(0,19);
+        } else control.value = value ?? '';
+      }
     }
   }
   if (!dialog.open) dialog.showModal();
   busyState(false);
+  if (definition.template === 'delivery') {
+    submit.disabled = true;
+    try {
+      const result = await request('logistics/options');
+      if (generation !== editorGeneration || !dialog.open) return;
+      for (const [kind, field] of [['commanders','commander_id'],['carriers','carrier_id']]) {
+        const select = form.elements[field]; if (!select) continue;
+        for (const value of result.data[kind]) {
+          const option = document.createElement('option'); option.value = value.id;
+          option.textContent = value.display_name || `${value.name}${value.code ? ` (${value.code})` : ''}`; select.append(option);
+        }
+        if (resume) select.value = pending.request.body[field] || '';
+      }
+      busyState(false);
+    } catch (failure) { errorBox.textContent = failure.message; errorBox.hidden = false; submit.disabled = !resume; }
+  }
   if (definition.template === 'requirement') {
     submit.disabled = true;
     try {
@@ -142,14 +198,43 @@ async function openEditor(action, record = {}, resume = false) {
   }
 }
 
+function remember(operation) {
+  const saved = JSON.parse(JSON.stringify(operation));
+  if (definitions[operation.action].secret) { delete saved.request.body.password; saved.secretMissing = true; }
+  sessionStorage.setItem(storageKey, JSON.stringify(saved));
+}
+
+function finish(operation, result) {
+  try { sessionStorage.removeItem(storageKey); } catch { /* Reconfirming a saved receipt is harmless. */ }
+  pending = null;
+  try { sessionStorage.setItem('afec.planning.flash', 'La operación se guardó correctamente.'); } catch { /* Already confirmed. */ }
+  const definition = definitions[operation.action];
+  if (definition.keepPage) { window.location.reload(); return; }
+  const destination = new URL(home, window.location.href);
+  if (definition.userAction) {
+    destination.searchParams.set('page', operation.record.id === actorId ? 'login' : 'users');
+  } else if (operation.action !== 'system-archive' && operation.action !== 'commodity-create') {
+    destination.searchParams.set('page', 'system'); destination.searchParams.set('id', result.data.system_id || result.data.id);
+    if (['installation-archive','requirement-archive'].includes(operation.action)) destination.searchParams.set('include_archived','1');
+  }
+  window.location.assign(destination);
+}
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (busy || !active || (!pending && !form.reportValidity())) return;
   const definition = definitions[active.action];
+  const wasPending = Boolean(pending);
+  let priorResultAbsent = !wasPending;
   let operation = pending;
   if (!operation) {
     const body = {};
-    for (const name of definition.fields || []) body[name] = form.elements[name].value;
+    for (const name of definition.fields || []) {
+      const control = form.elements[name]; if (!control) continue;
+      body[name] = control.type === 'checkbox' ? control.checked : control.value;
+      if (name === 'occurred_at' && control.value) body[name] = new Date(control.value).toISOString().replace(/\.\d{3}Z$/,'Z');
+    }
+    if (definition.commodityBody) body.commodity_id = active.record.commodity_id;
     if (definition.template === 'requirement') {
       body.required_quantity = form.elements.required_quantity.value;
       body.version = active.record.version || '0';
@@ -165,7 +250,7 @@ form.addEventListener('submit', async event => {
     const savedRecord = definition.template === 'requirement' ? { ...active.record, commodity_id: query.commodity_id } : active.record;
     operation = { action: active.action, record: savedRecord, actor_id: actorId,
       request: { route: definition.route, method: definition.method, query, body, key: crypto.randomUUID() } };
-    try { sessionStorage.setItem(storageKey, JSON.stringify(operation)); }
+    try { remember(operation); }
     catch {
       errorBox.textContent = 'El navegador no puede conservar la operación. Habilitá almacenamiento para evitar cargas duplicadas.';
       errorBox.hidden = false;
@@ -176,22 +261,24 @@ form.addEventListener('submit', async event => {
   errorBox.hidden = true;
   busyState(true);
   try {
-    const result = await request(operation.request.route, operation.request);
-    try { sessionStorage.removeItem(storageKey); } catch { /* A later replay will return the confirmed result. */ }
-    pending = null;
-    try { sessionStorage.setItem('afec.planning.flash', 'La planificación se guardó correctamente.'); } catch { /* The server has already confirmed success. */ }
-    const data = result.data;
-    const destination = new URL(home, window.location.href);
-    if (operation.action === 'system-archive' || operation.action === 'commodity-create') {
-      // Return to the public list or catalog context.
-    } else {
-      destination.searchParams.set('page', 'system');
-      destination.searchParams.set('id', data.system_id || data.id);
-      if (operation.action === 'installation-archive' || operation.action === 'requirement-archive') destination.searchParams.set('include_archived', '1');
+    if (wasPending) {
+      const receipt = await request('operation', {query:{scope:scopes[operation.action],key:operation.request.key}});
+      if (receipt.data) { finish(operation, receipt.data); return; }
+      priorResultAbsent = true;
     }
-    window.location.assign(destination);
+    if (operation.secretMissing) {
+      busyState(false);
+      if (!form.elements.password.reportValidity()) {
+        errorBox.textContent = 'La operación no tiene un resultado confirmado. Reingresá la contraseña para reintentar con la misma clave.';
+        errorBox.hidden = false; return;
+      }
+      operation.request.body.password = form.elements.password.value; operation.secretMissing = false;
+      busyState(true);
+    }
+    const result = await request(operation.request.route, operation.request);
+    finish(operation, result);
   } catch (failure) {
-    if (!failure.uncertain) {
+    if (!failure.uncertain && priorResultAbsent) {
       try { sessionStorage.removeItem(storageKey); } catch { storageBlocked = true; }
       pending = null;
     }
@@ -218,8 +305,8 @@ const next = document.querySelector('#history-next');
 let historyRecord = null;
 let historyPage = 1;
 let historyGeneration = 0;
-const labels = { name: 'Nombre', description: 'Descripción', body_name: 'Cuerpo', location_label: 'Ubicación', tier: 'Tier', type: 'Tipo', state: 'Estado', sort_order: 'Orden', archived_at: 'Archivo' };
-const actions = { create: 'Creación', update: 'Edición', archive: 'Archivo', restore: 'Restauración' };
+const labels = { name: 'Nombre', description: 'Descripción', body_name: 'Cuerpo', location_label: 'Ubicación', tier: 'Tier', type: 'Tipo', state: 'Estado anterior', construction_status: 'Construcción', sort_order: 'Orden', archived_at: 'Archivo' };
+const actions = { create: 'Creación', update: 'Edición', archive: 'Archivo', restore: 'Restauración', status: 'Cambio de construcción' };
 const quantity = value => String(value ?? '—').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 async function loadHistory() {
@@ -281,6 +368,7 @@ document.addEventListener('click', event => {
     loadHistory();
   } else openEditor(button.dataset.action, record);
 });
+document.addEventListener('afec:edit', event => openEditor(event.detail.action, event.detail.record));
 previous.addEventListener('click', () => { historyPage--; loadHistory(); });
 next.addEventListener('click', () => { historyPage++; loadHistory(); });
 document.querySelector('#close-history').addEventListener('click', () => historyDialog.close());

@@ -9,7 +9,7 @@ $count = 0;
 function check(bool $value, string $name): void { global $count; if (!$value) { throw new RuntimeException($name); } $count++; }
 function reject(callable $action, string $name): void { $rejected = false; try { $action(); } catch (PDOException) { $rejected = true; } check($rejected, $name); }
 $tables = $db->query("SELECT TABLE_NAME, ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()")->fetchAll();
-check(count($tables) === 15, 'Initial schema has 15 tables, including migration ledger and login throttling');
+check(count($tables) === 18, 'Versioned schema has 18 tables, including accounts lock, lists and sources');
 check(count(array_filter($tables, static fn(array $row):bool => $row['ENGINE'] !== 'InnoDB')) === 0, 'Every table uses InnoDB');
 $db->beginTransaction();
 try {

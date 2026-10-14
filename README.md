@@ -4,15 +4,15 @@ Aplicación de colonización de Elite Dangerous. Monolito PHP + PDO MySQL/MariaD
 
 ## Estado
 
-Fases 1 y 2 implementadas y verificadas localmente: autenticación, sesiones/CSRF, roles, esquema relacional, panel público y CRUD de sistemas, instalaciones y objetivos para operadores/administradores, con archivo/restauración e historial. Materiales nuevos y consulta de cuentas solo por administrador. Alcance y resultados en [docs/FASE_1.md](docs/FASE_1.md) y [docs/FASE_2.md](docs/FASE_2.md).
+Fases 1–3 implementadas y verificadas localmente: autenticación, sesiones/CSRF, roles, panel público, CRUD de planificación y cuentas, estados de construcción, entregas y retiros compensatorios, listas personal/flota y abastecimiento compartido con copia de nombres. Logo incorporado. Alcance y pruebas en [docs/FASE_1.md](docs/FASE_1.md), [docs/FASE_2.md](docs/FASE_2.md) y [docs/FASE_3.md](docs/FASE_3.md).
 
-Todavía no están habilitados registro/reversión de entregas, administración editable de cuentas, comandantes/carriers ni importación de Sheets. No se ha desplegado desde este entorno ni aplicado el esquema en Hostinger.
+Pendientes: importación de Sheets, recetas verificadas, reservas/cargas en tránsito, catálogo editable completo y pantallas administrativas completas de comandantes/carriers. Se admite selección/alta de identidades al registrar entregas. No se ha desplegado desde este entorno ni aplicado el esquema en Hostinger.
 
 La consulta pública y los aportes registrados por operadores en nombre de terceros están confirmados en [docs/DECISIONES.md](docs/DECISIONES.md). El resto de políticas sigue documentado como pendiente. El material de origen permanece intacto en `AFEC_Logistica_Handoff_Codex/`; el diagnóstico está en `ANALISIS_AFEC_LOGISTICA.md`.
 
 La adaptación para desplegar la raíz completa está verificada localmente con Apache. Alcance, requisitos y pruebas en [docs/FASE_RAIZ_HOSTINGER.md](docs/FASE_RAIZ_HOSTINGER.md); instalación en [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md).
 
-Pasos de acceso y CRUD en [docs/GUIA_USO.md](docs/GUIA_USO.md). La ampliación solicitada de cuentas, estados, lista de deseos, abastecimiento compartido y marca está registrada como propuesta pendiente de decisiones en [docs/PROPUESTA_FASE_3.md](docs/PROPUESTA_FASE_3.md).
+Pasos de acceso y flujos actuales en [docs/GUIA_USO.md](docs/GUIA_USO.md). La propuesta original se conserva en [docs/PROPUESTA_FASE_3.md](docs/PROPUESTA_FASE_3.md); las decisiones posteriores aprobadas están en [docs/DECISIONES.md](docs/DECISIONES.md).
 
 ## Estructura
 
@@ -63,11 +63,25 @@ Entrada HTTP: `/api/index.php?route=...` en ambos modos de despliegue (las opera
 | PATCH / DELETE | `installation&id=ID` | Operador/admin; editar / archivar |
 | POST | `installation/restore&id=ID` | Operador/admin; restaurar |
 | PUT / DELETE | `requirement&installation_id=ID&commodity_id=ID` | Operador/admin; guardar/restaurar / retirar objetivo |
-| GET | `planning/history&type=system|installation|requirement&id=ID` | Operador/admin; historial; objetivo requiere `commodity_id` |
+| GET | `planning/history&type=TYPE&id=ID` | Operador/admin; historial de system/installation/requirement; objetivo requiere `commodity_id` |
 | POST | `commodities` | Administrador; alta de material |
-| GET | `admin/users` | Administrador |
+| GET / POST | `admin/users` | Administrador; listar / crear cuenta |
+| GET / PATCH / DELETE | `admin/user&id=ID` | Administrador; consultar / editar / eliminar reversiblemente |
+| POST | `admin/user/password&id=ID`, `admin/user/restore&id=ID` | Administrador; contraseña / restauración |
+| GET | `admin/roles` | Administrador; roles incorporados |
+| PATCH | `installation/status&id=ID` | Operador/admin; estado manual de construcción |
+| GET | `wishlist&scope=SCOPE` | Autenticado; scope personal o fleet, nunca otra cuenta |
+| GET | `wishlist/destinations&scope=SCOPE&commodity_id=ID` | Autenticado; destinos paginados |
+| POST / DELETE | `wishlist/entries&installation_id=ID` / `wishlist/entry&installation_id=ID` | Autenticado; añadir / quitar; scope en JSON |
+| GET / POST | `sources&commodity_id=ID` / `sources` | Autenticado; consultar / agregar abastecimiento |
+| PATCH / DELETE | `source&id=ID` | Autenticado; editar / retirar lugar |
+| POST | `source/restore&id=ID` | Autenticado; restaurar lugar |
+| POST | `deliveries&installation_id=ID&commodity_id=ID` | Autenticado; Comandante propio, operador/admin terceros |
+| POST | `movement/withdraw&id=ID` | Autenticado; retiro compensatorio propio o autorizado |
+| GET | `movements&installation_id=ID`, `logistics/options` | Autenticado; historial / identidades activas |
+| GET | `operation&scope=...&key=...` | Autenticado; recibo exclusivo del actor, sin contraseñas |
 
-IDs y cantidades se devuelven como cadenas decimales para conservar precisión. Las operaciones nuevas de entrega usarán `commander_id` y `created_by_user_id`, separado del usuario autenticado que las registra.
+IDs y cantidades se devuelven como cadenas decimales para conservar precisión. Las entregas guardan `commander_id` y `created_by_user_id` separadamente. `quantity` es una cadena entera positiva hasta el máximo BIGINT firmado; una corrección genera su delta negativo. `construction_status` admite `under_construction` o `completed`; completar requiere motivo y confirmación, incluso con faltantes. Listas/abastecimiento requieren login, mientras el progreso permanece público. El rol técnico `viewer` se presenta como Comandante y dispone de logística propia.
 
 Las escrituras de planificación requieren `X-CSRF-Token` e `Idempotency-Key` (16–100 caracteres ASCII alfanuméricos, `_` o `-`). Editar/retirar/restaurar requiere la `version` recibida al consultar y un `reason`. Un objetivo nuevo usa versión `"0"` y `required_quantity` como cadena decimal; las bajas requieren `confirmed=true`. Repetir exactamente la operación con la misma clave devuelve el resultado guardado. Los listados admiten `list_page`; sistemas e instalaciones archivadas requieren operador/admin e `include_archived=1`.
 

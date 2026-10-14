@@ -6,6 +6,7 @@ use Afec\Http\HttpError;
 use Afec\Http\Request;
 use Afec\Http\Response;
 use Afec\Http\PlanningController;
+use Afec\Http\ExpansionController;
 use Afec\Repositories\PlanningRepository;
 use Afec\Repositories\ProgressRepository;
 use Afec\Repositories\UserRepository;
@@ -27,6 +28,11 @@ try {
         return $flag;
     };
     switch ($route) {
+        case 'admin/user': case 'admin/roles': case 'admin/user/password': case 'admin/user/restore':
+        case 'installation/status': case 'wishlist': case 'wishlist/destinations': case 'wishlist/entries': case 'wishlist/entry':
+        case 'sources': case 'source': case 'source/restore': case 'deliveries': case 'movement/withdraw':
+        case 'movements': case 'logistics/options': case 'operation':
+            ExpansionController::dispatch($app,$route);
         case 'session':
             Request::method('GET');
             $user = $app->auth()->current();
@@ -82,9 +88,7 @@ try {
             $listing = $repository->history($type, $id, $commodityId, Request::page($_GET['list_page'] ?? null));
             Response::json(['data' => $listing['items'], 'pagination' => ['page' => $listing['page'], 'has_more' => $listing['has_more']]]);
         case 'admin/users':
-            Request::method('GET');
-            $app->auth()->requireAdmin();
-            Response::json(['data' => (new UserRepository($app->database))->list()]);
+            ExpansionController::dispatch($app,$route);
         case 'commodities':
             if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') { PlanningController::write($app, $route); }
             Request::method('GET');

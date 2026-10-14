@@ -9,15 +9,17 @@
     <meta name="user-id" content="<?= e($user['id'] ?? '') ?>">
     <title><?= e($title) ?> · AFEC Logística</title>
     <link rel="stylesheet" href="<?= e($app->assetUrl('css/app.css')) ?>">
+    <link rel="icon" type="image/png" href="<?= e($app->assetUrl('img/afec-logistica.png')) ?>">
     <script src="<?= e($app->assetUrl('js/app.js')) ?>" type="module"></script>
-    <?php if ($canPlan): ?><script src="<?= e($app->assetUrl('js/planning.js')) ?>" type="module"></script><?php endif ?>
+    <?php if ($user !== null): ?><script src="<?= e($app->assetUrl('js/planning.js')) ?>" type="module"></script><script src="<?= e($app->assetUrl('js/logistics.js')) ?>" type="module"></script><?php endif ?>
 </head>
 <body>
 <a class="skip-link" href="#main">Saltar al contenido</a>
 <header class="site-header">
-    <a class="brand" href="<?= e($app->url('/')) ?>" aria-label="AFEC Logística, inicio"><span class="brand-mark" aria-hidden="true">A</span><span>AFEC <strong>LOGÍSTICA</strong></span></a>
+    <a class="brand" href="<?= e($app->url('/')) ?>" aria-label="AFEC Logística, inicio"><img class="brand-logo" src="<?= e($app->assetUrl('img/afec-logistica.png')) ?>" alt="" width="64" height="64"><span>AFEC <strong>LOGÍSTICA</strong></span></a>
     <nav aria-label="Navegación principal">
         <a href="<?= e($app->url('/')) ?>" <?= $page === 'dashboard' ? 'aria-current="page"' : '' ?>>Sistemas</a>
+        <?php if ($user !== null): ?><a href="<?= e($app->url('/?page=wishlist&scope=personal')) ?>" <?= $page==='wishlist' && $scope==='personal'?'aria-current="page"':'' ?>>Mi lista</a><a href="<?= e($app->url('/?page=wishlist&scope=fleet')) ?>" <?= $page==='wishlist' && $scope==='fleet'?'aria-current="page"':'' ?>>Flota</a><?php endif ?>
         <?php if (($user['role'] ?? null) === 'admin'): ?><a href="<?= e($app->url('/?page=users')) ?>" <?= $page === 'users' ? 'aria-current="page"' : '' ?>>Usuarios</a><?php endif ?>
     </nav>
     <?php if ($user !== null): ?>
@@ -27,10 +29,10 @@
     <?php endif ?>
 </header>
 <main id="main" class="<?= $view === 'login' ? 'login-main' : 'content' ?>">
-    <?php if ($canPlan): ?><div id="pending-operation" class="pending-banner" role="status" hidden><p>Hay una operación cuyo resultado falta confirmar.</p><button type="button" class="button-quiet" id="resume-operation">Comprobar y reintentar</button></div><?php endif ?>
+    <?php if ($user !== null): ?><div id="pending-operation" class="pending-banner" role="status" hidden><p>Hay una operación cuyo resultado falta confirmar.</p><button type="button" class="button-quiet" id="resume-operation">Comprobar y reintentar</button></div><?php endif ?>
     <?php require __DIR__ . '/' . $view . '.php'; ?>
 </main>
-<?php if ($canPlan): ?><?php require __DIR__ . '/planning-dialog.php'; ?><?php endif ?>
+<?php if ($user !== null): ?><?php require __DIR__ . '/planning-dialog.php'; require __DIR__ . '/logistics-dialogs.php'; ?><?php endif ?>
 <footer class="site-footer"><span>AFEC · Colonización coordinada</span><span>Elite Dangerous</span></footer>
 <div id="global-message" class="toast" role="status" hidden></div>
 </body>

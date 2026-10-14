@@ -7,6 +7,8 @@ use Afec\Http\Request;
 use Afec\Http\Response;
 use Afec\Repositories\ProgressRepository;
 use Afec\Repositories\UserRepository;
+use Afec\Repositories\LogisticsRepository;
+use Afec\Validation\LogisticsInput;
 
 $app = null;
 $requestId = bin2hex(random_bytes(8));
@@ -25,7 +27,7 @@ try {
     $listPage = Request::page($_GET['list_page'] ?? null);
     $csrf = $app->session()->csrf();
     $page = $_GET['page'] ?? 'dashboard';
-    if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login'], true)) {
+    if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login','wishlist'], true)) {
         throw new HttpError(404, 'not_found', 'No se encontró esta página.');
     }
     if ($user === null && ($page === 'login' || !$app->config['app']['public_read'])) {
@@ -33,9 +35,18 @@ try {
         $view = 'login';
     } elseif ($page === 'users') {
         $app->auth()->requireAdmin();
-        $users = (new UserRepository($app->database))->list();
+        $listing = (new UserRepository($app->database))->listing($listPage);
+        $users = $listing['items'];
+        $pagination = ['page'=>$listPage,'has_more'=>$listing['has_more']];
         $title = 'Usuarios';
         $view = 'users';
+    } elseif ($page === 'wishlist') {
+        $app->auth()->requireUser();
+        if (array_diff(array_keys($_GET),['page','scope','list_page','selection_page'])) { throw new HttpError(422,'validation','La lista personal corresponde siempre al usuario autenticado.'); }
+        $scope = LogisticsInput::choice(['scope'=>$_GET['scope']??'personal'],'scope',['personal','fleet']);
+        $wishlist=(new LogisticsRepository($app->database))->wishlist($scope,$user['id'],$listPage,Request::page($_GET['selection_page']??null));
+        $title=$scope==='fleet'?'Lista de la flota':'Mi lista de deseos';
+        $view='wishlist';
     } elseif ($page === 'system') {
         $system = (new ProgressRepository($app->database))->system(Request::positiveId($_GET['id'] ?? null), $includeArchived, $listPage);
         $pagination = $system['pagination'];

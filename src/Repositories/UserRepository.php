@@ -10,14 +10,14 @@ final class UserRepository
 
     public function findByUsername(string $username): ?array
     {
-        $query = $this->database->connection()->prepare('SELECT id, username, display_name, password_hash, role, active, auth_version, commander_id FROM users WHERE username = ?');
+        $query = $this->database->connection()->prepare('SELECT id, username, display_name, password_hash, role, active, auth_version, commander_id, version, deleted_at FROM users WHERE username = ?');
         $query->execute([$username]);
         return $query->fetch() ?: null;
     }
 
     public function findById(string $id): ?array
     {
-        $query = $this->database->connection()->prepare('SELECT id, username, display_name, role, active, auth_version, commander_id FROM users WHERE id = ?');
+        $query = $this->database->connection()->prepare('SELECT id, username, display_name, role, active, auth_version, commander_id, version, deleted_at FROM users WHERE id = ?');
         $query->execute([$id]);
         return $query->fetch() ?: null;
     }
@@ -33,7 +33,20 @@ final class UserRepository
 
     public function list(): array
     {
-        $query = $this->database->connection()->query('SELECT id, username, display_name, role, active, auth_version, commander_id FROM users ORDER BY username LIMIT 200');
-        return array_map(static fn(array $user): array => self::publicUser($user) + ['active' => (bool) $user['active']], $query->fetchAll());
+        return $this->listing()['items'];
+    }
+
+    public function listing(int $page = 1): array
+    {
+        $query = $this->database->connection()->query('SELECT id, username, display_name, role, active, commander_id, version, deleted_at FROM users ORDER BY username LIMIT 26 OFFSET ' . (($page - 1) * 25));
+        $rows = $query->fetchAll();
+        $more = count($rows) > 25;
+        if ($more) { array_pop($rows); }
+        return ['items' => array_map(self::adminView(...), $rows), 'page' => $page, 'has_more' => $more];
+    }
+
+    public static function adminView(array $row): array
+    {
+        return self::publicUser($row) + ['active' => (bool)$row['active'], 'version' => (string)$row['version'], 'deleted_at' => $row['deleted_at']];
     }
 }

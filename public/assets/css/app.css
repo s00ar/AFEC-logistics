@@ -18,6 +18,29 @@
     gap: 10px;
     flex-wrap: wrap;
 }
+.brand-logo { width:64px; height:64px; object-fit:contain; flex-shrink:0; }
+.login-logo { width:min(280px,80%); height:auto; display:block; margin:24px auto 0; }
+.status-badges { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.globe-button { min-width:38px; margin-left:6px; }
+.wishlist-destinations { padding:0 25px 25px; }
+.wishlist-destinations ul { list-style:none; padding:0; margin:0; }
+.wishlist-destinations li { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding:12px 0; border-top:1px solid var(--line); }
+.wishlist-destinations li a { overflow-wrap:anywhere; }
+.wishlist-destinations strong { white-space:nowrap; }
+.selection-list { display:grid; gap:12px; }
+.selection-item { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:20px; border:1px solid var(--line); border-radius:12px; }
+.selection-item strong { overflow-wrap:anywhere; }
+.copy-line { display:flex; align-items:center; gap:8px; margin:10px 0; }
+.copy-line input { min-width:0; flex:1; margin:0; }
+.copy-line button { flex-shrink:0; }
+.history-entry .row-actions { flex-wrap:wrap; }
+.history-entry { overflow-wrap:anywhere; }
+@media(max-width:640px) {
+    .brand-logo { width:48px; height:48px; }
+    .selection-item,.copy-line { flex-direction:column; align-items:stretch; }
+    .site-header nav { display:flex; flex-wrap:wrap; gap:12px; }
+    .wishlist-destinations { padding:0 18px 18px; }
+}
 .toolbar {
     margin-bottom: 28px;
 }

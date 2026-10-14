@@ -11,7 +11,7 @@ final class MutationService
 {
     public function __construct(private readonly Database $database) {}
 
-    public function run(array $actor, int $authVersion, array $roles, string $scope, string $key, array $payload, callable $write): array
+    public function run(array $actor, int $authVersion, array $roles, string $scope, string $key, array $payload, callable $write, #[\SensitiveParameter] ?string $secret = null): array
     {
         if (!preg_match('/^[A-Za-z0-9_-]{16,100}$/D', $key)) {
             throw new HttpError(422, 'idempotency_required', 'Falta una clave válida para identificar esta operación.');
@@ -23,6 +23,9 @@ final class MutationService
             try {
                 $db->exec('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
                 $db->beginTransaction();
+                if (str_starts_with($scope, 'admin.user.')) {
+                    $db->query("SELECT name FROM permission_locks WHERE name = 'users' FOR UPDATE")->fetch();
+                }
                 // This lock serializes duplicate requests by one actor and prevents a concurrent role revocation.
                 $query = $db->prepare('SELECT active, role, auth_version FROM users WHERE id = ? FOR UPDATE');
                 $query->execute([$actor['id']]);
@@ -33,11 +36,11 @@ final class MutationService
                 if (!in_array($user['role'], $roles, true)) {
                     throw new HttpError(403, 'forbidden', 'No tenés permiso para esta operación.');
                 }
-                $query = $db->prepare('SELECT id, request_hash, result_json FROM operations WHERE actor_user_id = ? AND scope = ? AND idempotency_key = ? FOR UPDATE');
+                $query = $db->prepare('SELECT id, request_hash, secret_hash, result_json FROM operations WHERE actor_user_id = ? AND scope = ? AND idempotency_key = ? FOR UPDATE');
                 $query->execute([$actor['id'], $scope, $key]);
                 $existing = $query->fetch();
                 if ($existing) {
-                    if (!hash_equals($existing['request_hash'], $hash)) {
+                    if (!hash_equals($existing['request_hash'], $hash) || ($existing['secret_hash'] !== null) !== ($secret !== null) || ($secret !== null && !password_verify($secret,$existing['secret_hash']))) {
                         throw new HttpError(409, 'idempotency_conflict', 'La clave ya corresponde a otra solicitud. Revisá la operación original.');
                     }
                     if ($existing['result_json'] === null) { throw new HttpError(409, 'operation_incomplete', 'La operación requiere revisión.'); }
@@ -45,8 +48,8 @@ final class MutationService
                     $db->commit();
                     return $result + ['replayed' => true];
                 }
-                $query = $db->prepare('INSERT INTO operations (actor_user_id, scope, idempotency_key, request_hash) VALUES (?, ?, ?, ?)');
-                $query->execute([$actor['id'], $scope, $key, $hash]);
+                $query = $db->prepare('INSERT INTO operations (actor_user_id, scope, idempotency_key, request_hash, secret_hash) VALUES (?, ?, ?, ?, ?)');
+                $query->execute([$actor['id'], $scope, $key, $hash, $secret === null ? null : password_hash($secret,PASSWORD_DEFAULT)]);
                 $operationId = $db->lastInsertId();
                 $result = $write($operationId) + ['operation_id' => $operationId];
                 $query = $db->prepare('UPDATE operations SET result_json = ? WHERE id = ?');

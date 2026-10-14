@@ -21,6 +21,9 @@ try {
         'create' => $service->createSystem($actor, (int)$user['auth_version'], $job['key'], $job['body']),
         'update' => $service->updateSystem($actor, (int)$user['auth_version'], $job['key'], $job['id'], $job['body']),
         'requirement' => $service->saveRequirement($actor, (int)$user['auth_version'], $job['key'], $job['installation_id'], $job['commodity_id'], $job['body']),
+        'withdraw' => (new Afec\Services\LogisticsService($app->database))->withdraw($actor,(int)$user['auth_version'],$job['key'],$job['id'],$job['body']),
+        'user_update' => (new Afec\Services\UserService($app->database))->write($actor,(int)$user['auth_version'],$job['key'],'update',$job['id'],$job['body']),
+        'list_add' => (new Afec\Services\LogisticsService($app->database))->listChange($actor,(int)$user['auth_version'],$job['key'],$job['id'],$job['body']),
     };
     echo json_encode($result, JSON_THROW_ON_ERROR);
 } catch (Afec\Http\HttpError $error) {

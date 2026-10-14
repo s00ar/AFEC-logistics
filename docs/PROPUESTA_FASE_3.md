@@ -1,6 +1,8 @@
-# Ampliación solicitada — propuesta pendiente de decisiones
+# Ampliación solicitada — propuesta original
 
 Fecha: 14/10/2026. Este documento registra requisitos y propuesta; no declara implementadas las funciones nuevas ni autoriza despliegues o migraciones reales.
+
+Las cuatro decisiones se cerraron posteriormente por el propietario: listas personal y flota, faltantes con exclusión de terminadas/archivadas, cierre manual con desfasajes y permisos de lista/abastecimiento para todos los autenticados. La implementación resultante y sus pruebas están en [FASE_3.md](FASE_3.md); se conserva debajo la propuesta original como referencia histórica.
 
 ## Requisitos recibidos
 

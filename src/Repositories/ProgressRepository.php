@@ -70,7 +70,7 @@ final class ProgressRepository
         $system['id'] = (string) $system['id'];
         $system['version'] = (string)$system['version'];
         $offset = ($page - 1) * 25;
-        $query = $this->database->connection()->prepare('SELECT i.id, i.system_id, i.name, i.body_name, i.location_label, i.tier, i.type, i.state, i.sort_order, i.archived_at, i.version,
+        $query = $this->database->connection()->prepare('SELECT i.id, i.system_id, i.name, i.body_name, i.location_label, i.tier, i.type, i.state, i.construction_status, i.sort_order, i.archived_at, i.version,
             COALESCE(p.required_quantity, 0) AS required_quantity,
             COALESCE(p.delivered_quantity, 0) AS delivered_quantity,
             COALESCE(p.covered_quantity, 0) AS covered_quantity,
@@ -88,6 +88,7 @@ final class ProgressRepository
         if ($rows === []) { $system['requirements'] = []; return $system; }
         $placeholders = implode(',', array_fill(0, count($rows), '?'));
         $query = $this->database->connection()->prepare('SELECT r.installation_id, r.commodity_id, r.version, r.active, c.active AS commodity_active, c.name_es AS commodity_name,
+            (SELECT COUNT(*) FROM commodity_sources cs WHERE cs.commodity_id=r.commodity_id AND cs.active=1) AS source_count,
             r.required_quantity, COALESCE(m.delivered, 0) AS delivered_quantity,
             GREATEST(r.required_quantity - COALESCE(m.delivered, 0), 0) AS remaining_quantity,
             GREATEST(COALESCE(m.delivered, 0) - r.required_quantity, 0) AS surplus_quantity

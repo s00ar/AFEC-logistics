@@ -77,6 +77,10 @@ class Client:
         try: response = self.opener.open(BASE + path, timeout=10)
         except urllib.error.HTTPError as failure: response = failure
         with response: return response.status, response.read().decode(), response.headers
+    def resource(self,path):
+        try: response = self.opener.open(BASE + path, timeout=10)
+        except urllib.error.HTTPError as failure: response = failure
+        with response: return response.status,response.read(),response.headers
     def session(self): return self.call('session')[1]['data']
     def login(self, username):
         return self.call('login', 'POST', {'username': username, 'password': env['AFEC_TEST_PASSWORD']}, self.session()['csrf_token'])
@@ -136,8 +140,10 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         check(anonymous.page('/config/config.local.php')[0] in [403,404] and anonymous.page('/src/bootstrap.php')[0] in [403,404], 'Private files are unavailable over HTTP')
         asset_prefix = '/public/assets/' if args.webroot == 'repository' else '/assets/'
         check(asset_prefix + 'css/app.css' in html and asset_prefix + 'js/app.js' in html, 'HTML uses assets for the selected deployment layout')
-        for asset in ['css/app.css', 'js/app.js', 'js/http.js', 'js/planning.js']:
+        for asset in ['css/app.css', 'js/app.js', 'js/http.js', 'js/planning.js','js/logistics.js']:
             check(anonymous.page(asset_prefix + asset)[0] == 200, 'Application asset is reachable: ' + asset)
+        logo=anonymous.resource(asset_prefix+'img/afec-logistica.png')
+        check(logo[0]==200 and logo[1]==(ROOT/'resources/branding/afec-logistica.png').read_bytes() and logo[2].get('Content-Type','').startswith('image/png'),'Original AFEC logo is served correctly')
         if args.webroot == 'repository':
             check(anonymous.page('/index.php')[0] == 200, 'Root index.php serves the application')
             private_paths = ['/README.md', '/AGENTS.md', '/.git/HEAD', '/.env', '/.local/preview-password.txt',
@@ -164,6 +170,8 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         check(asset_prefix + 'js/planning.js' in operator.page('/')[1], 'Operator HTML loads planning module for the selected layout')
         from planning_http import run_planning_checks
         run_planning_checks(anonymous, admin, viewer, operator, check, command, env, php, ROOT)
+        from expansion_http import run_expansion_checks
+        run_expansion_checks(anonymous,admin,viewer,operator,Client,check,command,env,php,ROOT)
         command('tests/fixture.php','deactivate_viewer')
         check(viewer.session()['user'] is None, 'Deactivation invalidates an existing session')
         operator = Client(); check(operator.login('operator')[0] == 200, 'Operator can authenticate')

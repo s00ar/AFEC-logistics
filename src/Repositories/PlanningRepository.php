@@ -29,7 +29,7 @@ final class PlanningRepository
 
     public function installation(string $id, bool $lock = false): array
     {
-        return $this->one('SELECT id, system_id, name, body_name, location_label, tier, type, state, sort_order, archived_at, version FROM installations WHERE id = ?' . ($lock ? ' FOR UPDATE' : ''), [$id])
+        return $this->one('SELECT id, system_id, name, body_name, location_label, tier, type, state, construction_status, sort_order, archived_at, version FROM installations WHERE id = ?' . ($lock ? ' FOR UPDATE' : ''), [$id])
             ?? throw new HttpError(404, 'not_found', 'No se encontró la instalación.');
     }
 
@@ -69,8 +69,8 @@ final class PlanningRepository
 
     public function insertInstallation(string $systemId, array $data): string
     {
-        $query = $this->database->connection()->prepare('INSERT INTO installations (system_id, name, body_name, location_label, tier, type, state, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-        $query->execute([$systemId, $data['name'], $data['body_name'], $data['location_label'], $data['tier'], $data['type'], $data['state'], $data['sort_order']]);
+        $query = $this->database->connection()->prepare('INSERT INTO installations (system_id, name, body_name, location_label, tier, type, state, sort_order, construction_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $query->execute([$systemId, $data['name'], $data['body_name'], $data['location_label'], $data['tier'], $data['type'], $data['state'], $data['sort_order'], 'under_construction']);
         return $this->database->connection()->lastInsertId();
     }
 
