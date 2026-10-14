@@ -12,6 +12,8 @@ La consulta pública y los aportes registrados por operadores en nombre de terce
 
 La adaptación para desplegar la raíz completa está verificada localmente con Apache. Alcance, requisitos y pruebas en [docs/FASE_RAIZ_HOSTINGER.md](docs/FASE_RAIZ_HOSTINGER.md); instalación en [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md).
 
+Pasos de acceso y CRUD en [docs/GUIA_USO.md](docs/GUIA_USO.md). La ampliación solicitada de cuentas, estados, lista de deseos, abastecimiento compartido y marca está registrada como propuesta pendiente de decisiones en [docs/PROPUESTA_FASE_3.md](docs/PROPUESTA_FASE_3.md).
+
 ## Estructura
 
 ```text
