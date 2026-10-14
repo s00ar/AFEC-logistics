@@ -28,3 +28,9 @@ python tests/commodity_upgrade.py --php RUTA_PHP --mysql RUTA_CLIENTE_MYSQL --co
 La suite cubre permisos, CSRF, repetición idempotente, versiones obsoletas, nombres escapados, conflictos entre códigos/nombres/alias, conservación de balances y abastecimiento, baja/restauración, historial y rollback ante fallo de auditoría. Dos administradores independientes compiten por el mismo alias: solo uno puede crearlo. Las pruebas de actualización importan el paquete exacto sobre 001–006, comprueban preservación de datos, repetición y rechazo de prerrequisitos inválidos. PHP FastCGI del harness local no limita artificialmente el número de solicitudes.
 
 Resultado local: 12 comprobaciones SQL y 380 HTTP aprobadas con Apache y `.htaccess` reales; 8 comprobaciones de actualización aprobadas sobre el paquete de instalación previo. Lint PHP de los archivos modificados y comprobación de sintaxis de `planning.js` aprobados. Se verificó que ambos archivos SQL nuevos devuelven 403 en el despliegue raíz local. La importación en la base real corresponde al propietario y sigue pendiente.
+
+## Publicación verificada
+
+Publicado `6c1baa2` en `main`. Hostinger verificado el 14/10/2026: panel público, API de sistemas, login administrativo, página Mercancías y API administrativa responden 200. El JavaScript con versión servido coincide byte por byte con esta publicación. Ambos SQL nuevos devuelven 403. Se cerró la sesión de comprobación y no se modificaron mercancías reales.
+
+La API devuelve `aliases_ready=false`: la base real todavía requiere la importación manual del paquete 007 por el propietario. No se declara completada esa migración remota.
