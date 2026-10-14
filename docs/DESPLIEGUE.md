@@ -2,6 +2,14 @@
 
 Crear un sitio personalizado PHP/HTML vacío. PHP 8.4 recomendado; activar `pdo_mysql` y `mbstring`. HTTPS obligatorio en producción. No se usan package.json, npm, Node, Python ni procesos permanentes en producción.
 
+## Destino y publicación por Git
+
+El 14/10/2026 el propietario autorizó publicar todos los cambios y confirmó que actualizar `main` en `https://github.com/s00ar/AFEC-logistics.git` activa el despliegue automático en `https://logistica.afec.space/`. El repositorio completo se sirve desde la raíz, según la disposición descrita abajo.
+
+Antes de publicar, el destino respondía HTTP 403 y el remoto apuntaba a `9644068513a29c728935234d458d5afad3e7c2d9`. Ese commit identifica el estado anterior del código; no es un respaldo de archivos privados ni de la base de datos. Para revertir una publicación automática, restaurar los archivos de una versión compatible mediante un nuevo commit, conservando configuración privada, almacenamiento y esquema aplicado. No reescribir el historial ni ejecutar un migrador antiguo contra versiones que desconoce.
+
+Tras el push, comprobar la página, el login, la API y los recursos contra el contenido publicado; el éxito de Git no confirma que Hostinger haya terminado. Las herramientas de Hostinger no estuvieron disponibles en este chat y no se obtuvo acceso al servidor ni a MySQL remoto. No se ejecutan migraciones ni se transfieren secretos mediante Git.
+
 ## Despliegue confirmado: raíz del repositorio
 
 El propietario confirmó que Hostinger despliega la carpeta raíz completa del repositorio. No mover archivos ni cambiar el document root a `public/` para esta instalación. En la raíz quedan `index.php` (entrada HTML), `api/index.php` (entrada JSON), `.htaccess` y todas las carpetas del proyecto. Las dos entradas delegan en los controladores existentes; no hay lógica de negocio duplicada.

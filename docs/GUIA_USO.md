@@ -1,6 +1,12 @@
 # Uso de la versión actual
 
-Actualizado: 14/10/2026. Corresponde a las fases 1–5 y la demo local; no implica que exista un sitio o una cuenta instalada en Hostinger.
+Actualizado: 14/10/2026. Corresponde a las fases 1–5. El propietario indicó que actualizar `main` en GitHub activa el despliegue automático en Hostinger; el estado de publicación y la configuración del servidor se verifican por separado.
+
+## Ingresar al sitio de Hostinger
+
+Abrir [AFEC Logística](https://logistica.afec.space/) para consultar el progreso público. Para escribir, entrar desde **Ingresar** o abrir [Iniciar sesión](https://logistica.afec.space/?page=login), con una cuenta creada en esa instalación.
+
+Las cuentas de la demo local no se publican mediante Git. El primer administrador, la configuración privada de MySQL y las migraciones se preparan según [DESPLIEGUE.md](DESPLIEGUE.md). Un push publica código; no crea cuentas ni ejecuta SQL. Si el sitio devuelve 403/500 o un error de conexión, todavía no se puede dar la instalación por operativa.
 
 ## Ingresar a la demo
 
