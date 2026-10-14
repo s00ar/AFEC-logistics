@@ -83,3 +83,17 @@ La fase 3 requiere migraciones 002/003/004 y habilita cuentas, entregas/correcci
 La adaptación raíz está separada del commit CRUD `26e7c2e`: en desarrollo puede revertirse para volver al modo `public/`, manteniendo datos y auditoría. El código se publicó mediante Git el 14/10/2026; la preparación privada de MySQL y cuentas en Hostinger sigue sin verificarse.
 
 Referencias de servidor: [banderas de mod_rewrite en Apache](https://httpd.apache.org/docs/2.4/rewrite/flags.html), en particular `[F]` para denegar solicitudes y `[L]` para detener la evaluación de la regla.
+
+
+## Actualización de mercancías: phpMyAdmin, esquema 007
+
+El propietario confirmó que aplicará esta actualización manualmente. El código publicado no ejecuta SQL y admite el esquema anterior mientras falta la ampliación.
+
+1. En phpMyAdmin, seleccionar `u969616855_afeclogisitc` y exportar un respaldo completo.
+2. Importar **`database/upgrades/AFEC_actualizar_mercancias.sql`** completo. Es una actualización del esquema 001–006 existente; no usar el archivo de instalación inicial ni borrar tablas.
+3. Revisar el resultado: **AFEC: MERCANCIAS ACTUALIZADAS; EQUIVALENCIAS HABILITADAS**. Volver al sitio, ingresar como Administrador y abrir **Mercancías**; debe desaparecer el aviso de 007.
+4. Si indica ampliación omitida/incompleta o muestra un error SQL, conservar el respaldo y revisar las versiones/checksums de `schema_migrations`, compatibilidad de servidor y estado de la columna antes de reintentar. No marcar una migración aplicada manualmente para ocultar un fallo.
+
+El archivo registra el checksum canónico, usa el mismo bloqueo del migrador y valida los seis prerrequisitos. Si ya está aplicado correctamente, repetirlo no vuelve a alterar la tabla. Añade únicamente `commodities.aliases_json` y su validación JSON; conserva cuentas, instalaciones, objetivos y movimientos. No incluye credenciales. Las rutas de SQL permanecen bloqueadas por HTTP; importar el archivo local.
+
+Para rollback del código, conservar la ampliación y su registro/checksum; el esquema anterior del código ignora el campo nullable adicional. Procedimiento y pruebas en [CRUD_MERCANCIAS.md](CRUD_MERCANCIAS.md).

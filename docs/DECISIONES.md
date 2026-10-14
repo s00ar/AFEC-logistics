@@ -56,3 +56,10 @@ Resuelta la elección de fuente de fase 4. Persisten estructuras sin tipo/tier y
 ## Disposición de despliegue confirmada
 
 El repositorio completo se despliega desde su raíz en Hostinger. La entrada HTML y la API deben funcionar desde allí, con recursos públicos y bloqueo HTTP de archivos privados. Se conserva el modo de desarrollo con document root `public/`. La configuración privada, base inicial y primer administrador siguen siendo pasos de instalación; no se incluyen secretos ni se ejecutan migraciones desde HTTP o por push.
+
+
+## Ampliación del CRUD de mercancías
+
+El propietario solicitó editar nombres/códigos, desactivar y resolver equivalencias, y autorizó publicar en producción al terminar. Conservamos el permiso Administrador del alta anterior. La equivalencia implementada es alias del mismo ID, sin fusión ni suma de cantidades: no se recibió una regla aprobada para fusionar IDs. Se preservan identidades anteriores salvo corrección explícita; las bajas son reversibles y auditadas.
+
+El propietario confirmó que importará el SQL 007 desde phpMyAdmin. El código es compatible con 006 mientras tanto; no hay migración automática al publicar. Alcance, riesgos y validación en [CRUD_MERCANCIAS.md](CRUD_MERCANCIAS.md).

@@ -53,7 +53,12 @@
     <label>Código del material<input name="code" maxlength="120" required></label>
     <label>Nombre en español<input name="name_es" maxlength="255" required></label>
     <label>Nombre en inglés (opcional)<input name="name_en" maxlength="255"></label>
+    <label>Alias / equivalencias (uno por línea)<textarea name="aliases" maxlength="8000" rows="3" placeholder="Código alternativo o nombre usado en otra fuente"></textarea></label>
+    <label class="confirm-row"><input name="preserve_previous" type="checkbox" checked>Conservar códigos y nombres anteriores como alias</label>
+    <p class="muted">Los alias corresponden al mismo material. Desmarcá la conservación anterior cuando estés corrigiendo una identidad equivocada que pertenece a otra mercancía.</p>
+    <label>Motivo<textarea name="reason" maxlength="1000" rows="2" required></textarea></label>
 </template>
+<template id="form-commodity-state"><label>Motivo del cambio<textarea name="reason" maxlength="1000" rows="2" required></textarea></label><label class="confirm-row"><input name="confirmed" type="checkbox" required>Confirmo desactivar esta mercancía para nuevas selecciones. Sus objetivos, entregas e historial se conservan.</label></template>
 <dialog id="history-dialog" class="editor-dialog history-dialog" aria-labelledby="history-title">
     <div class="dialog-heading"><h2 id="history-title">Historial de cambios</h2><button type="button" class="button-quiet" id="close-history" aria-label="Cerrar historial">×</button></div>
     <div id="history-items" aria-live="polite"></div>

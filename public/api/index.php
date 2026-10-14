@@ -29,6 +29,8 @@ try {
         return $flag;
     };
     switch ($route) {
+        case 'admin/commodities': case 'admin/commodity': case 'admin/commodity/restore': case 'admin/commodity/history':
+            \Afec\Http\CommodityController::dispatch($app, $route);
         case 'facility/recipes': case 'facility/recipe': case 'facility/recipe/restore': case 'facility/recipe/history': case 'facility/catalogue': case 'facility/catalogue/import':
             RecipeController::dispatch($app, $route);
         case 'admin/user': case 'admin/roles': case 'admin/user/password': case 'admin/user/restore':
@@ -93,7 +95,7 @@ try {
         case 'admin/users':
             ExpansionController::dispatch($app,$route);
         case 'commodities':
-            if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') { PlanningController::write($app, $route); }
+            if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') { \Afec\Http\CommodityController::dispatch($app, $route); }
             Request::method('GET');
             if (!$app->config['app']['public_read']) { $app->auth()->requireUser(); }
             $rows = $app->database->connection()->query('SELECT CAST(id AS CHAR) AS id, code, name_es, name_en FROM commodities WHERE active = 1 ORDER BY name_es')->fetchAll();

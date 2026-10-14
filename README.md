@@ -6,13 +6,15 @@ Aplicación de colonización de Elite Dangerous. Monolito PHP + PDO MySQL/MariaD
 
 Fases 1–5 implementadas y verificadas localmente: autenticación, sesiones/CSRF, roles, panel público, CRUD de planificación y cuentas, estados de construcción, entregas y retiros compensatorios, listas personal/flota y abastecimiento compartido con copia de nombres. Logo/paleta AFEC, animaciones CSS ligeras y catálogo editable de recetas para cargar automáticamente los objetivos de instalaciones. Snapshot inicial con 66 referencias comunitarias y 5 observaciones AFEC, carga idempotente y ajustes preservados. Alcance y pruebas en [docs/FASE_1.md](docs/FASE_1.md), [docs/FASE_2.md](docs/FASE_2.md), [docs/FASE_3.md](docs/FASE_3.md), [docs/FASE_4.md](docs/FASE_4.md) y [docs/FASE_5.md](docs/FASE_5.md).
 
-Pendientes: importación completa de Sheets/Apps Script, clasificación de estructuras desconocidas y tiers no confirmados, reservas/cargas en tránsito, catálogo editable completo de mercancías y pantallas administrativas completas de comandantes/carriers. Se admite selección/alta de identidades al registrar entregas. El código se publicó en `main` y Hostinger lo sirve en [logistica.afec.space](https://logistica.afec.space/). Tras cargar la configuración/importar el esquema por parte del propietario, el 14/10/2026 se verificaron panel y API pública de sistemas con respuesta 200. El propietario confirmó acceso a usuarios y cambio de rol; protección del nombre de cuenta y pruebas en [docs/CORRECCION_ROLES.md](docs/CORRECCION_ROLES.md). El acceso a archivos privados y la importación remota no fueron realizados desde este entorno. Publicación e instalación en [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md). Fuentes y límites del catálogo en [resources/catalogue/SOURCES.md](resources/catalogue/SOURCES.md).
+Pendientes: importación completa de Sheets/Apps Script, clasificación de estructuras desconocidas y tiers no confirmados, reservas/cargas en tránsito, pantallas administrativas completas de comandantes/carriers. Se admite selección/alta de identidades al registrar entregas. El código se publicó en `main` y Hostinger lo sirve en [logistica.afec.space](https://logistica.afec.space/). Tras cargar la configuración/importar el esquema por parte del propietario, el 14/10/2026 se verificaron panel y API pública de sistemas con respuesta 200. El propietario confirmó acceso a usuarios y cambio de rol; protección del nombre de cuenta y pruebas en [docs/CORRECCION_ROLES.md](docs/CORRECCION_ROLES.md). El acceso a archivos privados y la importación remota no fueron realizados desde este entorno. Publicación e instalación en [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md). Fuentes y límites del catálogo en [resources/catalogue/SOURCES.md](resources/catalogue/SOURCES.md).
 
 La consulta pública y los aportes registrados por operadores en nombre de terceros están confirmados en [docs/DECISIONES.md](docs/DECISIONES.md). El resto de políticas sigue documentado como pendiente. El material de origen permanece intacto en `AFEC_Logistica_Handoff_Codex/`; el diagnóstico está en `ANALISIS_AFEC_LOGISTICA.md`.
 
 La adaptación para desplegar la raíz completa está verificada localmente con Apache. Alcance, requisitos y pruebas en [docs/FASE_RAIZ_HOSTINGER.md](docs/FASE_RAIZ_HOSTINGER.md); instalación en [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md).
 
 Pasos de acceso y flujos actuales en [docs/GUIA_USO.md](docs/GUIA_USO.md). La propuesta original se conserva en [docs/PROPUESTA_FASE_3.md](docs/PROPUESTA_FASE_3.md); las decisiones posteriores aprobadas están en [docs/DECISIONES.md](docs/DECISIONES.md).
+
+CRUD administrativo de mercancías ampliado: nombres/códigos, alias, desactivación/reactivación e historial. Requiere importar la actualización 007 desde phpMyAdmin para habilitar equivalencias; el push no ejecuta SQL. Alcance y comprobaciones en [docs/CRUD_MERCANCIAS.md](docs/CRUD_MERCANCIAS.md).
 
 ## Estructura
 
@@ -68,7 +70,9 @@ Entrada HTTP: `/api/index.php?route=...` en ambos modos de despliegue (las opera
 | POST | `installation/restore&id=ID` | Operador/admin; restaurar |
 | PUT / DELETE | `requirement&installation_id=ID&commodity_id=ID` | Operador/admin; guardar/restaurar / retirar objetivo |
 | GET | `planning/history&type=TYPE&id=ID` | Operador/admin; historial de system/installation/requirement; objetivo requiere `commodity_id` |
-| POST | `commodities` | Administrador; alta de material |
+| GET / POST | `admin/commodities` | Administrador; listar / crear mercancías (alta compatible también en `commodities`) |
+| GET / PATCH / DELETE | `admin/commodity&id=ID` | Administrador; consultar / editar / desactivar |
+| POST / GET | `admin/commodity/restore&id=ID` / `admin/commodity/history&id=ID` | Administrador; reactivar / historial |
 | GET / POST | `admin/users` | Administrador; listar / crear cuenta |
 | GET / PATCH / DELETE | `admin/user&id=ID` | Administrador; consultar / editar / eliminar reversiblemente |
 | POST | `admin/user/password&id=ID`, `admin/user/restore&id=ID` | Administrador; contraseña / restauración |
@@ -88,6 +92,8 @@ Entrada HTTP: `/api/index.php?route=...` en ambos modos de despliegue (las opera
 IDs y cantidades se devuelven como cadenas decimales para conservar precisión. Las entregas guardan `commander_id` y `created_by_user_id` separadamente. `quantity` es una cadena entera positiva hasta el máximo BIGINT firmado; una corrección genera su delta negativo. `construction_status` admite `under_construction` o `completed`; completar requiere motivo y confirmación, incluso con faltantes. Listas/abastecimiento requieren login, mientras el progreso permanece público. El rol técnico `viewer` se presenta como Comandante y dispone de logística propia.
 
 Las escrituras de planificación requieren `X-CSRF-Token` e `Idempotency-Key` (16–100 caracteres ASCII alfanuméricos, `_` o `-`). Editar/retirar/restaurar requiere la `version` recibida al consultar y un `reason`. Un objetivo nuevo usa versión `"0"` y `required_quantity` como cadena decimal; las bajas requieren `confirmed=true`. Repetir exactamente la operación con la misma clave devuelve el resultado guardado. Los listados admiten `list_page`; sistemas e instalaciones archivadas requieren operador/admin e `include_archived=1`.
+
+Las mercancías usan `version` como fingerprint SHA-256 opaco: enviar el valor recibido sin modificarlo. `aliases` es una lista de hasta 30 nombres/códigos alternativos; `preserve_previous` es un booleano, por defecto verdadero. La lista administrativa admite `include_inactive=1`. Las equivalencias identifican un mismo ID; no fusionan cantidades.
 
 ## Pruebas y despliegue
 

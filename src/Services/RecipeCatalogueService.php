@@ -33,15 +33,15 @@ final class RecipeCatalogueService
                 $pending = array_values(array_filter($this->catalogue->data['recipes'], static fn(array $row): bool => !isset($present[$row['source_key']])));
                 $used = [];
                 foreach ($pending as $recipe) { foreach ($recipe['materials'] as $material) { $used[$material['code']] = true; } }
-                $existing = $db->query('SELECT CAST(id AS CHAR) AS id, code, name_es, name_en, active FROM commodities ORDER BY id FOR UPDATE')->fetchAll();
+                $existing = (new \Afec\Repositories\CommodityRepository($this->database))->rows(true);
                 $mapped = []; $createdCommodities = 0;
                 foreach ($this->catalogue->data['commodities'] as $commodity) {
                     if (!isset($used[$commodity['code']])) { continue; }
                     $aliases = array_fill_keys(array_map(RecipeCatalogue::normalize(...), [...$commodity['aliases'], $commodity['code'], $commodity['name_es'], $commodity['name_en']]), true);
                     $matches = [];
                     foreach ($existing as $row) {
-                        foreach (['code','name_es','name_en'] as $field) {
-                            if ($row[$field] !== null && isset($aliases[RecipeCatalogue::normalize($row[$field])])) { $matches[$row['id']] = $row; }
+                        foreach (array_filter([$row['code'],$row['name_es'],$row['name_en'],...($row['aliases'] ?? [])]) as $value) {
+                            if (isset($aliases[RecipeCatalogue::normalize($value)])) { $matches[$row['id']] = $row; }
                         }
                     }
                     if (count($matches) > 1) { throw new HttpError(409, 'ambiguous_commodity', 'Hay varias mercancías equivalentes a ' . $commodity['name_en'] . '. Revisá el catálogo antes de cargar recetas.'); }

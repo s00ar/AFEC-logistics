@@ -47,7 +47,7 @@ Los roles incorporados son Administrador, Operador y Comandante (identificador t
 | Crear/editar/archivar/restaurar sistemas, instalaciones y objetivos | No | Sí | Sí |
 | Marcar instalaciones terminadas o reabrirlas | No | Sí | Sí |
 | Administrar recetas de facilities | No | Sí | Sí |
-| Crear mercancías y cargar el catálogo inicial | No | No | Sí |
+| Administrar mercancías y cargar el catálogo inicial | No | No | Sí |
 | Crear, editar, eliminar/restaurar usuarios, cambiar roles y contraseñas | No | No | Sí |
 
 Las listas personales pertenecen exclusivamente a su cuenta, incluso frente a operadores y administradores. La promoción no mueve ni elimina listas, entregas o historial. El error «Ese usuario ya existe» indica un conflicto de nombre de acceso, no una prohibición de cambiar roles; no utilizar `admin` como nombre de otra cuenta.
@@ -89,6 +89,19 @@ Las instalaciones anteriores a esta fase conservan su estado libre original y ap
 6. **Ver cambios** en la fila del material muestra las revisiones del objetivo.
 
 Si falta un material en el catálogo, un administrador puede crearlo desde **Sistemas → Agregar material al catálogo**. Los operadores pueden usar el catálogo existente; no dan de alta materiales de catálogo en esta versión.
+
+## Catálogo de mercancías
+
+Ingresar como Administrador → **Mercancías**. Los demás roles usan el catálogo, pero no modifican sus identidades globales.
+
+1. **Crear:** **+ Crear mercancía** → código, nombre en español, nombre en inglés opcional y alias opcionales, uno por línea → guardar.
+2. **Editar:** **Editar** → corregir nombres/código o alias → motivo → guardar. Se conserva el ID y todos sus objetivos, entregas y lugares de abastecimiento.
+3. **Equivalencias:** un alias es otro nombre/código de la misma mercancía. Por defecto se conservan los nombres/códigos anteriores al renombrar. Para corregir identidades equivocadas, desmarcar **Conservar códigos y nombres anteriores como alias** y revisar la lista de alias. No se fusionan mercancías distintas ni sus cantidades. Máximo 30 alias; un código, nombre o alias no puede corresponder a otro ID, incluso desactivado.
+4. **Desactivar:** **Desactivar** → motivo → confirmar → guardar. Deja de aparecer al elegir un material nuevo. Los proyectos, recetas, balances e historial existentes se conservan; las correcciones de entregas siguen disponibles según sus permisos.
+5. **Reactivar:** **Mostrar también desactivadas** → **Reactivar** → motivo → guardar. Recupera el mismo ID.
+6. **Auditar:** **Ver cambios** muestra nombres, códigos, alias y estado anteriores/posteriores con autor y motivo. Si otra persona editó el registro, actualizar los datos antes de guardar.
+
+Los alias y la conservación automática de nombres anteriores requieren importar 007. Si aparece el aviso de migración, seguir [DESPLIEGUE.md](DESPLIEGUE.md). La carga inicial de recetas reconoce los alias; una equivalencia ambigua debe corregirse antes de importar.
 
 ## Facilities y recetas automáticas
 

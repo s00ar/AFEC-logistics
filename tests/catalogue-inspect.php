@@ -7,8 +7,8 @@ $db = $app->database->connection();
 switch ($argv[1] ?? '') {
     case 'ambiguous-add': $db->exec("INSERT INTO commodities (code,name_es,name_en) VALUES ('test_water_alias','Agua','Water')"); exit;
     case 'ambiguous-clear': $db->exec("DELETE FROM commodities WHERE code='test_water_alias'"); exit;
-    case 'inactive-water': $db->exec("UPDATE commodities SET active=0 WHERE code='water'"); exit;
-    case 'active-water': $db->exec("UPDATE commodities SET active=1 WHERE code='water'"); exit;
+    case 'inactive-water': $db->exec("UPDATE commodities SET active=0 WHERE id=1"); exit;
+    case 'active-water': $db->exec("UPDATE commodities SET active=1 WHERE id=1"); exit;
 }
 if (($argv[1] ?? '') !== 'stats') { exit(3); }
 $result = [];

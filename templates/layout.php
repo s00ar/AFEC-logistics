@@ -22,7 +22,7 @@
         <a href="<?= e($app->url('/')) ?>" <?= $page === 'dashboard' ? 'aria-current="page"' : '' ?>>Sistemas</a>
         <?php if ($canPlan): ?><a href="<?= e($app->url('/?page=recipes')) ?>" <?= $page === 'recipes' ? 'aria-current="page"' : '' ?>>Facilities y recetas</a><?php endif ?>
         <?php if ($user !== null): ?><a href="<?= e($app->url('/?page=wishlist&scope=personal')) ?>" <?= $page==='wishlist' && $scope==='personal'?'aria-current="page"':'' ?>>Mi lista</a><a href="<?= e($app->url('/?page=wishlist&scope=fleet')) ?>" <?= $page==='wishlist' && $scope==='fleet'?'aria-current="page"':'' ?>>Flota</a><?php endif ?>
-        <?php if (($user['role'] ?? null) === 'admin'): ?><a href="<?= e($app->url('/?page=users')) ?>" <?= $page === 'users' ? 'aria-current="page"' : '' ?>>Usuarios</a><?php endif ?>
+        <?php if (($user['role'] ?? null) === 'admin'): ?><a href="<?= e($app->url('/?page=commodities')) ?>" <?= $page === 'commodities' ? 'aria-current="page"' : '' ?>>Mercancías</a><a href="<?= e($app->url('/?page=users')) ?>" <?= $page === 'users' ? 'aria-current="page"' : '' ?>>Usuarios</a><?php endif ?>
     </nav>
     <?php if ($user !== null): ?>
     <div class="account"><span><?= e($user['display_name']) ?></span><button class="button-quiet" id="logout" type="button">Salir</button></div>

@@ -123,7 +123,7 @@ assert digest(databases['sentinel']) == before, 'Import changed an unrelated non
 assert 'No hay migraciones pendientes' in command(target_env, 'tools/migrate.php')
 assert 'No hay migraciones pendientes' in command(target_env, 'tools/migrate.php', '--apply')
 query = "SELECT (SELECT COUNT(*) FROM users), (SELECT COUNT(*) FROM commodities), (SELECT COUNT(*) FROM facility_recipes), (SELECT COUNT(*) FROM facility_recipe_materials), (SELECT COUNT(*) FROM schema_migrations), (SELECT COUNT(*) FROM systems), (SELECT COUNT(*) FROM movements);"
-assert sql(databases['target'], query).strip() == '1\t55\t71\t1418\t6\t0\t0'
+assert sql(databases['target'], query).strip() == '1\t55\t71\t1418\t' + str(metadata['migrations']) + '\t0\t0'
 checks = 8
 
 with socket.socket() as sock:

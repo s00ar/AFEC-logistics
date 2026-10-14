@@ -30,7 +30,7 @@ try {
     $listPage = Request::page($_GET['list_page'] ?? null);
     $csrf = $app->session()->csrf();
     $page = $_GET['page'] ?? 'dashboard';
-    if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login','wishlist', 'recipes'], true)) {
+    if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login','wishlist', 'recipes','commodities'], true)) {
         throw new HttpError(404, 'not_found', 'No se encontró esta página.');
     }
     if ($user === null && ($page === 'login' || !$app->config['app']['public_read'])) {
@@ -43,6 +43,14 @@ try {
         $catalogue = $user['role'] === 'admin' ? (new RecipeCatalogueService($app->database, new RecipeCatalogue(dirname(__DIR__) . '/resources/catalogue')))->preview() : null;
         $pagination = ['page' => $listPage, 'has_more' => $listing['has_more']];
         $title = 'Facilities y recetas'; $view = 'recipes';
+    } elseif ($page === 'commodities') {
+        $app->auth()->requireAdmin();
+        $repository = new \Afec\Repositories\CommodityRepository($app->database);
+        $inactive = Request::flag($_GET['include_inactive'] ?? null);
+        $listing = $repository->listing($listPage, $inactive);
+        $commodities = $listing['items']; $aliasesReady = $repository->aliasesReady();
+        $pagination = ['page'=>$listPage,'has_more'=>$listing['has_more']];
+        $title = 'Mercancías'; $view = 'commodities';
     } elseif ($page === 'users') {
         $app->auth()->requireAdmin();
         $listing = (new UserRepository($app->database))->listing($listPage);

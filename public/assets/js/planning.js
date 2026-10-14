@@ -23,7 +23,10 @@ const definitions = {
   'requirement-create': { template: 'requirement', title: 'Agregar objetivo', route: 'requirement', method: 'PUT' },
   'requirement-edit': { template: 'requirement', title: 'Editar objetivo', route: 'requirement', method: 'PUT', edit: true },
   'requirement-archive': { template: 'archive', title: 'Retirar objetivo', route: 'requirement', method: 'DELETE', query: r => ({ installation_id: r.installation_id, commodity_id: r.commodity_id }), archive: true },
-  'commodity-create': { template: 'commodity', title: 'Agregar material al catálogo', route: 'commodities', method: 'POST', fields: ['code', 'name_es', 'name_en'] },
+  'commodity-create': { template: 'commodity', title: 'Crear mercancía', route: 'commodities', method: 'POST', fields: ['code','name_es','name_en','aliases','reason'], keepPage:true },
+  'commodity-edit': { template:'commodity', title:'Editar mercancía y equivalencias', route:'admin/commodity', method:'PATCH', fields:['code','name_es','name_en','aliases','preserve_previous','reason'], query:r=>({id:r.id}), edit:true, keepPage:true },
+  'commodity-deactivate': { template:'commodity-state', title:'Desactivar mercancía', route:'admin/commodity', method:'DELETE', fields:['reason','confirmed'], query:r=>({id:r.id}), edit:true, keepPage:true },
+  'commodity-restore': { template:'commodity-state', title:'Reactivar mercancía', route:'admin/commodity/restore', method:'POST', fields:['reason'], query:r=>({id:r.id}), edit:true, keepPage:true },
   'user-create': { template: 'user', title: 'Crear usuario', route: 'admin/users', method: 'POST', fields: ['username','display_name','role','password','reason'], secret: true, scope: 'admin.user.create', userAction: true },
   'user-edit': { template: 'user', title: 'Editar usuario y rol', route: 'admin/user', method: 'PATCH', fields: ['username','display_name','role','active','reason'], query: r => ({id:r.id}), edit: true, userAction: true },
   'user-role': { template: 'user-role', title: 'Cambiar rol de la cuenta', route: 'admin/user', method: 'PATCH', fields: ['role','reason'], query: r => ({id:r.id}), edit: true, userAction: true },
@@ -57,6 +60,7 @@ const scopes = {
   'installation-create':'planning.installation.create','installation-edit':'planning.installation.update','installation-archive':'planning.installation.archive','installation-restore':'planning.installation.restore',
   'requirement-create':'planning.requirement.save','requirement-edit':'planning.requirement.save','requirement-archive':'planning.requirement.remove','commodity-create':'planning.commodity.create',
   'user-create':'admin.user.create','user-edit':'admin.user.update','user-role':'admin.user.update','user-delete':'admin.user.delete','user-restore':'admin.user.restore','user-password':'admin.user.password',
+  'commodity-edit':'planning.commodity.update','commodity-deactivate':'planning.commodity.deactivate','commodity-restore':'planning.commodity.restore',
   'installation-status':'logistics.status','list-add':'logistics.list.add','list-remove':'logistics.list.remove',
   'source-create':'logistics.source.create','source-edit':'logistics.source.update','source-delete':'logistics.source.delete','source-restore':'logistics.source.restore',
   'delivery-create':'logistics.delivery','movement-withdraw':'logistics.withdraw',
@@ -125,7 +129,7 @@ async function openEditor(action, record = {}, resume = false) {
   document.querySelector('#editor-title').textContent = action === 'requirement-edit' && !Number(record.active) ? 'Restaurar objetivo' : definition.title;
   document.querySelector('#editor-description').textContent = definition.archive
     ? (definition.userAction ? 'Se revocará el acceso de la cuenta. Sus entregas e historial se conservarán.' : action === 'source-delete' ? 'El lugar dejará de aparecer como abastecimiento activo. Su historial se conservará.' : 'Se archivará y dejará de aparecer en la planificación activa. Podés restaurarlo desde el filtro de eliminados. Sus registros y movimientos se conservan.')
-    : definition.userAction && record.username ? `${record.display_name} (${record.username})` : record.name || record.display_name || record.commodity_name || 'Completá los datos de la operación.';
+    : definition.userAction && record.username ? `${record.display_name} (${record.username})` : record.name || record.name_es || record.display_name || record.commodity_name || 'Completá los datos de la operación.';
   for (const control of fields.querySelectorAll('[name]')) {
     if (Object.hasOwn(record, control.name)) control.type === 'checkbox' ? control.checked = Boolean(record[control.name]) : control.value = record[control.name] ?? '';
   }
@@ -144,6 +148,12 @@ async function openEditor(action, record = {}, resume = false) {
       });
     }
   }
+  if (definition.template === 'commodity') {
+    form.elements.aliases.value = (record.aliases || []).join('\n');
+    form.elements.preserve_previous.closest('label').hidden = action !== 'commodity-edit';
+    if (record.aliases_ready === false) { form.elements.aliases.closest('label').hidden = true; }
+  }
+  if (action === 'commodity-restore') form.elements.confirmed.closest('label').remove();
   if (definition.template === 'status') {
     form.elements.construction_status.value = record.next_status;
     if (record.next_status !== 'completed') { form.elements.confirmed.required = false; form.elements.confirmed.closest('label').hidden = true; }
@@ -161,6 +171,7 @@ async function openEditor(action, record = {}, resume = false) {
       const control = form.elements[name];
       if (control) {
         if (control.type === 'checkbox') control.checked = value;
+        else if (name === 'aliases' && Array.isArray(value)) control.value = value.join('\n');
         else if (name === 'occurred_at' && value) {
           const date = new Date(value); const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
           control.value = local.toISOString().slice(0,19);
@@ -367,6 +378,7 @@ form.addEventListener('submit', async event => {
       const control = form.elements[name]; if (!control) continue;
       body[name] = control.type === 'checkbox' ? control.checked : control.value;
       if (name === 'occurred_at' && control.value) body[name] = new Date(control.value).toISOString().replace(/\.\d{3}Z$/,'Z');
+      if (name === 'aliases') body[name] = control.value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean);
     }
     if (definition.template==='recipe') {
       body.materials=Array.from(fields.querySelectorAll('.recipe-material'),row=>({commodity_id:row.querySelector('[data-recipe-commodity]').value, required_quantity:row.querySelector('[data-recipe-quantity]').value}));
@@ -448,8 +460,8 @@ const next = document.querySelector('#history-next');
 let historyRecord = null;
 let historyPage = 1;
 let historyGeneration = 0;
-const labels = { name: 'Nombre', description: 'Descripción', body_name: 'Cuerpo', location_label: 'Ubicación', tier: 'Tier', type: 'Tipo', state: 'Estado anterior', construction_status: 'Construcción', sort_order: 'Orden', archived_at: 'Archivo', source_note:'Fuente', source_url:'URL de referencia' };
-const actions = { create: 'Creación', update: 'Edición', archive: 'Archivo', restore: 'Restauración', status: 'Cambio de construcción' };
+const labels = { name: 'Nombre', description: 'Descripción', body_name: 'Cuerpo', location_label: 'Ubicación', tier: 'Tier', type: 'Tipo', state: 'Estado anterior', construction_status: 'Construcción', sort_order: 'Orden', archived_at: 'Archivo', source_note:'Fuente', source_url:'URL de referencia', code:'Código',name_es:'Nombre en español',name_en:'Nombre en inglés',aliases:'Equivalencias',active:'Activa' };
+const actions = { create: 'Creación', update: 'Edición', archive: 'Archivo', restore: 'Restauración', status: 'Cambio de construcción', deactivate:'Desactivación' };
 const quantity = value => String(value ?? '—').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 async function loadHistory() {
@@ -457,7 +469,8 @@ async function loadHistory() {
   previous.disabled = next.disabled = true;
   historyItems.textContent = 'Cargando cambios…';
   try {
-    const result = await request(historyRecord.type==='facility_recipe' ? 'facility/recipe/history' : 'planning/history', { query: { ...historyRecord, list_page: historyPage } });
+    const route = historyRecord.type==='commodity' ? 'admin/commodity/history' : historyRecord.type==='facility_recipe' ? 'facility/recipe/history' : 'planning/history';
+    const result = await request(route, { query: { ...historyRecord, list_page: historyPage } });
     if (generation !== historyGeneration || !historyDialog.open) return;
     historyItems.replaceChildren();
     if (!result.data.length) historyItems.textContent = 'No hay cambios registrados en esta página.';
@@ -484,10 +497,11 @@ async function loadHistory() {
         for (const [field, label] of Object.entries(labels)) {
           const before = item.changes.before?.[field] ?? null;
           const after = item.changes.after?.[field] ?? null;
-          if (before === after) continue;
+          if (JSON.stringify(before) === JSON.stringify(after)) continue;
           const line = document.createElement('p');
           line.className = 'muted';
-          line.textContent = `${label}: ${before ?? '—'} → ${after ?? '—'}`;
+          const display = value => Array.isArray(value) ? value.join(' · ') || '—' : typeof value === 'boolean' ? value ? 'Sí' : 'No' : value ?? '—';
+          line.textContent = `${label}: ${display(before)} → ${display(after)}`;
           article.append(line);
         }
       }

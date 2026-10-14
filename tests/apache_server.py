@@ -44,7 +44,10 @@ DocumentRoot "{root.as_posix()}"
         raise RuntimeError(checked.stdout + checked.stderr)
     processes = []
     try:
-        processes.append(subprocess.Popen([str(cgi), '-b', f'127.0.0.1:{cgi_port}'], cwd=root, env=env, stdout=output, stderr=output, creationflags=flags))
+        cgi_env = env.copy()
+        # The test worker has no supervisor to restart it after the default 500 requests.
+        cgi_env['PHP_FCGI_MAX_REQUESTS'] = '0'
+        processes.append(subprocess.Popen([str(cgi), '-b', f'127.0.0.1:{cgi_port}'], cwd=root, env=cgi_env, stdout=output, stderr=output, creationflags=flags))
         processes.append(subprocess.Popen([str(executable), '-X', '-f', str(config)], cwd=root, env=env, stdout=output, stderr=output, creationflags=flags))
         return processes
     except Exception:

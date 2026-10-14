@@ -174,22 +174,6 @@ final class PlanningService
         });
     }
 
-    public function createCommodity(array $actor, int $authVersion, string $key, array $input): array
-    {
-        Input::fields($input, ['code', 'name_es', 'name_en']);
-        $data = ['code' => Input::text($input, 'code', 120, true), 'name_es' => Input::text($input, 'name_es', 255, true), 'name_en' => Input::text($input, 'name_en', 255)];
-        try {
-            return $this->mutations->run($actor, $authVersion, ['admin'], 'planning.commodity.create', $key, $data, function(string $operationId) use ($data, $actor): array {
-                $after = $this->repository->insertCommodity($data);
-                $this->repository->audit('commodity', $after['id'], 'create', null, $after, $actor['id'], 'Alta de material', $operationId);
-                return ['data' => $after, 'status' => 201];
-            });
-        } catch (PDOException $error) {
-            if ((int)($error->errorInfo[1] ?? 0) === 1062) { throw new HttpError(409, 'commodity_exists', 'Ese código de material ya existe.'); }
-            throw $error;
-        }
-    }
-
     private static function active(array $row): void
     {
         if ($row['archived_at'] !== null) { throw new HttpError(409, 'archived_parent', 'El sistema o instalación está archivado. Restauralo antes de modificar su planificación.'); }

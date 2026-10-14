@@ -14,7 +14,7 @@ final class PlanningController
     {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $allowed = match ($route) {
-            'systems', 'installations', 'system/restore', 'installation/restore', 'commodities' => ['POST'],
+            'systems', 'installations', 'system/restore', 'installation/restore' => ['POST'],
             'system', 'installation' => ['PATCH', 'DELETE'],
             'requirement' => ['PUT', 'DELETE'],
             default => [],
@@ -23,7 +23,7 @@ final class PlanningController
             header('Allow: ' . implode(', ', $allowed));
             throw new HttpError(405, 'method_not_allowed', 'Método no permitido.');
         }
-        $actor = $route === 'commodities' ? $app->auth()->requireAdmin() : $app->auth()->requirePlanner();
+        $actor = $app->auth()->requirePlanner();
         $app->session()->verifyCsrf();
         $key = $_SERVER['HTTP_IDEMPOTENCY_KEY'] ?? '';
         $input = Request::json();
@@ -45,7 +45,6 @@ final class PlanningController
             'requirement' => $method === 'PUT'
                 ? $service->saveRequirement($actor, $version, $key, Request::positiveId($_GET['installation_id'] ?? null), Request::positiveId($_GET['commodity_id'] ?? null), $input)
                 : $service->removeRequirement($actor, $version, $key, Request::positiveId($_GET['installation_id'] ?? null), Request::positiveId($_GET['commodity_id'] ?? null), $input),
-            'commodities' => $service->createCommodity($actor, $version, $key, $input),
         };
         Response::json(['data' => $result['data'], 'operation_id' => $result['operation_id'], 'replayed' => $result['replayed']], $result['status']);
     }
