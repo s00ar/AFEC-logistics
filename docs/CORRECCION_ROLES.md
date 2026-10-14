@@ -21,6 +21,8 @@ Cinco verificaciones del payload real del módulo: autofill `admin` ignorado al 
 
 12 SQL y 338 HTTP con Apache y `.htaccess` reales. Alta, promoción/degradación, sesión revocada, permisos aplicados al volver a ingresar, identidad de comandante preservada y conflicto de nombre sin cambios parciales. El recurso nuevo es accesible; las rutas privadas siguen denegadas. PHP/JavaScript pasan comprobación de sintaxis. Las pruebas usan exclusivamente la base local de fixtures protegida; no se cambió el rol de ninguna cuenta real como prueba ni se confirmó el comportamiento visual de una extensión de contraseñas específica.
 
+Publicado en `main` (`d05146f`). Verificación HTTPS en Hostinger: panel 200, acceso de administrador 200, página Usuarios 200 con botón **Cambiar rol** y renombrado explícito. La URL versionada de `planning.js` y el módulo `accounts.js` coinciden con Git. El CDN todavía servía una copia anterior de `planning.js` sin query de versión, por lo que se confirmó también la URL exacta generada en la página autenticada. Se cerró la sesión de comprobación; no se modificaron cuentas reales para esta verificación.
+
 ## Riesgo y rollback
 
 El formulario nuevo depende del módulo `accounts.js`; debe publicarse con su permiso en `.htaccess` y el JavaScript que lo importa. Las operaciones guardadas mantienen su acción, payload y clave al reintentar; se agrega el alias de rol al mismo scope de edición existente.
