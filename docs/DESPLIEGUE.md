@@ -10,6 +10,22 @@ Antes de publicar, el destino respondía HTTP 403 y el remoto apuntaba a `964406
 
 Tras el push, comprobar la página, el login, la API y los recursos contra el contenido publicado; el éxito de Git no confirma que Hostinger haya terminado. Las herramientas de Hostinger no estuvieron disponibles en este chat y no se obtuvo acceso al servidor ni a MySQL remoto. No se ejecutan migraciones ni se transfieren secretos mediante Git.
 
+### Resultado verificado el 14/10/2026
+
+El push de los ocho commits funcionales pendientes y la actualización de la guía fue aceptado en `main` (`189e840`). Hostinger pasó de la respuesta inicial 403 a servir la aplicación PHP. `/?page=login` y `/api/index.php?route=session` responden 200; CSS y `planning.js` coinciden byte por byte con Git. El PNG del logo responde 200, aunque sus bytes servidos difieren del original; no se confirmó la causa ni se realizó revisión visual.
+
+`/` y `/api/index.php?route=systems` responden 503 con el mensaje genérico de la aplicación, mientras la sesión y el login funcionan sin consultar MySQL. Esto acota el fallo al recorrido que usa persistencia; sin logs o acceso privado no permite distinguir configuración ausente, extensión PDO, conexión rechazada o esquema faltante. `/config/config.local.php`, `/.git/HEAD`, SQL de 006 y el JSON del catálogo responden 403 sin contenido privado. No se confirmó la existencia de cuentas remotas, ni se probó CRUD contra la base real.
+
+La configuración privada de este PC está completa para producción (host `localhost`, puerto 3306, cookies Secure y ruta base vacía), pero sigue ignorada por Git. Verificar su presencia en el servidor mediante hPanel/SSH; si falta, transferir `config/config.local.php` de forma privada y conservarlo entre despliegues. Después ejecutar preflight y simulación de migraciones, respaldar la base y aplicar únicamente las versiones pendientes autorizadas. Crear el primer administrador solo si no hay cuentas y cargar el catálogo tras comprobar el esquema. No publicar credenciales ni sustituir estas operaciones por SQL automático al recibir peticiones públicas.
+
+Comprobación reproducible desde PowerShell, sin autenticación:
+
+```text
+curl.exe -sS -o NUL -w "%{http_code}" "https://logistica.afec.space/?page=login"
+curl.exe -sS "https://logistica.afec.space/api/index.php?route=systems"
+curl.exe -sS -o NUL -w "%{http_code}" "https://logistica.afec.space/config/config.local.php"
+```
+
 ## Despliegue confirmado: raíz del repositorio
 
 El propietario confirmó que Hostinger despliega la carpeta raíz completa del repositorio. No mover archivos ni cambiar el document root a `public/` para esta instalación. En la raíz quedan `index.php` (entrada HTML), `api/index.php` (entrada JSON), `.htaccess` y todas las carpetas del proyecto. Las dos entradas delegan en los controladores existentes; no hay lógica de negocio duplicada.
@@ -56,10 +72,10 @@ Guardar el archivo de contraseña fuera del webroot y retirarlo después. El com
 
 Antes de habilitar el sitio: comprobar `/`, `/index.php`, API, CSS, logo y módulos JavaScript; lectura anónima, login/logout, CRUD de operador/usuarios y privacidad de listas personal/flota. Solicitar directamente `/config/config.local.php`, `/database/migrations/001_initial.sql`, `/.git/HEAD`, `/storage/`, `/tools/preflight.php`, `/README.md` y el ZIP de handoff: deben devolver 403 sin contenido privado. Si alguna ruta entrega contenido, retirar acceso público y revisar la configuración del servidor. La configuración, esquema y primer administrador son pasos necesarios antes de usar la aplicación; un push no incluye secretos ni inicializa MySQL.
 
-El servidor y la base remotos no se han verificado desde este PC. No ejecutar automáticamente migraciones ni importaciones al desplegar código. Las pruebas locales de Apache no sustituyen la comprobación del servidor real.
+El acceso HTTP remoto se verificó como se detalla arriba; la configuración privada y la base remotas no se han inspeccionado desde este PC. No ejecutar automáticamente migraciones ni importaciones al desplegar código. Las pruebas locales de Apache no sustituyen la comprobación del servidor real.
 
 La fase 3 requiere migraciones 002/003/004 y habilita cuentas, entregas/correcciones, estados, listas y abastecimiento. El rollback de una instalación real restaura una versión de archivos previamente verificada para la misma disposición raíz y conserva configuración privada, base y backups. Mantener las migraciones aplicadas y sus checksums; no usar un migrador antiguo que las desconozca. No restaurar una versión sin entrada raíz o bloqueo HTTP en un webroot que exponga todo el repositorio. Nunca eliminar registros reales para repetir una instalación. Ensayar restauración aislada antes de futuras migraciones.
 
-La adaptación raíz está separada del commit CRUD `26e7c2e`: en desarrollo puede revertirse para volver al modo `public/`, manteniendo datos y auditoría. Todavía no hay despliegue real ejecutado por el agente.
+La adaptación raíz está separada del commit CRUD `26e7c2e`: en desarrollo puede revertirse para volver al modo `public/`, manteniendo datos y auditoría. El código se publicó mediante Git el 14/10/2026; la preparación privada de MySQL y cuentas en Hostinger sigue sin verificarse.
 
 Referencias de servidor: [banderas de mod_rewrite en Apache](https://httpd.apache.org/docs/2.4/rewrite/flags.html), en particular `[F]` para denegar solicitudes y `[L]` para detener la evaluación de la regla.
