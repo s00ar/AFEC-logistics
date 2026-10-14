@@ -2,7 +2,7 @@
     <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> OPERACIONES DE COLONIZACIÓN</p>
     <h1>Cada entrega <br>nos acerca <br><span>a un nuevo hogar.</span></h1>
     <p class="intro-copy">Sistemas, instalaciones y aportes de nuestros comandantes en un mismo lugar.</p>
-    <img class="login-logo" src="<?= e($app->assetUrl('img/afec-logistica.png')) ?>" alt="Emblema de AFEC Logística" width="280" height="280">
+    <img class="login-logo" src="<?= e($logoUrl) ?>" alt="Emblema de AFEC Logística" width="280" height="280">
 </section>
 <section class="login-panel" aria-labelledby="login-title">
     <p class="eyebrow">ACCESO DE COMANDANTES</p>

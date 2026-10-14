@@ -14,6 +14,7 @@ import socket
 import subprocess
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -142,7 +143,7 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         check(asset_prefix + 'css/app.css' in html and asset_prefix + 'js/app.js' in html, 'HTML uses assets for the selected deployment layout')
         for asset in ['css/app.css', 'js/app.js', 'js/http.js', 'js/planning.js','js/logistics.js']:
             check(anonymous.page(asset_prefix + asset)[0] == 200, 'Application asset is reachable: ' + asset)
-        logo=anonymous.resource(asset_prefix+'img/afec-logistica.png')
+        logo=anonymous.resource(asset_prefix+'images/'+urllib.parse.quote('Emblema AFEC Logística Espacial.png'))
         check(logo[0]==200 and logo[1]==(ROOT/'resources/branding/afec-logistica.png').read_bytes() and logo[2].get('Content-Type','').startswith('image/png'),'Original AFEC logo is served correctly')
         if args.webroot == 'repository':
             check(anonymous.page('/index.php')[0] == 200, 'Root index.php serves the application')

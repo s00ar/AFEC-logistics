@@ -59,3 +59,11 @@ Ante migración parcial, revisar el registro y restaurar un respaldo completo re
 Importación de Sheets, fuentes Apps Script/Terminal AFEC ausentes, recetas verificadas por tipo/tier, reservas y cargas en tránsito, catálogo editable completo y pantallas administrativas de comandantes/carriers. El selector de identidades en entregas está acotado a los primeros 101 registros activos; para mayores volúmenes se incorporará búsqueda/paginación. No hay stock/precio externo, registro público ni roles personalizados.
 
 Guía actualizada en [GUIA_USO.md](GUIA_USO.md). Configuración y puesta en marcha reales en [DESPLIEGUE.md](DESPLIEGUE.md).
+
+## Ajuste de cabecera — 14/10/2026
+
+Se utiliza el archivo aportado en `public/assets/images/Emblema AFEC Logística Espacial.png`, idéntico al original de 1254 × 1254 px. Cabecera a 120 px en escritorio y 96 px hasta 700 px de viewport, altura automática y sin compresión flex. El header permite ajuste de altura y navegación en varias filas; en móvil se oculta el texto redundante junto al emblema. Acceso/favicon usan la misma ruta, codificada para espacios/acentos y permitida explícitamente en `.htaccess`.
+
+Archivos: layout, login, CSS, `.htaccess`, recurso aportado, guía y referencia del logo en la prueba HTTP existente. Riesgo limitado a presentación y disponibilidad de ese recurso; sin cambios de lógica ni SQL. Rollback: revertir este ajuste sobre `57ebe88`, conservando el archivo original del usuario.
+
+Validación: lint de ambos templates PHP y sintaxis del ejecutor Python; solicitudes de solo lectura a Apache local en `http://127.0.0.1:8077/`, `/?page=login`, CSS y URL codificada del PNG: 200, referencias correctas y bytes idénticos. Configuración, templates, imagen desconocida y sufijo `.bak`: 403. También se verificaron dashboard, acceso y PNG con document root aislado en `public/`. Para repetir, recargar esas rutas y comparar el PNG servido con el archivo original. La suite existente comprueba ahora la ruta del logo utilizada por la aplicación; no se repitió la suite de negocio para este cambio de presentación. La herramienta de navegador no expuso una pestaña abierta disponible, por lo que queda pendiente comprobar visualmente el nuevo tamaño.

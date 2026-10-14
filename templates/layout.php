@@ -1,3 +1,4 @@
+<?php $logoUrl = $app->assetUrl('images/' . rawurlencode('Emblema AFEC Logística Espacial.png')); ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -9,14 +10,14 @@
     <meta name="user-id" content="<?= e($user['id'] ?? '') ?>">
     <title><?= e($title) ?> · AFEC Logística</title>
     <link rel="stylesheet" href="<?= e($app->assetUrl('css/app.css')) ?>">
-    <link rel="icon" type="image/png" href="<?= e($app->assetUrl('img/afec-logistica.png')) ?>">
+    <link rel="icon" type="image/png" href="<?= e($logoUrl) ?>">
     <script src="<?= e($app->assetUrl('js/app.js')) ?>" type="module"></script>
     <?php if ($user !== null): ?><script src="<?= e($app->assetUrl('js/planning.js')) ?>" type="module"></script><script src="<?= e($app->assetUrl('js/logistics.js')) ?>" type="module"></script><?php endif ?>
 </head>
 <body>
 <a class="skip-link" href="#main">Saltar al contenido</a>
 <header class="site-header">
-    <a class="brand" href="<?= e($app->url('/')) ?>" aria-label="AFEC Logística, inicio"><img class="brand-logo" src="<?= e($app->assetUrl('img/afec-logistica.png')) ?>" alt="" width="64" height="64"><span>AFEC <strong>LOGÍSTICA</strong></span></a>
+    <a class="brand" href="<?= e($app->url('/')) ?>" aria-label="AFEC Logística, inicio"><img class="brand-logo" src="<?= e($logoUrl) ?>" alt="" width="120" height="120"><span>AFEC <strong>LOGÍSTICA</strong></span></a>
     <nav aria-label="Navegación principal">
         <a href="<?= e($app->url('/')) ?>" <?= $page === 'dashboard' ? 'aria-current="page"' : '' ?>>Sistemas</a>
         <?php if ($user !== null): ?><a href="<?= e($app->url('/?page=wishlist&scope=personal')) ?>" <?= $page==='wishlist' && $scope==='personal'?'aria-current="page"':'' ?>>Mi lista</a><a href="<?= e($app->url('/?page=wishlist&scope=fleet')) ?>" <?= $page==='wishlist' && $scope==='fleet'?'aria-current="page"':'' ?>>Flota</a><?php endif ?>

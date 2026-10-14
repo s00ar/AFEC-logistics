@@ -9,6 +9,7 @@ RewriteRule ^api/index\.php$ - [L]
 RewriteRule ^public/assets/css/app\.css$ - [L]
 RewriteRule ^public/assets/js/(?:app|http|planning|logistics)\.js$ - [L]
 RewriteRule ^public/assets/img/afec-logistica\.png$ - [L]
+RewriteRule "^public/assets/images/Emblema AFEC Logística Espacial\.png$" - [L]
 RewriteRule ^ - [F,L]
 
 <FilesMatch "^\.">

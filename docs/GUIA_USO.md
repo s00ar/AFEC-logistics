@@ -100,7 +100,7 @@ El popup muestra fecha de actualización y autor. Son datos aportados por comand
 
 ## Identidad visual
 
-El logo proporcionado se utiliza en cabecera, acceso y favicon, conservando el archivo original.
+El archivo original `public/assets/images/Emblema AFEC Logística Espacial.png` se utiliza en cabecera, acceso y favicon. La cabecera lo muestra a 120 px de ancho en escritorio y 96 px en móvil, con altura proporcional y espacio suficiente para la navegación. Si el navegador conserva el estilo anterior, actualizar con **Ctrl + F5**.
 
 ## Conflictos y reintentos
 
