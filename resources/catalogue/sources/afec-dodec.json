@@ -1,0 +1,111 @@
+{
+  "range": "'Col 359 Sector VI-A c1-6'!A3:C27",
+  "majorDimension": "ROWS",
+  "values": [
+    [
+      "Materials",
+      "Materiales",
+      "Cantidad requerida"
+    ],
+    [
+      "Aluminio",
+      "Aluminio",
+      50248
+    ],
+    [
+      "Autofabricantes",
+      "Autofabricantes",
+      314
+    ],
+    [
+      "Compuestos cerámicos",
+      "Compuestos cerámicos",
+      5672
+    ],
+    [
+      "Compuestos CMM",
+      "Compuestos CMM",
+      56635
+    ],
+    [
+      "Compuestos informáticos",
+      "Compuestos informáticos",
+      483
+    ],
+    [
+      "Cobre",
+      "Cobre",
+      3138
+    ],
+    [
+      "Cartuchos de alimentos",
+      "Cartuchos de alimentos",
+      605
+    ],
+    [
+      "Frutas y verduras",
+      "Frutas y verduras",
+      363
+    ],
+    [
+      "Membrana Aislante",
+      "Membrana Aislante",
+      1970
+    ],
+    [
+      "Oxígeno líquido",
+      "Oxígeno líquido",
+      19405
+    ],
+    [
+      "Equipo de diagnóstico médico",
+      "Equipo de diagnóstico médico",
+      63
+    ],
+    [
+      "Armas no letales",
+      "Armas no letales",
+      63
+    ],
+    [
+      "Polímeros",
+      "Polímeros",
+      2855
+    ],
+    [
+      "Generadores de energía",
+      "Generadores de energía",
+      163
+    ],
+    [
+      "Semiconductores",
+      "Semiconductores",
+      523
+    ],
+    [
+      "Acero",
+      "Acero",
+      74062
+    ],
+    [
+      "Superconductores",
+      "Superconductores",
+      825
+    ],
+    [
+      "Titanio",
+      "Titanio",
+      43833
+    ],
+    [
+      "Agua",
+      "Agua",
+      8441
+    ],
+    [
+      "Purificadores de agua",
+      "Purificadores de agua",
+      263
+    ]
+  ]
+}

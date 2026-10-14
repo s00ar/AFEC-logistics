@@ -13,6 +13,11 @@
     <label>Descripción<textarea name="description" maxlength="4000" rows="3"></textarea></label>
     <label>Motivo<textarea name="reason" maxlength="1000" rows="2"></textarea></label>
 </template>
+<template id="form-catalogue">
+    <input name="snapshot_sha256" type="hidden">
+    <p class="muted">La carga usa un snapshot local de las fuentes AFEC y DaftMav. No conecta con Sheets ni modifica instalaciones existentes. Las cantidades comunitarias son referencias ajustables, y los ejemplos AFEC corresponden a proyectos concretos.</p>
+    <label class="confirm-row"><input name="confirmed" type="checkbox" required>Confirmo cargar las recetas faltantes y conservar todos los ajustes existentes.</label>
+</template>
 <template id="form-installation">
     <label data-recipe-choice>Facility / receta<select name="facility_recipe_id"><option value="">Sin receta: cargar objetivos manualmente</option></select></label>
     <input type="hidden" name="facility_recipe_version" value="">

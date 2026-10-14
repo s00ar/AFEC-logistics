@@ -1,6 +1,6 @@
 # Uso de la versión actual
 
-Actualizado: 14/10/2026. Corresponde a las fases 1–4 y la demo local; no implica que exista un sitio o una cuenta instalada en Hostinger.
+Actualizado: 14/10/2026. Corresponde a las fases 1–5 y la demo local; no implica que exista un sitio o una cuenta instalada en Hostinger.
 
 ## Ingresar a la demo
 
@@ -76,7 +76,24 @@ Solo operadores/administradores gestionan este catálogo; no es una lista de ins
 6. **Eliminar/restaurar receta:** **Eliminar receta** → motivo y confirmación → guardar. Deja de estar disponible al crear instalaciones, pero sus instalaciones anteriores mantienen objetivos y procedencia. **Mostrar eliminadas → Restaurar receta** la recupera.
 7. **Ver cambios:** historial de versiones, fuente y cantidades anteriores/posteriores. Si la receta cambia después de revisarla para crear una instalación, el servidor exige actualizar antes de guardar.
 
-Límite por receta: 100 materiales, catálogo paginado de 25. Las cantidades se guardan como enteros decimales, sin redondeo de JavaScript. No hay importación ni actualización externa automática. Está pendiente elegir la fuente inicial de recetas del juego; el catálogo se puede completar con datos verificados de AFEC. Las recetas usadas en pruebas son sintéticas y no se cargan en producción.
+Límite por receta: 100 materiales, catálogo paginado de 25. Las cantidades se guardan como enteros decimales, sin redondeo de JavaScript. No hay actualización externa automática. Las recetas sintéticas de pruebas quedan en una base separada; el catálogo de referencia de la demo usa las fuentes descritas abajo.
+
+## Catálogo inicial AFEC + comunidad
+
+La demo dispone de **71 recetas**: 66 referencias DaftMav y 5 ejemplos AFEC (cuatro del CSV investigado y un Dodec de Sheets), con 55 mercancías. Los puertos **Primary** aparecen separados de construcciones posteriores. Cada receta muestra **Observación AFEC**, **Referencia comunitaria** o **Plantilla manual**; **Ajustada localmente** identifica versiones posteriores de una receta importada.
+
+Para una instalación nueva: **Agregar facility → Facility / receta → elegir variante → revisar materiales → Guardar**. Las cantidades AFEC son observaciones de proyectos concretos y las comunitarias son referencias; ajustar según los requeridos del proyecto en el juego. Un tier sin confirmar queda vacío, no se supone uno.
+
+En otra instalación del programa, después de aplicar 006 y crear el administrador:
+
+1. Ingresar como administrador → **Facilities y recetas**.
+2. Revisar **Catálogo AFEC + comunidad**, fuentes y **Datos pendientes y criterio de carga**.
+3. Pulsar **Cargar catálogo inicial**, confirmar y guardar. Carga únicamente las recetas que faltan y sus mercancías; conserva las recetas existentes, incluso editadas o archivadas. No modifica sistemas, instalaciones, objetivos ni entregas.
+4. Si falta respuesta, usar **Comprobar y reintentar**, conservando la misma operación. Repetir la carga tampoco duplica sus identidades de fuente.
+
+Operadores administran las recetas ya cargadas; solo administradores pueden cargar el paquete inicial porque incluye altas de mercancías. Sus nombres/IDs existentes se conservan. Una coincidencia ambigua o mercancía inactiva detiene la carga completa y requiere revisar ese catálogo antes de reintentar.
+
+Los 33 materiales de estructuras sin identificar del CSV no se asignan a un tipo supuesto; las 51 filas de tipos sin cantidades no producen recetas vacías. Bio Large suma 8524 en AFEC y 8523 en la referencia comunitaria: ambas variantes se conservan. La celda TOTALES 6375 de AFEC no se usa. Detalle, fuentes y reconstrucción en [SOURCES.md](../resources/catalogue/SOURCES.md).
 
 ## Entregas y corrección de cantidades
 
@@ -127,4 +144,4 @@ Las contraseñas nuevas no se guardan en el almacenamiento de recuperación del 
 
 ## Funcionalidades todavía pendientes
 
-Importación de Sheets, precarga del catálogo de recetas con una fuente confirmada, reservas/cargas en tránsito y un módulo completo de edición/retiro de comandantes y carriers. Estos últimos pueden seleccionarse o darse de alta al registrar una entrega; no cuentan todavía con pantalla administrativa completa. No hay integración de stock externo, registro público de cuentas ni roles personalizados. El despliegue y la inicialización reales en Hostinger siguen pendientes.
+Importación completa de sistemas/instalaciones/entregas de Sheets, clasificación de estructuras desconocidas y tiers pendientes, reservas/cargas en tránsito y un módulo completo de edición/retiro de comandantes y carriers. Estos últimos pueden seleccionarse o darse de alta al registrar una entrega; no cuentan todavía con pantalla administrativa completa. No hay integración de stock externo, registro público de cuentas ni roles personalizados. El despliegue y la inicialización reales en Hostinger siguen pendientes.

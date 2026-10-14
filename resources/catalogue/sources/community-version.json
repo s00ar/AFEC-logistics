@@ -1,0 +1,30 @@
+{
+  "range": "Changelog!C3:F7",
+  "majorDimension": "ROWS",
+  "values": [
+    [
+      "",
+      "Your copy",
+      "Original",
+      "Update available?"
+    ],
+    [
+      "Spreadsheet",
+      3.4,
+      3.4,
+      "You have the latest version"
+    ],
+    [
+      "Lists data",
+      2,
+      2
+    ],
+    [],
+    [
+      "",
+      "",
+      "\"Make a copy\" link of the original:",
+      "Colonization Construction v3 (By DaftMav)"
+    ]
+  ]
+}

@@ -4,9 +4,9 @@ Aplicación de colonización de Elite Dangerous. Monolito PHP + PDO MySQL/MariaD
 
 ## Estado
 
-Fases 1–4 implementadas y verificadas localmente: autenticación, sesiones/CSRF, roles, panel público, CRUD de planificación y cuentas, estados de construcción, entregas y retiros compensatorios, listas personal/flota y abastecimiento compartido con copia de nombres. Logo/paleta AFEC, animaciones CSS ligeras y catálogo editable de recetas para cargar automáticamente los objetivos de instalaciones. Alcance y pruebas en [docs/FASE_1.md](docs/FASE_1.md), [docs/FASE_2.md](docs/FASE_2.md), [docs/FASE_3.md](docs/FASE_3.md) y [docs/FASE_4.md](docs/FASE_4.md).
+Fases 1–5 implementadas y verificadas localmente: autenticación, sesiones/CSRF, roles, panel público, CRUD de planificación y cuentas, estados de construcción, entregas y retiros compensatorios, listas personal/flota y abastecimiento compartido con copia de nombres. Logo/paleta AFEC, animaciones CSS ligeras y catálogo editable de recetas para cargar automáticamente los objetivos de instalaciones. Snapshot inicial con 66 referencias comunitarias y 5 observaciones AFEC, carga idempotente y ajustes preservados. Alcance y pruebas en [docs/FASE_1.md](docs/FASE_1.md), [docs/FASE_2.md](docs/FASE_2.md), [docs/FASE_3.md](docs/FASE_3.md), [docs/FASE_4.md](docs/FASE_4.md) y [docs/FASE_5.md](docs/FASE_5.md).
 
-Pendientes: importación de Sheets, fuente confirmada para precargar las recetas del juego, reservas/cargas en tránsito, catálogo editable completo de mercancías y pantallas administrativas completas de comandantes/carriers. Se admite selección/alta de identidades al registrar entregas. No se ha desplegado desde este entorno ni aplicado el esquema en Hostinger.
+Pendientes: importación completa de Sheets/Apps Script, clasificación de estructuras desconocidas y tiers no confirmados, reservas/cargas en tránsito, catálogo editable completo de mercancías y pantallas administrativas completas de comandantes/carriers. Se admite selección/alta de identidades al registrar entregas. No se ha desplegado desde este entorno ni aplicado el esquema en Hostinger. Fuentes y límites del catálogo en [resources/catalogue/SOURCES.md](resources/catalogue/SOURCES.md).
 
 La consulta pública y los aportes registrados por operadores en nombre de terceros están confirmados en [docs/DECISIONES.md](docs/DECISIONES.md). El resto de políticas sigue documentado como pendiente. El material de origen permanece intacto en `AFEC_Logistica_Handoff_Codex/`; el diagnóstico está en `ANALISIS_AFEC_LOGISTICA.md`.
 
@@ -63,6 +63,7 @@ Entrada HTTP: `/api/index.php?route=...` en ambos modos de despliegue (las opera
 | GET / POST | `facility/recipes` | Operador/admin; listar / crear receta de facility |
 | GET / PATCH / DELETE | `facility/recipe&id=ID` | Operador/admin; consultar / editar materiales / archivar receta |
 | POST / GET | `facility/recipe/restore&id=ID` / `facility/recipe/history&id=ID` | Operador/admin; restaurar / auditar receta |
+| GET / POST | `facility/catalogue` / `facility/catalogue/import` | Administrador; revisar / cargar snapshot inicial confirmado |
 | PATCH / DELETE | `installation&id=ID` | Operador/admin; editar / archivar |
 | POST | `installation/restore&id=ID` | Operador/admin; restaurar |
 | PUT / DELETE | `requirement&installation_id=ID&commodity_id=ID` | Operador/admin; guardar/restaurar / retirar objetivo |

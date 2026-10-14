@@ -12,7 +12,7 @@ final class RecipeRepository
     public function listing(int $page, bool $includeArchived): array
     {
         $offset = ($page - 1) * 25;
-        $query = $this->database->connection()->prepare('SELECT CAST(r.id AS CHAR) AS id, r.name, r.type, r.tier, r.source_note, r.source_url, r.archived_at, CAST(r.version AS CHAR) AS version,
+        $query = $this->database->connection()->prepare('SELECT CAST(r.id AS CHAR) AS id, r.name, r.type, r.tier, r.source_note, r.source_url, r.source_kind, r.source_key, r.source_snapshot_sha256, r.archived_at, CAST(r.version AS CHAR) AS version,
             (SELECT COUNT(*) FROM facility_recipe_materials m WHERE m.recipe_id = r.id) AS material_count
             FROM facility_recipes r ' . ($includeArchived ? '' : 'WHERE r.archived_at IS NULL') . ' ORDER BY r.name, r.id LIMIT 26 OFFSET ' . $offset);
         $query->execute();
@@ -25,7 +25,7 @@ final class RecipeRepository
     /** Call within a transaction: the parent lock protects its complete recipe. */
     public function find(string $id, bool $lock = false): array
     {
-        $query = $this->database->connection()->prepare('SELECT CAST(id AS CHAR) AS id, name, type, tier, source_note, source_url, archived_at, CAST(version AS CHAR) AS version FROM facility_recipes WHERE id = ?' . ($lock ? ' FOR UPDATE' : ''));
+        $query = $this->database->connection()->prepare('SELECT CAST(id AS CHAR) AS id, name, type, tier, source_note, source_url, source_kind, source_key, source_snapshot_sha256, archived_at, CAST(version AS CHAR) AS version FROM facility_recipes WHERE id = ?' . ($lock ? ' FOR UPDATE' : ''));
         $query->execute([$id]);
         $row = $query->fetch() ?: throw new HttpError(404, 'not_found', 'No se encontró la receta.');
         $query = $this->database->connection()->prepare('SELECT CAST(m.commodity_id AS CHAR) AS commodity_id, CAST(m.required_quantity AS CHAR) AS required_quantity, c.name_es AS commodity_name, c.active AS commodity_active FROM facility_recipe_materials m JOIN commodities c ON c.id = m.commodity_id WHERE m.recipe_id = ? ORDER BY m.commodity_id');

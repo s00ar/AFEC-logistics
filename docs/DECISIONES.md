@@ -47,6 +47,12 @@ El propietario solicitó los tonos `#0B0E14`, `#C7C7C7`, `#FF7100`, `#CC0000`, b
 
 Pendiente: fuente numérica del catálogo inicial (AFEC/Sheets o referencia comunitaria); el handoff no contiene recetas. No se inventan cantidades. Fuente/variante/fecha se pueden documentar en cada plantilla. Alcance, pruebas y rollback en [FASE_4.md](FASE_4.md).
 
+## Fase 5 — ambas fuentes aprobadas
+
+El propietario respondió «Toma ambos datos» y aportó `AFEC_catalogo_materiales_colonizacion_verificado_parcial.csv`. Se usa ese archivo y lectura acotada de Sheets AFEC, más la planilla original de DaftMav. Se conservaron observaciones AFEC y referencias comunitarias como variantes separadas; no se sobrescriben cantidades entre fuentes. 71 recetas disponibles en la demo, con 55 mercancías, procedencia persistida y carga inicial exclusiva del administrador.
+
+Resuelta la elección de fuente de fase 4. Persisten estructuras sin tipo/tier y cantidades de proyectos específicos que no equivalen a recetas universales. La carga conserva todos los ajustes/recetas ya existentes y no importa ni altera movimientos. Sheets se consultó solo en lectura, sin auditoría de Apps Script ni importación completa. Resultado en [FASE_5.md](FASE_5.md) y [SOURCES.md](../resources/catalogue/SOURCES.md).
+
 ## Disposición de despliegue confirmada
 
 El repositorio completo se despliega desde su raíz en Hostinger. La entrada HTML y la API deben funcionar desde allí, con recursos públicos y bloqueo HTTP de archivos privados. Se conserva el modo de desarrollo con document root `public/`. La configuración privada, base inicial y primer administrador siguen siendo pasos de instalación; no se incluyen secretos ni se ejecutan migraciones desde HTTP o por push.

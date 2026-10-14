@@ -24,6 +24,7 @@ try {
         'withdraw' => (new Afec\Services\LogisticsService($app->database))->withdraw($actor,(int)$user['auth_version'],$job['key'],$job['id'],$job['body']),
         'user_update' => (new Afec\Services\UserService($app->database))->write($actor,(int)$user['auth_version'],$job['key'],'update',$job['id'],$job['body']),
         'list_add' => (new Afec\Services\LogisticsService($app->database))->listChange($actor,(int)$user['auth_version'],$job['key'],$job['id'],$job['body']),
+        'catalogue_import' => (new Afec\Services\RecipeCatalogueService($app->database, new Afec\Services\RecipeCatalogue(dirname(__DIR__) . '/resources/catalogue')))->import($actor, (int)$user['auth_version'], $job['key']),
     };
     echo json_encode($result, JSON_THROW_ON_ERROR);
 } catch (Afec\Http\HttpError $error) {

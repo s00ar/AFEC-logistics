@@ -1,0 +1,126 @@
+{
+  "range": "'Col 359 Sector TN-A c1-20'!A3:C34",
+  "majorDimension": "ROWS",
+  "values": [
+    [
+      "Materials",
+      "Materiales",
+      "Cantidad requerida"
+    ],
+    [
+      "Aluminium",
+      "Aluminio",
+      1264
+    ],
+    [
+      "Bioreducing Lichen",
+      "Líquenes biorreductores",
+      324
+    ],
+    [
+      "Building Fabricators",
+      "Constructores",
+      118
+    ],
+    [
+      "Ceramic Composites",
+      "Compuestos cerámicos",
+      118
+    ],
+    [
+      "Computer Components",
+      "Componentes informáticos",
+      60
+    ],
+    [
+      "Copper",
+      "Cobre",
+      60
+    ],
+    [
+      "Emergency Power Cells",
+      "Células energía auxiliar",
+      192
+    ],
+    [
+      "Evacuation Shelter",
+      "Refugio de evacuación",
+      60
+    ],
+    [
+      "Food Cartridges",
+      "Cartuchos de alimentos",
+      90
+    ],
+    [
+      "Fruit and Vegetables",
+      "Frutas y verduras",
+      60
+    ],
+    [
+      "Geological Equipment",
+      "Equipamiento geológico",
+      104
+    ],
+    [
+      "H.E. Suits",
+      "Trajes de protección",
+      30
+    ],
+    [
+      "Liquid Oxygen",
+      "Oxígeno líquido",
+      354
+    ],
+    [
+      "Muon Imager",
+      "Escáner muónico",
+      90
+    ],
+    [
+      "Polymers",
+      "Polímeros",
+      236
+    ],
+    [
+      "Robotics",
+      "Robótica",
+      118
+    ],
+    [
+      "Steel",
+      "Acero",
+      2056
+    ],
+    [
+      "Structural Regulators",
+      "Reguladores estructurales",
+      148
+    ],
+    [
+      "Surface Stabilisers",
+      "Estabilizadores de superficie",
+      178
+    ],
+    [
+      "Survival Equipment",
+      "Equipamiento de supervivencia",
+      30
+    ],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "TOTALES:",
+      null,
+      5690
+    ]
+  ]
+}

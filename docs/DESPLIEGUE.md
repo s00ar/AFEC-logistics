@@ -32,6 +32,10 @@ La herramienta CLI `tools/migrate.php` simula por defecto sin escribir. `--apply
 
 La fase 4 requiere también `005_facility_recipes.sql`: catálogo editable de recetas y procedencia de sus objetivos en instalaciones. No precarga cantidades del juego sin fuente confirmada. El código nuevo requiere ese esquema antes de habilitar la aplicación; planificar despliegue y migración con respaldo, sin ejecutarlos automáticamente. Las versiones previas conservan los datos si se revierte código, pero debe mantenerse 005 y su registro/checksum al preparar el rollback.
 
+La fase 5 requiere `006_recipe_provenance.sql` y el directorio completo `resources/catalogue/`, con fuentes/checksums intactos. El CSV original conserva sus bytes mediante `.gitattributes`; JSON usa LF. El dataset es privado por HTTP y se lee desde PHP, sin consultas externas ni Python en producción. Aplicar 006 como parte de la secuencia revisada, nunca automáticamente por push.
+
+Después de crear el administrador y aplicar el esquema, cargar las 71 referencias desde **Facilities y recetas → Cargar catálogo inicial**, con revisión y confirmación. Alternativa CLI: `php tools/seed-recipes.php --user=ADMIN` simula; `--apply --allow-production` aplica únicamente con backup y autorización de producción. Las mercancías existentes y recetas previamente cargadas se preservan; el paquete no importa proyectos ni movimientos de Sheets. Los operadores pueden ajustar las recetas después. Conservar 006 y sus registros/checksums al revertir código; no eliminar fuentes cargadas para repetir.
+
 El primer administrador se crea mediante una herramienta CLI privada:
 
 ```text

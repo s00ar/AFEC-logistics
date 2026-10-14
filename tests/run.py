@@ -151,7 +151,9 @@ with (PRIVATE / 'http-server.log').open('w') as output:
                 '/docs/DECISIONES.md', '/database/migrations/001_initial.sql', '/templates/layout.php',
                 '/tools/preflight.php', '/tests/fixture.php', '/storage/.gitkeep', '/config/config.example.php',
                 '/AFEC_Logistica_Handoff_Codex/', '/public/index.php', '/public/api/index.php?route=session',
-                '/public/assets/js/unknown.js', '/public/assets/js/app.js.bak', '/api/index.php/extra', '/unknown']
+                '/public/assets/js/unknown.js', '/public/assets/js/app.js.bak', '/api/index.php/extra', '/unknown',
+                '/resources/catalogue/initial-recipes.json', '/resources/catalogue/sources/afec-research.csv',
+                '/tools/seed-recipes.php', '/tools/build-recipe-catalogue.py', '/database/migrations/006_recipe_provenance.sql']
             for path in private_paths:
                 check(anonymous.page(path)[0] == 403, 'Apache denies non-public repository path: ' + path)
         check(anonymous.page('/?page=login')[0] == 200 and 'login-form' in anonymous.page('/?page=login')[1], 'Public site has an explicit login page')
@@ -175,6 +177,8 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         run_expansion_checks(anonymous,admin,viewer,operator,Client,check,command,env,php,ROOT)
         from recipe_http import run_recipe_checks
         run_recipe_checks(anonymous,admin,viewer,operator,check,command)
+        from catalogue_http import run_catalogue_checks
+        run_catalogue_checks(anonymous,admin,viewer,operator,Client,check,command,env,php,ROOT)
         command('tests/fixture.php','deactivate_viewer')
         check(viewer.session()['user'] is None, 'Deactivation invalidates an existing session')
         operator = Client(); check(operator.login('operator')[0] == 200, 'Operator can authenticate')

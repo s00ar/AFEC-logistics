@@ -9,6 +9,8 @@ use Afec\Repositories\ProgressRepository;
 use Afec\Repositories\UserRepository;
 use Afec\Repositories\LogisticsRepository;
 use Afec\Repositories\RecipeRepository;
+use Afec\Services\RecipeCatalogue;
+use Afec\Services\RecipeCatalogueService;
 use Afec\Validation\LogisticsInput;
 
 $app = null;
@@ -38,6 +40,7 @@ try {
         $app->auth()->requirePlanner();
         $listing = (new RecipeRepository($app->database))->listing($listPage, $includeArchived);
         $recipes = $listing['items'];
+        $catalogue = $user['role'] === 'admin' ? (new RecipeCatalogueService($app->database, new RecipeCatalogue(dirname(__DIR__) . '/resources/catalogue')))->preview() : null;
         $pagination = ['page' => $listPage, 'has_more' => $listing['has_more']];
         $title = 'Facilities y recetas'; $view = 'recipes';
     } elseif ($page === 'users') {

@@ -1,0 +1,136 @@
+{
+  "range": "'BA-X c2-14 Research Bio Settlement — Large'!A2:C35",
+  "majorDimension": "ROWS",
+  "values": [
+    [
+      "Materials",
+      "Materiales",
+      "Cantidad requerida"
+    ],
+    [
+      "ADVANCED CATALYSERS",
+      "Catalizadores avanzados",
+      285
+    ],
+    [
+      "ALUMINIUM\n",
+      "Aluminio",
+      1821
+    ],
+    [
+      "BASIC MEDICINES",
+      "Medicinas básicas",
+      43
+    ],
+    [
+      "BUILDING FABRICATORS",
+      "Constructores",
+      162
+    ],
+    [
+      "CERAMIC COMPOSITES",
+      "Compuestos cerámicos",
+      123
+    ],
+    [
+      "COMPUTER COMPONENTS",
+      "Componentes informáticos",
+      123
+    ],
+    [
+      "COPPER",
+      "Cobre",
+      102
+    ],
+    [
+      "EMERGENCY POWER CELLS",
+      "Células de energía de emergencia",
+      81
+    ],
+    [
+      "EVACUATION SHELTER",
+      "Refugio de evacuación",
+      81
+    ],
+    [
+      "FOOD CARTRIDGES",
+      "Cartuchos de alimentos",
+      123
+    ],
+    [
+      "FRUIT AND VEGETABLES",
+      "Frutas y verduras",
+      81
+    ],
+    [
+      "GEOLOGICAL EQUIPMENT",
+      "Equipamiento geológico",
+      81
+    ],
+    [
+      "H.E. SUITS",
+      "Trajes de protección",
+      81
+    ],
+    [
+      "LIQUID OXYGEN",
+      "Oxígeno líquido",
+      1053
+    ],
+    [
+      "MEDICAL DIAGNOSTIC EQUIPMENT",
+      "Equipo de diagnóstico médico",
+      123
+    ],
+    [
+      "MICRO CONTROLLERS",
+      "Microcontroladores",
+      42
+    ],
+    [
+      "MUON IMAGER",
+      "Escáner muónico",
+      285
+    ],
+    [
+      "POLYMERS",
+      "Polímeros",
+      345
+    ],
+    [
+      "SEMICONDUCTORS",
+      "Semiconductores",
+      63
+    ],
+    [
+      "STEEL",
+      "Acero",
+      2835
+    ],
+    [
+      "STRUCTURAL REGULATORS",
+      "Reguladores estructurales",
+      243
+    ],
+    [
+      "SUPERCONDUCTORS",
+      "Superconductores",
+      63
+    ],
+    [
+      "SURFACE STABILISERS",
+      "Estabilizadores de superficie",
+      243
+    ],
+    [
+      "SURVIVAL EQUIPMENT",
+      "Equipamiento de supervivencia",
+      42
+    ],
+    [
+      "TOTALES:",
+      null,
+      6375
+    ]
+  ]
+}

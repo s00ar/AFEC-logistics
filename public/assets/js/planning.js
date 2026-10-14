@@ -41,6 +41,7 @@ const definitions = {
   'recipe-edit': { template:'recipe', title:'Editar receta y materiales', route:'facility/recipe', method:'PATCH', fields:['name','type','tier','source_note','source_url','reason'], query:r=>({id:r.id}), edit:true, keepPage:true },
   'recipe-archive': { template:'archive', title:'Eliminar receta (archivar)', route:'facility/recipe', method:'DELETE', query:r=>({id:r.id}), archive:true, keepPage:true },
   'recipe-restore': { template:'archive', title:'Restaurar receta', route:'facility/recipe/restore', method:'POST', query:r=>({id:r.id}), keepPage:true },
+  'catalogue-import': { template:'catalogue', title:'Cargar catálogo AFEC + comunidad', route:'facility/catalogue/import', method:'POST', fields:['confirmed','snapshot_sha256'], keepPage:true },
 };
 let active = null;
 let pending = null;
@@ -58,6 +59,7 @@ const scopes = {
   'source-create':'logistics.source.create','source-edit':'logistics.source.update','source-delete':'logistics.source.delete','source-restore':'logistics.source.restore',
   'delivery-create':'logistics.delivery','movement-withdraw':'logistics.withdraw',
   'recipe-create':'planning.recipe.create','recipe-edit':'planning.recipe.update','recipe-archive':'planning.recipe.archive','recipe-restore':'planning.recipe.restore',
+  'catalogue-import':'planning.catalogue.import',
 };
 
 function toast(message, success = false) {

@@ -7,15 +7,29 @@ use Afec\Repositories\PlanningRepository;
 use Afec\Repositories\RecipeRepository;
 use Afec\Services\MutationService;
 use Afec\Services\RecipeService;
+use Afec\Services\RecipeCatalogue;
+use Afec\Services\RecipeCatalogueService;
+use Afec\Validation\PlanningInput as Input;
 
 final class RecipeController
 {
     public static function dispatch(App $app, string $route): never
     {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $allowed = match ($route) { 'facility/recipes' => ['GET', 'POST'], 'facility/recipe' => ['GET', 'PATCH', 'DELETE'], 'facility/recipe/restore' => ['POST'], 'facility/recipe/history' => ['GET'] };
+        $allowed = match ($route) { 'facility/recipes' => ['GET', 'POST'], 'facility/recipe' => ['GET', 'PATCH', 'DELETE'], 'facility/recipe/restore' => ['POST'], 'facility/recipe/history' => ['GET'], 'facility/catalogue' => ['GET'], 'facility/catalogue/import' => ['POST'] };
         if (!in_array($method, $allowed, true)) { header('Allow: ' . implode(', ', $allowed)); throw new HttpError(405, 'method_not_allowed', 'Método no permitido.'); }
-        $actor = $app->auth()->requirePlanner();
+        $isCatalogue = str_starts_with($route, 'facility/catalogue');
+        $actor = $isCatalogue ? $app->auth()->requireAdmin() : $app->auth()->requirePlanner();
+        if ($isCatalogue) {
+            $catalogue = new RecipeCatalogue(dirname(__DIR__, 2) . '/resources/catalogue');
+            $service = new RecipeCatalogueService($app->database, $catalogue);
+            if ($method === 'GET') { Response::json(['data' => $service->preview()]); }
+            $app->session()->verifyCsrf();
+            $input = Request::json(); Input::fields($input, ['confirmed','snapshot_sha256']); Input::confirmation($input);
+            if (($input['snapshot_sha256'] ?? null) !== $catalogue->hash) { throw new HttpError(409, 'stale_catalogue', 'El catálogo cambió. Recargá y revisá la fuente antes de cargarlo.'); }
+            $result = $service->import($actor, $app->session()->authVersion(), $_SERVER['HTTP_IDEMPOTENCY_KEY'] ?? '');
+            Response::json(['data' => $result['data'], 'operation_id' => $result['operation_id'], 'replayed' => $result['replayed']], $result['status']);
+        }
         $recipes = new RecipeRepository($app->database);
         $planning = new PlanningRepository($app->database);
         $id = static fn(): string => Request::positiveId($_GET['id'] ?? null);
