@@ -1,4 +1,5 @@
 import { request } from './http.js';
+import { accountUpdatePayload } from './accounts.js';
 
 const home = document.querySelector('meta[name="home-url"]').content;
 const actorId = document.querySelector('meta[name="user-id"]').content;
@@ -25,6 +26,7 @@ const definitions = {
   'commodity-create': { template: 'commodity', title: 'Agregar material al catálogo', route: 'commodities', method: 'POST', fields: ['code', 'name_es', 'name_en'] },
   'user-create': { template: 'user', title: 'Crear usuario', route: 'admin/users', method: 'POST', fields: ['username','display_name','role','password','reason'], secret: true, scope: 'admin.user.create', userAction: true },
   'user-edit': { template: 'user', title: 'Editar usuario y rol', route: 'admin/user', method: 'PATCH', fields: ['username','display_name','role','active','reason'], query: r => ({id:r.id}), edit: true, userAction: true },
+  'user-role': { template: 'user-role', title: 'Cambiar rol de la cuenta', route: 'admin/user', method: 'PATCH', fields: ['role','reason'], query: r => ({id:r.id}), edit: true, userAction: true },
   'user-password': { template: 'user-password', title: 'Restablecer contraseña', route: 'admin/user/password', method: 'POST', fields: ['password','reason'], query: r => ({id:r.id}), edit: true, secret: true, scope: 'admin.user.password', userAction: true },
   'user-delete': { template: 'archive', title: 'Eliminar usuario', route: 'admin/user', method: 'DELETE', query: r => ({id:r.id}), archive: true, userAction: true },
   'user-restore': { template: 'archive', title: 'Restaurar usuario', route: 'admin/user/restore', method: 'POST', query: r => ({id:r.id}), userAction: true },
@@ -54,7 +56,7 @@ const scopes = {
   'system-create':'planning.system.create','system-edit':'planning.system.update','system-archive':'planning.system.archive','system-restore':'planning.system.restore',
   'installation-create':'planning.installation.create','installation-edit':'planning.installation.update','installation-archive':'planning.installation.archive','installation-restore':'planning.installation.restore',
   'requirement-create':'planning.requirement.save','requirement-edit':'planning.requirement.save','requirement-archive':'planning.requirement.remove','commodity-create':'planning.commodity.create',
-  'user-create':'admin.user.create','user-edit':'admin.user.update','user-delete':'admin.user.delete','user-restore':'admin.user.restore','user-password':'admin.user.password',
+  'user-create':'admin.user.create','user-edit':'admin.user.update','user-role':'admin.user.update','user-delete':'admin.user.delete','user-restore':'admin.user.restore','user-password':'admin.user.password',
   'installation-status':'logistics.status','list-add':'logistics.list.add','list-remove':'logistics.list.remove',
   'source-create':'logistics.source.create','source-edit':'logistics.source.update','source-delete':'logistics.source.delete','source-restore':'logistics.source.restore',
   'delivery-create':'logistics.delivery','movement-withdraw':'logistics.withdraw',
@@ -98,6 +100,7 @@ function freeze(on) {
   for (const control of fields.querySelectorAll('input, select, textarea')) control.disabled = on;
   for (const button of fields.querySelectorAll('button')) button.disabled = on;
   if (!on && active?.record.commodity_id && form.elements.commodity_id) form.elements.commodity_id.disabled = true;
+  if (!on && active?.action === 'user-edit') form.elements.username.disabled = !fields.querySelector('[data-rename-username]').checked;
   if (!busy && pending?.secretMissing && form.elements.password) form.elements.password.disabled = false;
 }
 
@@ -122,13 +125,24 @@ async function openEditor(action, record = {}, resume = false) {
   document.querySelector('#editor-title').textContent = action === 'requirement-edit' && !Number(record.active) ? 'Restaurar objetivo' : definition.title;
   document.querySelector('#editor-description').textContent = definition.archive
     ? (definition.userAction ? 'Se revocará el acceso de la cuenta. Sus entregas e historial se conservarán.' : action === 'source-delete' ? 'El lugar dejará de aparecer como abastecimiento activo. Su historial se conservará.' : 'Se archivará y dejará de aparecer en la planificación activa. Podés restaurarlo desde el filtro de eliminados. Sus registros y movimientos se conservan.')
-    : record.name || record.display_name || record.commodity_name || 'Completá los datos de la operación.';
+    : definition.userAction && record.username ? `${record.display_name} (${record.username})` : record.name || record.display_name || record.commodity_name || 'Completá los datos de la operación.';
   for (const control of fields.querySelectorAll('[name]')) {
     if (Object.hasOwn(record, control.name)) control.type === 'checkbox' ? control.checked = Boolean(record[control.name]) : control.value = record[control.name] ?? '';
   }
   if (definition.template === 'user') {
     const hide = action === 'user-edit' ? form.elements.password : form.elements.active;
-    hide.required = false; hide.closest('label').hidden = true;
+    hide.closest('label').remove();
+    const rename = fields.querySelector('[data-rename-username]');
+    rename.closest('label').hidden = action !== 'user-edit';
+    if (action === 'user-edit') {
+      rename.checked = resume && pending.request.body.username !== record.username;
+      form.elements.username.disabled = !rename.checked;
+      rename.addEventListener('change', () => {
+        form.elements.username.value = active.record.username;
+        form.elements.username.disabled = !rename.checked;
+        if (rename.checked) form.elements.username.focus();
+      });
+    }
   }
   if (definition.template === 'status') {
     form.elements.construction_status.value = record.next_status;
@@ -348,7 +362,7 @@ form.addEventListener('submit', async event => {
   let priorResultAbsent = !wasPending;
   let operation = pending;
   if (!operation) {
-    const body = {};
+    let body = {};
     for (const name of definition.fields || []) {
       const control = form.elements[name]; if (!control) continue;
       body[name] = control.type === 'checkbox' ? control.checked : control.value;
@@ -370,6 +384,9 @@ form.addEventListener('submit', async event => {
       body.reason = form.elements.reason.value;
       if (definition.archive) body.confirmed = form.elements.confirmed.checked;
     } else if (definition.edit) body.version = active.record.version;
+    if (['user-edit', 'user-role'].includes(active.action)) {
+      body = accountUpdatePayload(active.record, body, active.action === 'user-edit' && fields.querySelector('[data-rename-username]').checked);
+    }
     const query = definition.template === 'requirement'
       ? { installation_id: active.record.installation_id, commodity_id: active.record.commodity_id || form.elements.commodity_id.value }
       : queryFor(definition, active.record, body);

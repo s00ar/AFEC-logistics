@@ -36,7 +36,9 @@ final class App
     public function assetUrl(string $path): string
     {
         $prefix = defined('AFEC_REPOSITORY_WEBROOT') && AFEC_REPOSITORY_WEBROOT ? '/public/assets/' : '/assets/';
-        return $this->url($prefix . $path);
+        $file = dirname(__DIR__) . '/public/assets/' . $path;
+        $version = is_file($file) ? '?v=' . filemtime($file) : '';
+        return $this->url($prefix . $path) . $version;
     }
 
     public function logError(\Throwable $error, string $requestId): void

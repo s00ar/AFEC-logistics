@@ -10,7 +10,7 @@ Las cuentas de la demo local no se publican mediante Git. El primer administrado
 
 Para la base vacía se entregó un SQL privado de instalación inicial con el catálogo y una cuenta `admin`. La contraseña está en `ACCESO_ADMINISTRADOR.txt` junto al SQL, fuera de Git. Importación y acceso en [IMPORTAR_PHPMYADMIN.md](IMPORTAR_PHPMYADMIN.md). Después de importar, crear las demás cuentas desde **Usuarios**. Las referencias ya vienen cargadas; no hay que precargar otra vez el catálogo.
 
-Estado comprobado el 14/10/2026 tras publicar: login y API de sesión disponibles (200), recursos CSS/JavaScript de la nueva versión y logo accesibles (200), panel y API de sistemas no disponibles (503). La configuración/conexión/esquema MySQL remotos requieren revisión; no se dispone de acceso al servidor para precisar cuál falla. El login visible no confirma que existan usuarios ni que se pueda autenticar todavía.
+Estado comprobado el 14/10/2026: después de cargar la configuración y el esquema, panel y API de sistemas responden 200. El propietario confirmó que puede administrar cuentas y cambiar roles. El fallo inicial de configuración y la instalación por phpMyAdmin se documentan en [DESPLIEGUE.md](DESPLIEGUE.md); los controles nuevos de identidad están en [CORRECCION_ROLES.md](CORRECCION_ROLES.md).
 
 ## Ingresar a la demo
 
@@ -27,14 +27,30 @@ Ingresar como administrador y abrir **Usuarios**:
 
 1. **Crear:** **+ Crear usuario** → usuario, nombre visible, rol, contraseña inicial y motivo → **Guardar**. Se crea también su identidad de comandante. La contraseña admite entre 12 y 72 bytes; utilizar una contraseña distinta para cada cuenta real y compartirla por el canal acordado.
 2. **Consultar:** la tabla muestra usuario, nombre, rol y estado; usar el paginador si hay más de 25 cuentas.
-3. **Modificar:** **Editar usuario** → cambiar nombre/usuario/rol y, si corresponde, **Cuenta activa** → motivo → guardar. Los cambios revocan las sesiones existentes de esa cuenta.
-4. **Eliminar:** **Eliminar usuario** → motivo → confirmar baja → guardar. Se revoca el acceso y se conservan aportes, historial y lista personal. El nombre de usuario sigue reservado.
-5. **Restaurar:** localizar la cuenta eliminada → **Restaurar usuario** → motivo → guardar. Recupera acceso y sus datos.
-6. **Contraseña:** **Restablecer contraseña** → contraseña nueva y motivo → guardar. Se revocan las sesiones y la contraseña anterior deja de funcionar. Comunicar la nueva contraseña al titular.
+3. **Cambiar privilegios:** **Cambiar rol** en la cuenta existente → seleccionar Comandante, Operador o Administrador → motivo, por ejemplo «Promoción para coordinar construcciones» → **Guardar**. Se conserva el usuario de acceso y su identidad de comandante. La cuenta debe volver a iniciar sesión para recibir los nuevos permisos.
+4. **Modificar otros datos:** **Editar usuario** → cambiar nombre visible, rol o **Cuenta activa** → motivo → guardar. Para renombrar el acceso, marcar explícitamente **Cambiar el nombre de usuario de acceso**. El formulario conserva el usuario original cuando esa opción no está marcada, aunque el navegador intente autocompletarlo con otro nombre. Los cambios revocan las sesiones existentes de esa cuenta.
+5. **Eliminar:** **Eliminar usuario** → motivo → confirmar baja → guardar. Se revoca el acceso y se conservan aportes, historial y lista personal. El nombre de usuario sigue reservado.
+6. **Restaurar:** localizar la cuenta eliminada → **Restaurar usuario** → motivo → guardar. Recupera acceso y sus datos.
+7. **Contraseña:** **Restablecer contraseña** → contraseña nueva y motivo → guardar. Se revocan las sesiones y la contraseña anterior deja de funcionar. Comunicar la nueva contraseña al titular.
 
 Desactivar con **Cuenta activa** permite una suspensión reversible sin marcarla eliminada. No se permite eliminar, desactivar o quitar el rol al último administrador activo; otro administrador debe cambiar tu propio rol o desactivar tu cuenta. Si editás tu propia cuenta o contraseña, iniciá sesión otra vez.
 
 Los roles incorporados son Administrador, Operador y Comandante (identificador técnico `viewer`, conservado por compatibilidad). Se asignan desde el formulario de usuario; no se crean roles personalizados ni existe registro público automático.
+
+| Función | Comandante | Operador | Administrador |
+| --- | --- | --- | --- |
+| Consultar sistemas, instalaciones, materiales y progreso | Sí; también público | Sí | Sí |
+| Registrar y corregir entregas propias | Sí | Sí | Sí |
+| Registrar y corregir entregas de terceros | No | Sí | Sí |
+| Modificar lista personal y lista compartida de la flota | Sí | Sí | Sí |
+| Agregar, editar o retirar lugares de abastecimiento | Sí | Sí | Sí |
+| Crear/editar/archivar/restaurar sistemas, instalaciones y objetivos | No | Sí | Sí |
+| Marcar instalaciones terminadas o reabrirlas | No | Sí | Sí |
+| Administrar recetas de facilities | No | Sí | Sí |
+| Crear mercancías y cargar el catálogo inicial | No | No | Sí |
+| Crear, editar, eliminar/restaurar usuarios, cambiar roles y contraseñas | No | No | Sí |
+
+Las listas personales pertenecen exclusivamente a su cuenta, incluso frente a operadores y administradores. La promoción no mueve ni elimina listas, entregas o historial. El error «Ese usuario ya existe» indica un conflicto de nombre de acceso, no una prohibición de cambiar roles; no utilizar `admin` como nombre de otra cuenta.
 
 `tools/create-admin.php` sigue reservado al primer administrador de una instalación vacía. Las cuentas posteriores se gestionan desde la web; no editar hashes manualmente en MySQL.
 

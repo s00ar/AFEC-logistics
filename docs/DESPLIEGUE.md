@@ -20,6 +20,8 @@ La configuración privada de este PC está completa para producción (host `loca
 
 Comprobación reproducible desde PowerShell, sin autenticación:
 
+Posteriormente el propietario cargó el archivo privado que faltaba y confirmó que la base estaba vacía. Se entregó el SQL de instalación; después se verificaron panel y API pública de sistemas con respuesta 200. El propietario confirmó acceso a cuentas y cambio de rol. Los datos de aplicación y la configuración privada remotos siguen sin inspeccionarse directamente desde este entorno; la instalación SQL fue realizada por el propietario.
+
 ```text
 curl.exe -sS -o NUL -w "%{http_code}" "https://logistica.afec.space/?page=login"
 curl.exe -sS "https://logistica.afec.space/api/index.php?route=systems"

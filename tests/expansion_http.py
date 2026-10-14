@@ -57,7 +57,13 @@ def run_expansion_checks(anonymous,admin,viewer,operator,Client,check,command,en
     expect(admin.call('admin/roles'),200,'Role definitions available to administrator')
     crew=Client();expect(crew.login('crew_test'),200,'New commander can log in')
     check('Añadir a mi lista' in crew.page('/?page=system&id=1')[1] and '+ Crear sistema' not in crew.page('/')[1],'Commander sees logistics controls without planning permissions')
+    html=admin.page('/?page=users')[1]
+    check('data-action="user-role"' in html and 'id="form-user-role"' in html and 'data-rename-username' in html,'Account UI separates role changes from explicit username edits')
+    expect(write(admin,'admin/user&id='+uid,'PATCH',{'username':'admin','display_name':account['display_name'],'role':'operator','active':True,'version':account['version'],'reason':'Autofill regression'}),409,'Renaming another account to admin is rejected')
+    unchanged=user(uid)
+    check(unchanged['username']=='crew_test' and unchanged['role']=='viewer' and unchanged['version']==account['version'],'Username collision preserves identity, permissions and version')
     account=expect(write(admin,'admin/user&id='+uid,'PATCH',{'username':'crew_test','display_name':'Crew renamed','role':'operator','active':True,'version':account['version'],'reason':'Promoción'}),200,'Administrator changes name and role')
+    check(account['username']=='crew_test' and account['commander_id']==unchanged['commander_id'],'Role change preserves login and commander identity')
     check(crew.session()['user'] is None,'Role change revokes existing session');expect(crew.login('crew_test'),200,'Account can log in after role change')
     check('+ Crear sistema' in crew.page('/')[1],'Promoted role receives planning UI')
     account=expect(write(admin,'admin/user&id='+uid,'PATCH',{'username':'crew_test','display_name':'Crew renamed','role':'viewer','active':True,'version':account['version'],'reason':'Rol comandante'}),200,'Administrator restores commander role')
