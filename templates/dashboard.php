@@ -6,7 +6,7 @@
 <div class="toolbar">
     <button class="button-primary" type="button" data-action="system-create">+ Crear sistema</button>
     <?php if ($user['role'] === 'admin'): ?><button class="button-quiet" type="button" data-action="commodity-create">Agregar material al catálogo</button><?php endif ?>
-    <a class="button-quiet" href="<?= e($app->url('/?include_archived=' . ($includeArchived ? '0' : '1'))) ?>"><?= $includeArchived ? 'Mostrar activos' : 'Mostrar también archivados' ?></a>
+    <a class="button-quiet" href="<?= e($app->url('/?include_archived=' . ($includeArchived ? '0' : '1'))) ?>"><?= $includeArchived ? 'Mostrar activos' : 'Mostrar eliminados / archivados' ?></a>
 </div>
 <?php endif ?>
 <?php if ($systems === []): ?>
@@ -24,8 +24,10 @@
         <?php if ($item['negative_balances'] > 0): ?><p class="form-error">Hay saldos negativos que requieren revisión.</p><?php endif ?>
         <?php if ($canPlan): ?>
         <div class="card-actions">
+            <a class="button-quiet" href="<?= e($app->url('/?page=system&id=' . rawurlencode($item['id']))) ?>">Ver instalaciones</a>
+            <?php if (!$item['archived_at']): ?><button type="button" class="button-quiet" data-action="installation-create" data-record="<?= record_attribute(['system_id' => $item['id']]) ?>">+ Agregar facility</button><?php endif ?>
             <button type="button" class="button-quiet" data-action="system-edit" data-record="<?= record_attribute($item) ?>">Editar</button>
-            <button type="button" class="button-quiet" data-action="<?= $item['archived_at'] ? 'system-restore' : 'system-archive' ?>" data-record="<?= record_attribute($item) ?>"><?= $item['archived_at'] ? 'Restaurar' : 'Archivar' ?></button>
+            <button type="button" class="button-quiet <?= !$item['archived_at'] ? 'button-danger' : '' ?>" data-action="<?= $item['archived_at'] ? 'system-restore' : 'system-archive' ?>" data-record="<?= record_attribute($item) ?>"><?= $item['archived_at'] ? 'Restaurar' : 'Eliminar' ?></button>
         </div>
         <?php endif ?>
     </article>

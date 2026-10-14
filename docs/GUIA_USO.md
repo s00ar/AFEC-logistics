@@ -1,6 +1,6 @@
 # Uso de la versión actual
 
-Actualizado: 14/10/2026. Corresponde a las fases 1–3 y la demo local; no implica que exista un sitio o una cuenta instalada en Hostinger.
+Actualizado: 14/10/2026. Corresponde a las fases 1–4 y la demo local; no implica que exista un sitio o una cuenta instalada en Hostinger.
 
 ## Ingresar a la demo
 
@@ -31,21 +31,22 @@ Los roles incorporados son Administrador, Operador y Comandante (identificador t
 ## Sistemas
 
 - **Crear:** en **Sistemas**, pulsar **+ Crear sistema**; completar nombre, descripción opcional y motivo opcional; pulsar **Guardar**. Se abre el sistema creado.
-- **Consultar:** pulsar el nombre del sistema. Se muestran sus instalaciones, materiales y progreso.
+- **Consultar:** pulsar el nombre del sistema o **Ver instalaciones**. Se muestran sus instalaciones, materiales y progreso.
 - **Modificar:** pulsar **Editar** en la tarjeta o **Editar sistema** dentro del sistema; cambiar los datos, completar el motivo y guardar. No se cambian sus IDs ni las instalaciones vinculadas.
-- **Eliminar de la planificación activa:** pulsar **Archivar** o **Archivar sistema**, escribir el motivo, marcar la confirmación y guardar. Se conserva todo el historial; no hay borrado físico.
-- **Restaurar:** en **Sistemas**, pulsar **Mostrar también archivados**, localizar el sistema y pulsar **Restaurar**. Escribir motivo y guardar. Las instalaciones que ya estaban archivadas conservan su estado propio.
+- **Eliminar de la planificación activa:** pulsar **Eliminar** o **Eliminar sistema**, escribir el motivo, marcar la confirmación y guardar. Se archiva y conserva todo el historial; no hay borrado físico.
+- **Restaurar:** en **Sistemas**, pulsar **Mostrar eliminados / archivados**, localizar el sistema y pulsar **Restaurar**. Escribir motivo y guardar. Las instalaciones que ya estaban archivadas conservan su estado propio.
 - **Auditar:** dentro del sistema, pulsar **Ver cambios del sistema**.
 
 ## Instalaciones, bases orbitales y settlements
 
-Se administran como instalaciones dentro de un sistema. El campo **Tipo** es texto libre en esta versión; todavía no hay catálogo de tipos ni recetas automáticas.
+Se administran como instalaciones dentro de un sistema. Operadores y administradores pueden usar **Facilities y recetas** para definir plantillas por tipo, tier y variante; no se presupone una cantidad exacta del juego sin una fuente confirmada.
 
-- **Crear:** abrir un sistema activo → **+ Agregar instalación** → completar nombre y, cuando corresponda, cuerpo, ubicación, tier, tipo y orden visual → **Guardar**. El nombre y el orden son obligatorios; la pantalla propone orden 0 y comienza En construcción.
+- **Crear:** desde la tarjeta del sistema, pulsar **+ Agregar facility**, o abrir un sistema activo → **+ Agregar instalación / facility**. Elegir la receta en **Facility / receta** para ver los materiales y cantidades que se cargarán automáticamente. Completar nombre, cuerpo, ubicación y orden visual → **Guardar**. El servidor copia tipo/tier y todos los objetivos de esa versión en una única transacción. Comienza En construcción.
+- **Sin receta:** seleccionar **Sin receta: cargar objetivos manualmente** y completar tipo/tier. Después usar **+ Agregar objetivo**. Si no hay plantillas cargadas, crearlas primero desde **Facilities y recetas** o reutilizar objetivos existentes como se explica abajo.
 - **Consultar:** abrir el sistema; cada instalación tiene su panel de materiales.
 - **Modificar:** **Editar instalación** → cambiar datos → escribir motivo → **Guardar**. No se traslada a otro sistema con este formulario.
-- **Eliminar de la planificación activa:** **Archivar instalación** → motivo → confirmar archivo → **Guardar**.
-- **Restaurar:** **Mostrar archivadas y retirados** → **Restaurar instalación** → motivo → guardar. El sistema padre debe estar activo; restaurarlo primero si corresponde.
+- **Eliminar de la planificación activa:** **Eliminar instalación** → motivo → confirmar baja → **Guardar**. Conserva historial y permite restauración.
+- **Restaurar:** **Mostrar eliminadas / archivadas y objetivos retirados** → **Restaurar instalación** → motivo → guardar. El sistema padre debe estar activo; restaurarlo primero si corresponde.
 - **Auditar:** pulsar **Ver cambios** en los controles de la instalación.
 
 **Construcción:** operadores/administradores pueden pulsar **Marcar terminada**, indicar motivo y confirmar aunque queden faltantes. El distintivo pasa a **Terminada** y queda fuera de ambas listas de deseos. El registro de entregas y el porcentaje real no se alteran. Para volver a recibir entregas, usar **Reabrir construcción** y un motivo.
@@ -58,10 +59,24 @@ Las instalaciones anteriores a esta fase conservan su estado libre original y ap
 2. Elegir material, ingresar cantidad requerida como entero sin separadores y completar motivo; guardar.
 3. Para cambiar la cantidad, usar **Editar objetivo**, ingresar nueva cantidad y motivo; guardar. No se cambian las entregas históricas.
 4. Para retirarlo, usar **Retirar objetivo**, motivo y confirmación; guardar.
-5. Para recuperarlo, usar **Mostrar archivadas y retirados** → **Restaurar objetivo** → revisar cantidad y motivo → guardar.
+5. Para recuperarlo, usar **Mostrar eliminadas / archivadas y objetivos retirados** → **Restaurar objetivo** → revisar cantidad y motivo → guardar.
 6. **Ver cambios** en la fila del material muestra las revisiones del objetivo.
 
 Si falta un material en el catálogo, un administrador puede crearlo desde **Sistemas → Agregar material al catálogo**. Los operadores pueden usar el catálogo existente; no dan de alta materiales de catálogo en esta versión.
+
+## Facilities y recetas automáticas
+
+Solo operadores/administradores gestionan este catálogo; no es una lista de instalaciones ya construidas.
+
+1. **Crear:** **Facilities y recetas → + Crear receta**. Completar nombre/variante, tipo, tier opcional, fuente/verificación y URL opcional. Añadir cada mercancía y cantidad positiva, sin repetir materiales. Completar motivo → guardar.
+2. **Reutilizar objetivos de AFEC:** abrir una instalación con materiales → **Guardar objetivos como receta**. Revisar el tipo, tier, origen y cantidades precargadas antes de guardar. Se usan los requeridos activos, no los faltantes ni las entregas.
+3. **Usar:** **Agregar facility** dentro del sistema → elegir receta → revisar el detalle → guardar. Los objetivos quedan disponibles para entregas y listas de deseos.
+4. **Editar el catálogo:** **Editar receta y materiales** → cambiar cantidades, añadir/quitar materiales, actualizar fuente y motivo → guardar. Solo cambia lo que se copiará a instalaciones futuras; no altera construcciones existentes.
+5. **Ajustar un proyecto existente:** en esa instalación usar **Editar objetivo**, **Agregar objetivo** o **Retirar objetivo**, conservando entregas e historial. Editar el tipo de la instalación no sustituye automáticamente sus objetivos.
+6. **Eliminar/restaurar receta:** **Eliminar receta** → motivo y confirmación → guardar. Deja de estar disponible al crear instalaciones, pero sus instalaciones anteriores mantienen objetivos y procedencia. **Mostrar eliminadas → Restaurar receta** la recupera.
+7. **Ver cambios:** historial de versiones, fuente y cantidades anteriores/posteriores. Si la receta cambia después de revisarla para crear una instalación, el servidor exige actualizar antes de guardar.
+
+Límite por receta: 100 materiales, catálogo paginado de 25. Las cantidades se guardan como enteros decimales, sin redondeo de JavaScript. No hay importación ni actualización externa automática. Está pendiente elegir la fuente inicial de recetas del juego; el catálogo se puede completar con datos verificados de AFEC. Las recetas usadas en pruebas son sintéticas y no se cargan en producción.
 
 ## Entregas y corrección de cantidades
 
@@ -102,6 +117,8 @@ El popup muestra fecha de actualización y autor. Son datos aportados por comand
 
 El archivo original `public/assets/images/Emblema AFEC Logística Espacial.png` se utiliza en cabecera, acceso y favicon. La cabecera lo muestra a 120 px de ancho en escritorio y 96 px en móvil, con altura proporcional y espacio suficiente para la navegación. Si el navegador conserva el estilo anterior, actualizar con **Ctrl + F5**.
 
+Paleta AFEC: fondo `#0B0E14`, gris `#C7C7C7`, naranja `#FF7100` y rojo `#CC0000`, con variantes de contraste para texto/errores. Los bordes de la cabecera y el acceso tienen animaciones CSS ligeras; las tarjetas/paneles se animan al pasar el cursor o recibir foco. Se desactivan cuando el dispositivo solicita movimiento reducido. No requieren librerías, fuentes externas ni solicitudes de red adicionales.
+
 ## Conflictos y reintentos
 
 Si otro operador cambió el registro mientras el formulario estaba abierto, se pide actualizar los datos antes de guardar de nuevo. Si falla la conexión y el resultado es incierto, usar **Comprobar y reintentar**: se conserva la operación para confirmar el mismo guardado sin duplicarlo. No reemplazarla por otra carga idéntica.
@@ -110,4 +127,4 @@ Las contraseñas nuevas no se guardan en el almacenamiento de recuperación del 
 
 ## Funcionalidades todavía pendientes
 
-Importación de Sheets, recetas de materiales verificadas por tipo/tier, reservas/cargas en tránsito y un módulo completo de edición/retiro de comandantes y carriers. Estos últimos pueden seleccionarse o darse de alta al registrar una entrega; no cuentan todavía con pantalla administrativa completa. No hay integración de stock externo, registro público de cuentas ni roles personalizados. El despliegue y la inicialización reales en Hostinger siguen pendientes.
+Importación de Sheets, precarga del catálogo de recetas con una fuente confirmada, reservas/cargas en tránsito y un módulo completo de edición/retiro de comandantes y carriers. Estos últimos pueden seleccionarse o darse de alta al registrar una entrega; no cuentan todavía con pantalla administrativa completa. No hay integración de stock externo, registro público de cuentas ni roles personalizados. El despliegue y la inicialización reales en Hostinger siguen pendientes.

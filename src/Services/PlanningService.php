@@ -4,12 +4,13 @@ namespace Afec\Services;
 
 use Afec\Http\HttpError;
 use Afec\Repositories\PlanningRepository;
+use Afec\Repositories\RecipeRepository;
 use Afec\Validation\PlanningInput as Input;
 use PDOException;
 
 final class PlanningService
 {
-    public function __construct(private readonly PlanningRepository $repository, private readonly MutationService $mutations) {}
+    public function __construct(private readonly PlanningRepository $repository, private readonly MutationService $mutations, private readonly RecipeRepository $recipes) {}
 
     public function createSystem(array $actor, int $authVersion, string $key, array $input): array
     {
@@ -43,7 +44,7 @@ final class PlanningService
     private static function installationInput(array $input, bool $edit): array
     {
         $fields = ['name', 'body_name', 'location_label', 'tier', 'type', 'state', 'sort_order', 'reason'];
-        Input::fields($input, $edit ? [...$fields, 'version'] : $fields);
+        Input::fields($input, $edit ? [...$fields, 'version'] : [...$fields, 'facility_recipe_id', 'facility_recipe_version']);
         return [
             'name' => Input::text($input, 'name', 255, true),
             'body_name' => Input::text($input, 'body_name', 255),
@@ -58,10 +59,27 @@ final class PlanningService
     public function createInstallation(array $actor, int $authVersion, string $key, string $systemId, array $input): array
     {
         $data = self::installationInput($input, false);
+        $recipeId = ($input['facility_recipe_id'] ?? '') === '' || ($input['facility_recipe_id'] ?? null) === null ? null : \Afec\Http\Request::positiveId($input['facility_recipe_id']);
+        $recipeVersion = $recipeId === null ? null : Input::version(['version' => $input['facility_recipe_version'] ?? null]);
+        if ($recipeId === null && !in_array($input['facility_recipe_version'] ?? null, [null, ''], true)) { throw new HttpError(422, 'validation', 'Seleccioná la receta correspondiente a esa versión.'); }
         $reason = Input::text($input, 'reason', 1000, false, true) ?? 'Alta de instalación';
-        return $this->mutations->run($actor, $authVersion, ['admin', 'operator'], 'planning.installation.create', $key, $data + ['system_id' => $systemId, 'reason' => $reason], function(string $operationId) use ($systemId, $data, $actor, $reason): array {
+        return $this->mutations->run($actor, $authVersion, ['admin', 'operator'], 'planning.installation.create', $key, $data + ['system_id' => $systemId, 'reason' => $reason, 'facility_recipe_id' => $recipeId, 'facility_recipe_version' => $recipeVersion], function(string $operationId) use ($systemId, $data, $recipeId, $recipeVersion, $actor, $reason): array {
             self::active($this->repository->system($systemId, true));
+            $recipe = $recipeId === null ? null : $this->recipes->find($recipeId, true);
+            if ($recipe !== null) {
+                RecipeService::version($recipe, $recipeVersion);
+                RecipeService::active($recipe);
+                $data['type'] = $recipe['type']; $data['tier'] = $recipe['tier'];
+                foreach ($recipe['materials'] as $material) { $this->repository->activeCommodity($material['commodity_id']); }
+            }
+            $data['facility_recipe_id'] = $recipeId; $data['facility_recipe_version'] = $recipeVersion;
             $id = $this->repository->insertInstallation($systemId, $data);
+            foreach ($recipe['materials'] ?? [] as $material) {
+                $this->repository->saveRequirement($id, $material['commodity_id'], $material['required_quantity'], true);
+                $requirement = $this->repository->requirement($id, $material['commodity_id']);
+                $this->repository->revision(null, $requirement, $actor['id'], $reason, $operationId);
+                $this->repository->audit('requirement', $id, 'create', null, $requirement, $actor['id'], $reason, $operationId);
+            }
             $after = $this->repository->installation($id);
             $this->repository->audit('installation', $id, 'create', null, $after, $actor['id'], $reason, $operationId);
             return ['data' => $after, 'status' => 201];

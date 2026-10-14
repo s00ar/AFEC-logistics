@@ -14,11 +14,26 @@
     <label>Motivo<textarea name="reason" maxlength="1000" rows="2"></textarea></label>
 </template>
 <template id="form-installation">
+    <label data-recipe-choice>Facility / receta<select name="facility_recipe_id"><option value="">Sin receta: cargar objetivos manualmente</option></select></label>
+    <input type="hidden" name="facility_recipe_version" value="">
+    <div data-recipe-preview class="recipe-preview" aria-live="polite" hidden></div>
     <label>Nombre de la instalación<input name="name" maxlength="255" required></label>
     <div class="form-columns"><label>Cuerpo<input name="body_name" maxlength="255"></label><label>Ubicación<input name="location_label" maxlength="255"></label></div>
     <div class="form-columns"><label>Tier<input name="tier" maxlength="20"></label><label>Tipo<input name="type" maxlength="80"></label></div>
     <input name="state" type="hidden" value="planned"><label>Orden visual<input name="sort_order" type="number" step="1" min="-2147483648" max="2147483647" value="0" required></label><p class="muted">Las instalaciones nuevas comienzan En construcción. Podés terminarlas o reabrirlas desde su panel.</p>
     <label>Motivo<textarea name="reason" maxlength="1000" rows="2"></textarea></label>
+</template>
+<template id="form-recipe">
+    <label>Nombre de la receta<input name="name" maxlength="160" required placeholder="Nombre y variante de la facility"></label>
+    <div class="form-columns"><label>Tipo de facility<input name="type" maxlength="80" required placeholder="Base orbital, settlement…"></label><label>Tier<input name="tier" maxlength="20"></label></div>
+    <label>Fuente / verificación<textarea name="source_note" maxlength="1000" rows="2" required placeholder="Referencia, fecha y variante; indicar si son cantidades aproximadas"></textarea></label>
+    <label>URL de referencia (opcional)<input name="source_url" type="url" maxlength="1000"></label>
+    <p class="muted recipe-help">Materiales y cantidades por instalación. No se modifican las entregas ni los objetivos de construcciones existentes.</p>
+    <div data-recipe-materials></div><button type="button" class="button-quiet" data-add-recipe-material>+ Agregar material</button>
+    <label>Motivo<textarea name="reason" maxlength="1000" rows="2" required></textarea></label>
+</template>
+<template id="form-recipe-material">
+    <div class="recipe-material"><label>Material<select data-recipe-commodity required><option value="">Seleccionar material</option></select></label><label>Cantidad<input data-recipe-quantity type="text" inputmode="numeric" pattern="[0-9]{1,20}" maxlength="20" required></label><button type="button" class="button-quiet button-danger" data-remove-recipe-material>Quitar</button></div>
 </template>
 <template id="form-requirement">
     <label>Material<select name="commodity_id" required><option value="">Seleccioná un material</option></select></label>

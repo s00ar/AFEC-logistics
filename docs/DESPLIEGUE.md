@@ -30,6 +30,8 @@ MySQL puede confirmar DDL implícitamente: un rollback de transacción no deshac
 
 La herramienta CLI `tools/migrate.php` simula por defecto sin escribir. `--apply` aplica versiones pendientes y registra checksum/estado; en producción se requiere `--allow-production` además de backup y autorización. La estructura no se aplica automáticamente al hacer push. `tools/preflight.php` comprueba conexión/extensiones sin imprimir credenciales.
 
+La fase 4 requiere también `005_facility_recipes.sql`: catálogo editable de recetas y procedencia de sus objetivos en instalaciones. No precarga cantidades del juego sin fuente confirmada. El código nuevo requiere ese esquema antes de habilitar la aplicación; planificar despliegue y migración con respaldo, sin ejecutarlos automáticamente. Las versiones previas conservan los datos si se revierte código, pero debe mantenerse 005 y su registro/checksum al preparar el rollback.
+
 El primer administrador se crea mediante una herramienta CLI privada:
 
 ```text

@@ -4,6 +4,7 @@ namespace Afec\Http;
 
 use Afec\App;
 use Afec\Repositories\PlanningRepository;
+use Afec\Repositories\RecipeRepository;
 use Afec\Services\MutationService;
 use Afec\Services\PlanningService;
 
@@ -28,7 +29,7 @@ final class PlanningController
         $input = Request::json();
         $version = $app->session()->authVersion();
         $repository = new PlanningRepository($app->database);
-        $service = new PlanningService($repository, new MutationService($app->database));
+        $service = new PlanningService($repository, new MutationService($app->database), new RecipeRepository($app->database));
         $id = static fn(): string => Request::positiveId($_GET['id'] ?? null);
         $result = match ($route) {
             'systems' => $service->createSystem($actor, $version, $key, $input),

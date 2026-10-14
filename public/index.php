@@ -8,6 +8,7 @@ use Afec\Http\Response;
 use Afec\Repositories\ProgressRepository;
 use Afec\Repositories\UserRepository;
 use Afec\Repositories\LogisticsRepository;
+use Afec\Repositories\RecipeRepository;
 use Afec\Validation\LogisticsInput;
 
 $app = null;
@@ -27,12 +28,18 @@ try {
     $listPage = Request::page($_GET['list_page'] ?? null);
     $csrf = $app->session()->csrf();
     $page = $_GET['page'] ?? 'dashboard';
-    if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login','wishlist'], true)) {
+    if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login','wishlist', 'recipes'], true)) {
         throw new HttpError(404, 'not_found', 'No se encontró esta página.');
     }
     if ($user === null && ($page === 'login' || !$app->config['app']['public_read'])) {
         $title = 'Iniciar sesión';
         $view = 'login';
+    } elseif ($page === 'recipes') {
+        $app->auth()->requirePlanner();
+        $listing = (new RecipeRepository($app->database))->listing($listPage, $includeArchived);
+        $recipes = $listing['items'];
+        $pagination = ['page' => $listPage, 'has_more' => $listing['has_more']];
+        $title = 'Facilities y recetas'; $view = 'recipes';
     } elseif ($page === 'users') {
         $app->auth()->requireAdmin();
         $listing = (new UserRepository($app->database))->listing($listPage);

@@ -9,7 +9,7 @@ $job = json_decode(file_get_contents($jobPath), true, 32, JSON_THROW_ON_ERROR);
 $users = new Afec\Repositories\UserRepository($app->database);
 $user = $users->findById((string)$job['actor_id']);
 $actor = Afec\Repositories\UserRepository::publicUser($user);
-$service = new Afec\Services\PlanningService(new Afec\Repositories\PlanningRepository($app->database), new Afec\Services\MutationService($app->database));
+$service = new Afec\Services\PlanningService(new Afec\Repositories\PlanningRepository($app->database), new Afec\Services\MutationService($app->database), new Afec\Repositories\RecipeRepository($app->database));
 file_put_contents($jobPath . '.ready', 'ready');
 $deadline = microtime(true) + 5;
 while (!is_file($job['barrier'])) {

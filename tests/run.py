@@ -173,6 +173,8 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         run_planning_checks(anonymous, admin, viewer, operator, check, command, env, php, ROOT)
         from expansion_http import run_expansion_checks
         run_expansion_checks(anonymous,admin,viewer,operator,Client,check,command,env,php,ROOT)
+        from recipe_http import run_recipe_checks
+        run_recipe_checks(anonymous,admin,viewer,operator,check,command)
         command('tests/fixture.php','deactivate_viewer')
         check(viewer.session()['user'] is None, 'Deactivation invalidates an existing session')
         operator = Client(); check(operator.login('operator')[0] == 200, 'Operator can authenticate')

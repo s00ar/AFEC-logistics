@@ -20,6 +20,7 @@
     <a class="brand" href="<?= e($app->url('/')) ?>" aria-label="AFEC Logística, inicio"><img class="brand-logo" src="<?= e($logoUrl) ?>" alt="" width="120" height="120"><span>AFEC <strong>LOGÍSTICA</strong></span></a>
     <nav aria-label="Navegación principal">
         <a href="<?= e($app->url('/')) ?>" <?= $page === 'dashboard' ? 'aria-current="page"' : '' ?>>Sistemas</a>
+        <?php if ($canPlan): ?><a href="<?= e($app->url('/?page=recipes')) ?>" <?= $page === 'recipes' ? 'aria-current="page"' : '' ?>>Facilities y recetas</a><?php endif ?>
         <?php if ($user !== null): ?><a href="<?= e($app->url('/?page=wishlist&scope=personal')) ?>" <?= $page==='wishlist' && $scope==='personal'?'aria-current="page"':'' ?>>Mi lista</a><a href="<?= e($app->url('/?page=wishlist&scope=fleet')) ?>" <?= $page==='wishlist' && $scope==='fleet'?'aria-current="page"':'' ?>>Flota</a><?php endif ?>
         <?php if (($user['role'] ?? null) === 'admin'): ?><a href="<?= e($app->url('/?page=users')) ?>" <?= $page === 'users' ? 'aria-current="page"' : '' ?>>Usuarios</a><?php endif ?>
     </nav>

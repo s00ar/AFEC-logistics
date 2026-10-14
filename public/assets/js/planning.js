@@ -13,11 +13,11 @@ const reloadButton = document.querySelector('#reload-planning');
 const definitions = {
   'system-create': { template: 'system', title: 'Crear sistema', route: 'systems', method: 'POST', fields: ['name', 'description', 'reason'] },
   'system-edit': { template: 'system', title: 'Editar sistema', route: 'system', method: 'PATCH', fields: ['name', 'description', 'reason'], query: r => ({ id: r.id }), edit: true },
-  'system-archive': { template: 'archive', title: 'Archivar sistema', route: 'system', method: 'DELETE', query: r => ({ id: r.id }), archive: true },
+  'system-archive': { template: 'archive', title: 'Eliminar sistema (archivar)', route: 'system', method: 'DELETE', query: r => ({ id: r.id }), archive: true },
   'system-restore': { template: 'archive', title: 'Restaurar sistema', route: 'system/restore', method: 'POST', query: r => ({ id: r.id }) },
-  'installation-create': { template: 'installation', title: 'Agregar instalación', route: 'installations', method: 'POST', fields: ['name', 'body_name', 'location_label', 'tier', 'type', 'state', 'sort_order', 'reason'], query: r => ({ system_id: r.system_id }) },
+  'installation-create': { template: 'installation', title: 'Agregar instalación / facility', route: 'installations', method: 'POST', fields: ['name', 'body_name', 'location_label', 'tier', 'type', 'state', 'sort_order', 'reason', 'facility_recipe_id', 'facility_recipe_version'], query: r => ({ system_id: r.system_id }) },
   'installation-edit': { template: 'installation', title: 'Editar instalación', route: 'installation', method: 'PATCH', fields: ['name', 'body_name', 'location_label', 'tier', 'type', 'state', 'sort_order', 'reason'], query: r => ({ id: r.id }), edit: true },
-  'installation-archive': { template: 'archive', title: 'Archivar instalación', route: 'installation', method: 'DELETE', query: r => ({ id: r.id }), archive: true },
+  'installation-archive': { template: 'archive', title: 'Eliminar instalación (archivar)', route: 'installation', method: 'DELETE', query: r => ({ id: r.id }), archive: true },
   'installation-restore': { template: 'archive', title: 'Restaurar instalación', route: 'installation/restore', method: 'POST', query: r => ({ id: r.id }) },
   'requirement-create': { template: 'requirement', title: 'Agregar objetivo', route: 'requirement', method: 'PUT' },
   'requirement-edit': { template: 'requirement', title: 'Editar objetivo', route: 'requirement', method: 'PUT', edit: true },
@@ -37,12 +37,18 @@ const definitions = {
   'source-restore': { template: 'archive', title: 'Restaurar lugar de abastecimiento', route: 'source/restore', method: 'POST', query: r => ({id:r.id}), keepPage: true },
   'delivery-create': { template: 'delivery', title: 'Registrar entrega recibida', route: 'deliveries', method: 'POST', fields: ['quantity','commander_id','commander_name','carrier_id','carrier_name','carrier_code','occurred_at','reason'], query: r => ({installation_id:r.installation_id,commodity_id:r.commodity_id}), keepPage: true },
   'movement-withdraw': { template: 'withdraw', title: 'Retirar / corregir material registrado', route: 'movement/withdraw', method: 'POST', fields: ['quantity','reason','confirmed'], query: r => ({id:r.id}), keepPage: true },
+  'recipe-create': { template:'recipe', title:'Crear receta de facility', route:'facility/recipes', method:'POST', fields:['name','type','tier','source_note','source_url','reason'], keepPage:true },
+  'recipe-edit': { template:'recipe', title:'Editar receta y materiales', route:'facility/recipe', method:'PATCH', fields:['name','type','tier','source_note','source_url','reason'], query:r=>({id:r.id}), edit:true, keepPage:true },
+  'recipe-archive': { template:'archive', title:'Eliminar receta (archivar)', route:'facility/recipe', method:'DELETE', query:r=>({id:r.id}), archive:true, keepPage:true },
+  'recipe-restore': { template:'archive', title:'Restaurar receta', route:'facility/recipe/restore', method:'POST', query:r=>({id:r.id}), keepPage:true },
 };
 let active = null;
 let pending = null;
 let storageBlocked = false;
 let busy = false;
 let editorGeneration = 0;
+let recipeGeneration = 0;
+let recipeCommodities = [];
 const scopes = {
   'system-create':'planning.system.create','system-edit':'planning.system.update','system-archive':'planning.system.archive','system-restore':'planning.system.restore',
   'installation-create':'planning.installation.create','installation-edit':'planning.installation.update','installation-archive':'planning.installation.archive','installation-restore':'planning.installation.restore',
@@ -51,6 +57,7 @@ const scopes = {
   'installation-status':'logistics.status','list-add':'logistics.list.add','list-remove':'logistics.list.remove',
   'source-create':'logistics.source.create','source-edit':'logistics.source.update','source-delete':'logistics.source.delete','source-restore':'logistics.source.restore',
   'delivery-create':'logistics.delivery','movement-withdraw':'logistics.withdraw',
+  'recipe-create':'planning.recipe.create','recipe-edit':'planning.recipe.update','recipe-archive':'planning.recipe.archive','recipe-restore':'planning.recipe.restore',
 };
 
 function toast(message, success = false) {
@@ -87,6 +94,7 @@ function readPending() {
 
 function freeze(on) {
   for (const control of fields.querySelectorAll('input, select, textarea')) control.disabled = on;
+  for (const button of fields.querySelectorAll('button')) button.disabled = on;
   if (!on && active?.record.commodity_id && form.elements.commodity_id) form.elements.commodity_id.disabled = true;
   if (!busy && pending?.secretMissing && form.elements.password) form.elements.password.disabled = false;
 }
@@ -111,7 +119,7 @@ async function openEditor(action, record = {}, resume = false) {
   reloadButton.hidden = true;
   document.querySelector('#editor-title').textContent = action === 'requirement-edit' && !Number(record.active) ? 'Restaurar objetivo' : definition.title;
   document.querySelector('#editor-description').textContent = definition.archive
-    ? (definition.userAction ? 'Se revocará el acceso de la cuenta. Sus entregas e historial se conservarán.' : action === 'source-delete' ? 'El lugar dejará de aparecer como abastecimiento activo. Su historial se conservará.' : 'Saldrá de la planificación activa. Los registros y movimientos permanecerán disponibles.')
+    ? (definition.userAction ? 'Se revocará el acceso de la cuenta. Sus entregas e historial se conservarán.' : action === 'source-delete' ? 'El lugar dejará de aparecer como abastecimiento activo. Su historial se conservará.' : 'Se archivará y dejará de aparecer en la planificación activa. Podés restaurarlo desde el filtro de eliminados. Sus registros y movimientos se conservan.')
     : record.name || record.display_name || record.commodity_name || 'Completá los datos de la operación.';
   for (const control of fields.querySelectorAll('[name]')) {
     if (Object.hasOwn(record, control.name)) control.type === 'checkbox' ? control.checked = Boolean(record[control.name]) : control.value = record[control.name] ?? '';
@@ -146,6 +154,59 @@ async function openEditor(action, record = {}, resume = false) {
   }
   if (!dialog.open) dialog.showModal();
   busyState(false);
+  if (definition.template === 'installation') {
+    fields.querySelector('[data-recipe-choice]').hidden = action !== 'installation-create';
+    if (action === 'installation-create') {
+      submit.disabled = true;
+      try {
+        let page = 1; let more;
+        do {
+          const result = await request('facility/recipes', {query:{list_page:page}});
+          if (generation !== editorGeneration || !dialog.open) return;
+          for (const recipe of result.data) {
+            const option = document.createElement('option'); option.value = recipe.id;
+            option.textContent = `${recipe.name}${recipe.tier ? ` · Tier ${recipe.tier}` : ''}`;
+            form.elements.facility_recipe_id.append(option);
+          }
+          more = result.pagination.has_more; page++;
+        } while (more);
+        if (resume) {
+          const selected = pending.request.body.facility_recipe_id;
+          if (selected && !Array.from(form.elements.facility_recipe_id.options).some(option=>option.value===selected)) {
+            const option=document.createElement('option'); option.value=selected; option.textContent='Receta de la operación pendiente'; form.elements.facility_recipe_id.append(option);
+          }
+          form.elements.facility_recipe_id.value=selected || '';
+          busyState(false);
+        } else if (form.elements.facility_recipe_id.options.length === 1) {
+          const preview = fields.querySelector('[data-recipe-preview]'); preview.hidden=false;
+          preview.textContent='No hay recetas cargadas. Crealas en Facilities y recetas; también podés cargar objetivos manualmente.';
+          busyState(false);
+        } else busyState(false);
+      } catch (failure) {
+        if (generation !== editorGeneration || !dialog.open) return;
+        errorBox.textContent=failure.message; errorBox.hidden=false; submit.disabled=!resume;
+      }
+    }
+  }
+  if (definition.template === 'recipe') {
+    recipeCommodities=[]; submit.disabled=true;
+    try {
+      const results=await Promise.all([request('commodities'), action==='recipe-edit' && !resume ? request('facility/recipe',{query:{id:record.id}}) : Promise.resolve(null)]);
+      if (generation !== editorGeneration || !dialog.open) return;
+      recipeCommodities=results[0].data;
+      const data=resume ? pending.request.body : results[1]?.data || record;
+      if (data && !resume) {
+        active.record=data;
+        for (const control of fields.querySelectorAll('[name]')) if (Object.hasOwn(data,control.name)) control.value=data[control.name] ?? '';
+      }
+      for (const material of data?.materials || [{}]) addRecipeMaterial(material);
+      busyState(false);
+    } catch (failure) {
+      if (generation !== editorGeneration || !dialog.open) return;
+      if (resume) for (const material of pending.request.body.materials) addRecipeMaterial(material);
+      errorBox.textContent=failure.message; errorBox.hidden=false; submit.disabled=!resume;
+    }
+  }
   if (definition.template === 'delivery') {
     submit.disabled = true;
     try {
@@ -198,6 +259,63 @@ async function openEditor(action, record = {}, resume = false) {
   }
 }
 
+function addRecipeMaterial(material = {}) {
+  const container=fields.querySelector('[data-recipe-materials]');
+  if (!container || container.children.length>=100) { toast('La receta admite hasta 100 materiales.'); return; }
+  const row=document.querySelector('#form-recipe-material').content.cloneNode(true);
+  const select=row.querySelector('[data-recipe-commodity]');
+  for (const commodity of recipeCommodities) {
+    const option=document.createElement('option'); option.value=commodity.id; option.textContent=commodity.name_es; select.append(option);
+  }
+  if (material.commodity_id && !Array.from(select.options).some(option=>option.value===material.commodity_id)) {
+    const option=document.createElement('option'); option.value=material.commodity_id; option.textContent=material.commodity_name || `Material ${material.commodity_id} (inactivo)`; select.append(option);
+  }
+  select.value=material.commodity_id || '';
+  row.querySelector('[data-recipe-quantity]').value=material.required_quantity || '';
+  container.append(row);
+}
+
+async function selectRecipe() {
+  if (pending || busy || active?.action !== 'installation-create') return;
+  const generation=editorGeneration; const selectedGeneration=++recipeGeneration;
+  const id=form.elements.facility_recipe_id.value;
+  const preview=fields.querySelector('[data-recipe-preview]');
+  form.elements.facility_recipe_version.value='';
+  for (const name of ['type','tier']) { form.elements[name].readOnly=false; form.elements[name].value=''; }
+  preview.replaceChildren(); preview.hidden=!id;
+  errorBox.hidden=true;
+  if (!id) { busyState(false); return; }
+  preview.textContent='Cargando materiales de la facility…'; submit.disabled=true;
+  try {
+    const result=await request('facility/recipe',{query:{id}});
+    if (generation!==editorGeneration || selectedGeneration!==recipeGeneration || !dialog.open) return;
+    if (result.data.archived_at) throw new Error('Esta receta fue eliminada. Elegí otra o cargá objetivos manualmente.');
+    form.elements.facility_recipe_version.value=result.data.version;
+    for (const name of ['type','tier']) { form.elements[name].value=result.data[name] || ''; form.elements[name].readOnly=true; }
+    preview.replaceChildren();
+    const title=document.createElement('strong'); title.textContent=`${result.data.name} · versión ${result.data.version}`; preview.append(title);
+    const source=document.createElement('p'); source.className='muted recipe-help'; source.textContent=result.data.source_note; preview.append(source);
+    const list=document.createElement('ul');
+    for (const material of result.data.materials) {
+      const row=document.createElement('li'); row.textContent=`${material.commodity_name}: ${quantity(material.required_quantity)}`; list.append(row);
+    }
+    preview.append(list);
+    const note=document.createElement('p'); note.className='recipe-help'; note.textContent='Se cargarán estos objetivos al guardar. Después podés ajustar cada cantidad desde la instalación.'; preview.append(note);
+    busyState(false);
+  } catch (failure) {
+    if (generation!==editorGeneration || selectedGeneration!==recipeGeneration || !dialog.open) return;
+    preview.textContent='No se pudieron confirmar los materiales.'; errorBox.textContent=failure.message; errorBox.hidden=false; submit.disabled=true;
+  }
+}
+
+fields.addEventListener('change',event=>{ if (event.target.name==='facility_recipe_id') selectRecipe(); });
+fields.addEventListener('click',event=>{
+  if (busy || pending) return;
+  if (event.target.closest('[data-add-recipe-material]')) addRecipeMaterial();
+  const remove=event.target.closest('[data-remove-recipe-material]');
+  if (remove) { const rows=fields.querySelectorAll('.recipe-material'); if (rows.length>1) remove.closest('.recipe-material').remove(); else toast('La receta debe conservar al menos un material.'); }
+});
+
 function remember(operation) {
   const saved = JSON.parse(JSON.stringify(operation));
   if (definitions[operation.action].secret) { delete saved.request.body.password; saved.secretMissing = true; }
@@ -233,6 +351,12 @@ form.addEventListener('submit', async event => {
       const control = form.elements[name]; if (!control) continue;
       body[name] = control.type === 'checkbox' ? control.checked : control.value;
       if (name === 'occurred_at' && control.value) body[name] = new Date(control.value).toISOString().replace(/\.\d{3}Z$/,'Z');
+    }
+    if (definition.template==='recipe') {
+      body.materials=Array.from(fields.querySelectorAll('.recipe-material'),row=>({commodity_id:row.querySelector('[data-recipe-commodity]').value, required_quantity:row.querySelector('[data-recipe-quantity]').value}));
+      if (!body.materials.length || body.materials.some(row=>!/[1-9]/.test(row.required_quantity)) || new Set(body.materials.map(row=>row.commodity_id)).size!==body.materials.length) {
+        errorBox.textContent='Usá cantidades positivas y un único renglón por material.'; errorBox.hidden=false; return;
+      }
     }
     if (definition.commodityBody) body.commodity_id = active.record.commodity_id;
     if (definition.template === 'requirement') {
@@ -305,7 +429,7 @@ const next = document.querySelector('#history-next');
 let historyRecord = null;
 let historyPage = 1;
 let historyGeneration = 0;
-const labels = { name: 'Nombre', description: 'Descripción', body_name: 'Cuerpo', location_label: 'Ubicación', tier: 'Tier', type: 'Tipo', state: 'Estado anterior', construction_status: 'Construcción', sort_order: 'Orden', archived_at: 'Archivo' };
+const labels = { name: 'Nombre', description: 'Descripción', body_name: 'Cuerpo', location_label: 'Ubicación', tier: 'Tier', type: 'Tipo', state: 'Estado anterior', construction_status: 'Construcción', sort_order: 'Orden', archived_at: 'Archivo', source_note:'Fuente', source_url:'URL de referencia' };
 const actions = { create: 'Creación', update: 'Edición', archive: 'Archivo', restore: 'Restauración', status: 'Cambio de construcción' };
 const quantity = value => String(value ?? '—').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
@@ -314,7 +438,7 @@ async function loadHistory() {
   previous.disabled = next.disabled = true;
   historyItems.textContent = 'Cargando cambios…';
   try {
-    const result = await request('planning/history', { query: { ...historyRecord, list_page: historyPage } });
+    const result = await request(historyRecord.type==='facility_recipe' ? 'facility/recipe/history' : 'planning/history', { query: { ...historyRecord, list_page: historyPage } });
     if (generation !== historyGeneration || !historyDialog.open) return;
     historyItems.replaceChildren();
     if (!result.data.length) historyItems.textContent = 'No hay cambios registrados en esta página.';
@@ -331,6 +455,13 @@ async function loadHistory() {
         : actions[item.action] || item.action;
       article.append(summary);
       if (item.changes) {
+        if (historyRecord.type==='facility_recipe') {
+          for (const [stage,label] of [['before','Antes'],['after','Después']]) {
+            const materials=item.changes[stage]?.materials;
+            if (!materials) continue;
+            const line=document.createElement('p'); line.className='muted'; line.textContent=`${label}: ${materials.map(row=>`${row.commodity_name || row.commodity_id}: ${quantity(row.required_quantity)}`).join(' · ')}`; article.append(line);
+          }
+        }
         for (const [field, label] of Object.entries(labels)) {
           const before = item.changes.before?.[field] ?? null;
           const after = item.changes.after?.[field] ?? null;

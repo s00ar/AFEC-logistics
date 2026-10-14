@@ -41,6 +41,12 @@ CRUD de planificación para operadores, archivo/restauración y revisiones audit
 
 CRUD administrativo de cuentas y roles incorporados; estados de construcción; entregas propias/de terceros y retiros compensatorios; listas personal/flota; abastecimiento compartido y uso del logo. Decisiones de implementación: Comandante corrige sus entregas, operador/admin las de terceros; no hay roles personalizados ni registro público. Las bajas son reversibles y conservan referencias. Resultado y límites en [FASE_3.md](FASE_3.md).
 
+## Fase 4 — paleta y facilities
+
+El propietario solicitó los tonos `#0B0E14`, `#C7C7C7`, `#FF7100`, `#CC0000`, bordes CSS animados ligeros, eliminación visible y carga automática editable de materiales por facility. Se implementan plantillas versionadas de construcción para operadores/admin; sus objetivos se copian al crear cada instalación y luego se pueden ajustar independientemente. Cambiar/eliminar una receta no sobrescribe proyectos existentes. La baja de sistemas/instalaciones sigue siendo archivo reversible con historial, ahora presentada como Eliminar.
+
+Pendiente: fuente numérica del catálogo inicial (AFEC/Sheets o referencia comunitaria); el handoff no contiene recetas. No se inventan cantidades. Fuente/variante/fecha se pueden documentar en cada plantilla. Alcance, pruebas y rollback en [FASE_4.md](FASE_4.md).
+
 ## Disposición de despliegue confirmada
 
 El repositorio completo se despliega desde su raíz en Hostinger. La entrada HTML y la API deben funcionar desde allí, con recursos públicos y bloqueo HTTP de archivos privados. Se conserva el modo de desarrollo con document root `public/`. La configuración privada, base inicial y primer administrador siguen siendo pasos de instalación; no se incluyen secretos ni se ejecutan migraciones desde HTTP o por push.

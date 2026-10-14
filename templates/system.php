@@ -6,11 +6,11 @@
 <?php if ($canPlan): ?>
 <?php $systemRecord = array_intersect_key($system, array_flip(['id', 'name', 'description', 'archived_at', 'version'])); ?>
 <div class="toolbar">
-    <button type="button" class="button-primary" data-action="installation-create" data-record="<?= record_attribute(['system_id' => $system['id']]) ?>" <?= $system['archived_at'] ? 'disabled' : '' ?>>+ Agregar instalación</button>
+    <button type="button" class="button-primary" data-action="installation-create" data-record="<?= record_attribute(['system_id' => $system['id']]) ?>" <?= $system['archived_at'] ? 'disabled' : '' ?>>+ Agregar instalación / facility</button>
     <button type="button" class="button-quiet" data-action="system-edit" data-record="<?= record_attribute($systemRecord) ?>">Editar sistema</button>
-    <button type="button" class="button-quiet" data-action="<?= $system['archived_at'] ? 'system-restore' : 'system-archive' ?>" data-record="<?= record_attribute($systemRecord) ?>"><?= $system['archived_at'] ? 'Restaurar sistema' : 'Archivar sistema' ?></button>
+    <button type="button" class="button-quiet <?= !$system['archived_at'] ? 'button-danger' : '' ?>" data-action="<?= $system['archived_at'] ? 'system-restore' : 'system-archive' ?>" data-record="<?= record_attribute($systemRecord) ?>"><?= $system['archived_at'] ? 'Restaurar sistema' : 'Eliminar sistema' ?></button>
     <button type="button" class="button-quiet" data-action="history" data-record="<?= record_attribute(['type' => 'system', 'id' => $system['id']]) ?>">Ver cambios del sistema</button>
-    <a class="button-quiet" href="<?= e($app->url('/?' . http_build_query(['page' => 'system', 'id' => $system['id'], 'include_archived' => $includeArchived ? '0' : '1']))) ?>"><?= $includeArchived ? 'Mostrar activos' : 'Mostrar archivadas y retirados' ?></a>
+    <a class="button-quiet" href="<?= e($app->url('/?' . http_build_query(['page' => 'system', 'id' => $system['id'], 'include_archived' => $includeArchived ? '0' : '1']))) ?>"><?= $includeArchived ? 'Mostrar activos' : 'Mostrar eliminadas / archivadas y objetivos retirados' ?></a>
 </div>
 <?php endif ?>
 <?php if ($system['installations'] === []): ?><section class="empty-state"><h2>No hay instalaciones en esta página</h2><p>Las instalaciones y sus materiales aparecerán aquí.</p></section><?php endif ?>
@@ -19,17 +19,19 @@
     $requirements = array_values(array_filter($system['requirements'], static fn(array $row): bool => $row['installation_id'] === $installation['id']));
     $editable = !$system['archived_at'] && !$installation['archived_at'];
     $open = $editable && $installation['construction_status'] !== 'completed';
+    $recipeMaterials = array_values(array_map(static fn(array $row): array => ['commodity_id' => $row['commodity_id'], 'required_quantity' => $row['required_quantity']], array_filter($requirements, static fn(array $row): bool => (bool)$row['active'] && (bool)$row['commodity_active'] && $row['required_quantity'] !== '0')));
 ?>
 <section class="installation-panel">
     <div class="installation-heading">
-        <div><h2><?= e($installation['name']) ?></h2><p class="muted"><?= e($installation['body_name'] ?: $installation['location_label'] ?: 'Ubicación sin especificar') ?></p></div>
+        <div><h2><?= e($installation['name']) ?></h2><p class="muted"><?= e($installation['body_name'] ?: $installation['location_label'] ?: 'Ubicación sin especificar') ?></p><?php if ($installation['type'] || $installation['tier']): ?><p class="muted facility-meta"><?= e($installation['type'] ?: 'Tipo sin especificar') ?><?= $installation['tier'] ? ' · Tier ' . e($installation['tier']) : '' ?></p><?php endif ?></div>
         <div class="status-badges"><span class="badge <?= $installation['construction_status']==='completed'?'complete':'' ?>"><?= $installation['construction_status']==='completed'?'Terminada':($installation['construction_status']==='under_construction'?'En construcción':'Sin clasificar') ?></span><span class="badge"><?= $installation['archived_at'] ? 'Archivada' : ($installation['percent'] === null ? 'Sin objetivos' : e(number_format($installation['percent'], 1, ',', '.')) . '%') ?></span></div>
     </div>
     <?php if ($canPlan): ?>
     <div class="installation-actions">
         <button type="button" class="button-quiet" data-action="installation-edit" data-record="<?= record_attribute($installation) ?>" <?= $system['archived_at'] ? 'disabled' : '' ?>>Editar instalación</button>
-        <button type="button" class="button-quiet" data-action="<?= $installation['archived_at'] ? 'installation-restore' : 'installation-archive' ?>" data-record="<?= record_attribute($installation) ?>" <?= $system['archived_at'] && $installation['archived_at'] ? 'disabled' : '' ?>><?= $installation['archived_at'] ? 'Restaurar instalación' : 'Archivar instalación' ?></button>
+        <button type="button" class="button-quiet <?= !$installation['archived_at'] ? 'button-danger' : '' ?>" data-action="<?= $installation['archived_at'] ? 'installation-restore' : 'installation-archive' ?>" data-record="<?= record_attribute($installation) ?>" <?= $system['archived_at'] && $installation['archived_at'] ? 'disabled' : '' ?>><?= $installation['archived_at'] ? 'Restaurar instalación' : 'Eliminar instalación' ?></button>
         <button type="button" class="button-quiet" data-action="requirement-create" data-record="<?= record_attribute(['installation_id' => $installation['id'], 'system_id' => $system['id'], 'used_commodity_ids' => array_column($requirements, 'commodity_id')]) ?>" <?= !$editable ? 'disabled' : '' ?>>+ Agregar objetivo</button>
+        <?php if ($recipeMaterials !== []): ?><button type="button" class="button-quiet" data-action="recipe-create" data-record="<?= record_attribute(['name' => $installation['type'] ?: $installation['name'], 'type' => $installation['type'] ?: '', 'tier' => $installation['tier'], 'source_note' => 'Objetivos registrados en ' . $installation['name'] . '. Revisar variante y cantidades en el juego.', 'materials' => $recipeMaterials, 'reason' => 'Crear plantilla desde objetivos existentes']) ?>">Guardar objetivos como receta</button><?php endif ?>
         <button type="button" class="button-quiet" data-action="history" data-record="<?= record_attribute(['type' => 'installation', 'id' => $installation['id']]) ?>">Ver cambios</button>
         <button type="button" class="button-quiet" data-action="installation-status" data-record="<?= record_attribute($installation+['next_status'=>$installation['construction_status']==='completed'?'under_construction':'completed']) ?>" <?= !$editable?'disabled':'' ?>><?= $installation['construction_status']==='completed'?'Reabrir construcción':'Marcar terminada' ?></button>
         <?php if($installation['construction_status']===null): ?><button type="button" class="button-quiet" data-action="installation-status" data-record="<?= record_attribute($installation+['next_status'=>'under_construction']) ?>" <?= !$editable?'disabled':'' ?>>Marcar en construcción</button><?php endif ?>

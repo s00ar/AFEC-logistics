@@ -6,6 +6,7 @@ use Afec\Http\HttpError;
 use Afec\Http\Request;
 use Afec\Http\Response;
 use Afec\Http\PlanningController;
+use Afec\Http\RecipeController;
 use Afec\Http\ExpansionController;
 use Afec\Repositories\PlanningRepository;
 use Afec\Repositories\ProgressRepository;
@@ -28,6 +29,8 @@ try {
         return $flag;
     };
     switch ($route) {
+        case 'facility/recipes': case 'facility/recipe': case 'facility/recipe/restore': case 'facility/recipe/history':
+            RecipeController::dispatch($app, $route);
         case 'admin/user': case 'admin/roles': case 'admin/user/password': case 'admin/user/restore':
         case 'installation/status': case 'wishlist': case 'wishlist/destinations': case 'wishlist/entries': case 'wishlist/entry':
         case 'sources': case 'source': case 'source/restore': case 'deliveries': case 'movement/withdraw':
