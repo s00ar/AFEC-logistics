@@ -1,4 +1,4 @@
-"""Phase-1 integration tests. Python is a test runner only, never a production dependency.
+"""Integration tests. Python is a test runner only, never a production dependency.
 
 Requires a local MySQL/MariaDB database named afec_test_* and a private test PHP config.
 No production or Hostinger credentials are used by these tests.
@@ -21,7 +21,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--php', required=True)
 parser.add_argument('--config', required=True)
 parser.add_argument('--schema-ready', action='store_true', help='Schema already applied in the isolated test database; do not run the PHP migration helper')
+parser.add_argument('--webroot', choices=['public', 'repository'], default='public')
+parser.add_argument('--apache-root', help='Existing Apache installation; required for repository-root .htaccess verification')
 args = parser.parse_args()
+if args.webroot == 'repository' and not args.apache_root:
+    parser.error('Repository-root tests require --apache-root; PHP built-in server ignores .htaccess.')
 env = os.environ.copy()
 env['AFEC_CONFIG_FILE'] = str(Path(args.config).resolve())
 env['AFEC_ENV'] = 'test'
@@ -88,13 +92,17 @@ def check(value, description):
     checks += 1
 
 with (PRIVATE / 'http-server.log').open('w') as output:
-    server = subprocess.Popen([php, '-S', f'127.0.0.1:{port}', '-t', 'public'], cwd=ROOT, env=env, stdout=output, stderr=output, creationflags=flags)
+    if args.webroot == 'repository':
+        from apache_server import start_apache, stop_processes
+        servers = start_apache(ROOT, args.apache_root, php, port, env, PRIVATE, output, flags)
+    else:
+        servers = [subprocess.Popen([php, '-S', f'127.0.0.1:{port}', '-t', 'public'], cwd=ROOT, env=env, stdout=output, stderr=output, creationflags=flags)]
     try:
         anonymous = Client()
         for _ in range(80):
             try: anonymous.session(); break
-            except (urllib.error.URLError, OSError): time.sleep(.1)
-        else: raise AssertionError('PHP server did not start')
+            except (urllib.error.URLError, OSError, json.JSONDecodeError): time.sleep(.1)
+        else: raise AssertionError('HTTP test server did not become ready; inspect the private test server logs.')
         check(anonymous.session()['user'] is None, 'Initial session is anonymous')
         status, result, _ = anonymous.call('systems')
         check(status == 200 and len(result['data']) == 5, 'Public can read systems without login')
@@ -125,7 +133,20 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         status, html, headers = anonymous.page('/?page=system&id=1')
         check(status == 200 and '&lt;script&gt;alert(1)&lt;/script&gt;' in html and '<script>alert(1)</script>' not in html, 'Stored name is escaped in HTML')
         check('frame-ancestors' in headers.get('Content-Security-Policy',''), 'CSP present')
-        check(anonymous.page('/config/config.local.php')[0] == 404 and anonymous.page('/src/bootstrap.php')[0] == 404, 'Private files are outside document root')
+        check(anonymous.page('/config/config.local.php')[0] in [403,404] and anonymous.page('/src/bootstrap.php')[0] in [403,404], 'Private files are unavailable over HTTP')
+        asset_prefix = '/public/assets/' if args.webroot == 'repository' else '/assets/'
+        check(asset_prefix + 'css/app.css' in html and asset_prefix + 'js/app.js' in html, 'HTML uses assets for the selected deployment layout')
+        for asset in ['css/app.css', 'js/app.js', 'js/http.js', 'js/planning.js']:
+            check(anonymous.page(asset_prefix + asset)[0] == 200, 'Application asset is reachable: ' + asset)
+        if args.webroot == 'repository':
+            check(anonymous.page('/index.php')[0] == 200, 'Root index.php serves the application')
+            private_paths = ['/README.md', '/AGENTS.md', '/.git/HEAD', '/.env', '/.local/preview-password.txt',
+                '/docs/DECISIONES.md', '/database/migrations/001_initial.sql', '/templates/layout.php',
+                '/tools/preflight.php', '/tests/fixture.php', '/storage/.gitkeep', '/config/config.example.php',
+                '/AFEC_Logistica_Handoff_Codex/', '/public/index.php', '/public/api/index.php?route=session',
+                '/public/assets/js/unknown.js', '/public/assets/js/app.js.bak', '/api/index.php/extra', '/unknown']
+            for path in private_paths:
+                check(anonymous.page(path)[0] == 403, 'Apache denies non-public repository path: ' + path)
         check(anonymous.page('/?page=login')[0] == 200 and 'login-form' in anonymous.page('/?page=login')[1], 'Public site has an explicit login page')
         admin = Client()
         before = admin.session()['csrf_token']
@@ -140,6 +161,7 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         viewer = Client(); check(viewer.login('viewer')[0] == 200, 'Viewer can authenticate')
         check(viewer.call('admin/users')[0] == 403, 'Viewer cannot bypass admin permission through API')
         operator = Client(); check(operator.login('operator')[0] == 200, 'Operator can authenticate for planning')
+        check(asset_prefix + 'js/planning.js' in operator.page('/')[1], 'Operator HTML loads planning module for the selected layout')
         from planning_http import run_planning_checks
         run_planning_checks(anonymous, admin, viewer, operator, check, command, env, php, ROOT)
         command('tests/fixture.php','deactivate_viewer')
@@ -156,11 +178,15 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         check(failures[:8] == [401]*8 and failures[8] == 429, 'Repeated failures are throttled without revealing account existence')
         print(db_result)
         print(f'HTTP checks passed: {checks}')
+        print('Webroot checked: ' + args.webroot + (' (Apache with real .htaccess + PHP FastCGI)' if args.webroot == 'repository' else ' (PHP development server)'))
         if args.schema_ready:
             print('SQL schema applied separately; PHP migration helper was not executed.')
         else:
             print('Migration dry-run and repeated application passed.')
     finally:
-        server.terminate()
-        server.wait(timeout=10)
+        if args.webroot == 'repository':
+            stop_processes(servers)
+        else:
+            servers[0].terminate()
+            servers[0].wait(timeout=10)
         password_path.unlink(missing_ok=True)

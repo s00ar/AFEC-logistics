@@ -17,7 +17,7 @@
 - Fórmula global propuesta: cantidad cubierta limitada por objetivo, ponderada por unidades; objetivos cero sin porcentaje; archivadas excluidas del progreso operativo.
 - Tipos, tiers y estados; identidades/aliases y deduplicación.
 - Fuentes Apps Script, export completo e historial de Sheets. Terminal AFEC sigue sin fuentes verificables.
-- URL, versión real de PHP/MySQL y disposición de carpetas privadas en Hostinger. Corte e importación requieren aprobación específica.
+- URL y versión real de PHP/MySQL en Hostinger, y verificación de la protección HTTP en la disposición raíz confirmada. Corte e importación requieren aprobación específica.
 
 ## Fase 1
 

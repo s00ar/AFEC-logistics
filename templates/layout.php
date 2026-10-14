@@ -8,9 +8,9 @@
     <meta name="home-url" content="<?= e($app->url('/')) ?>">
     <meta name="user-id" content="<?= e($user['id'] ?? '') ?>">
     <title><?= e($title) ?> · AFEC Logística</title>
-    <link rel="stylesheet" href="<?= e($app->url('/assets/css/app.css')) ?>">
-    <script src="<?= e($app->url('/assets/js/app.js')) ?>" type="module"></script>
-    <?php if ($canPlan): ?><script src="<?= e($app->url('/assets/js/planning.js')) ?>" type="module"></script><?php endif ?>
+    <link rel="stylesheet" href="<?= e($app->assetUrl('css/app.css')) ?>">
+    <script src="<?= e($app->assetUrl('js/app.js')) ?>" type="module"></script>
+    <?php if ($canPlan): ?><script src="<?= e($app->assetUrl('js/planning.js')) ?>" type="module"></script><?php endif ?>
 </head>
 <body>
 <a class="skip-link" href="#main">Saltar al contenido</a>

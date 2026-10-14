@@ -10,10 +10,14 @@ Todavía no están habilitados registro/reversión de entregas, administración 
 
 La consulta pública y los aportes registrados por operadores en nombre de terceros están confirmados en [docs/DECISIONES.md](docs/DECISIONES.md). El resto de políticas sigue documentado como pendiente. El material de origen permanece intacto en `AFEC_Logistica_Handoff_Codex/`; el diagnóstico está en `ANALISIS_AFEC_LOGISTICA.md`.
 
+La adaptación para desplegar la raíz completa está verificada localmente con Apache. Alcance, requisitos y pruebas en [docs/FASE_RAIZ_HOSTINGER.md](docs/FASE_RAIZ_HOSTINGER.md); instalación en [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md).
+
 ## Estructura
 
 ```text
 public/        HTML/API y recursos públicos
+index.php      Entrada HTML cuando se despliega la raíz del repositorio
+api/           Entrada JSON para el despliegue desde la raíz
 src/           Configuración, sesión, servicios y repositorios PDO
 templates/     Presentación HTML
 config/        Ejemplo y configuración local ignorada
@@ -26,7 +30,7 @@ docs/          Decisiones y despliegue
 
 ## Requisitos y configuración
 
-PHP 8.4 recomendado, extensiones `pdo_mysql` y `mbstring`; MySQL 8.0.16+ o MariaDB 10.11+ con InnoDB. Para producción, HTTPS y un document root que exponga solo `public/`.
+PHP 8.4 recomendado, extensiones `pdo_mysql` y `mbstring`; MySQL 8.0.16+ o MariaDB 10.11+ con InnoDB. Para producción, HTTPS. El despliegue de Hostinger usa la raíz completa del repositorio: `index.php`, `api/index.php` y `.htaccess` están preparados para esa disposición. El servidor debe aplicar las reglas Apache/LiteSpeed de `.htaccess`; solo las entradas de aplicación y CSS/JavaScript conocidos son accesibles por HTTP. También se conserva la opción de un document root aislado en `public/`.
 
 Copiar `config/config.example.php` a `config/config.local.php` y completar la conexión, o usar `AFEC_CONFIG_FILE` para un archivo privado fuera del webroot. Nunca subir ese archivo a Git. `localhost` en la configuración de Hostinger solo funciona cuando PHP se ejecuta allí.
 
@@ -40,7 +44,7 @@ La producción no permite desactivar cookies Secure. El navegador recibe solo JS
 
 ## API de esta fase
 
-Entrada: `public/api/index.php?route=...` (funciona sin reglas de rewrite).
+Entrada HTTP: `/api/index.php?route=...` en ambos modos de despliegue (las operaciones no requieren rewrite). En el despliegue desde la raíz, `.htaccess` se usa para bloquear archivos privados.
 
 | Método | route | Acceso |
 | --- | --- | --- |
@@ -72,6 +76,14 @@ Las pruebas están en `tests/`: fixtures protegidos para una base `afec_test_*` 
 ```text
 python tests/run.py --php RUTA_PHP --config RUTA_CONFIG_PRIVADA_TEST
 ```
+
+Para probar la raíz completa con Apache instalado, reglas `.htaccess` reales y PHP FastCGI:
+
+```text
+python tests/run.py --php RUTA_PHP --config RUTA_CONFIG_PRIVADA_TEST --webroot repository --apache-root RUTA_APACHE
+```
+
+El servidor integrado de PHP ignora `.htaccess`: usarlo únicamente con `-t public`, nunca exponiendo el repositorio completo.
 
 Simular/aplicar estructura con `php tools/migrate.php` / `php tools/migrate.php --apply`. En producción se exige además `--allow-production` y un backup revisado. El migrador detecta versiones modificadas o incompletas; no intenta revertir automáticamente DDL.
 

@@ -2,13 +2,21 @@
 
 Crear un sitio personalizado PHP/HTML vacío. PHP 8.4 recomendado; activar `pdo_mysql` y `mbstring`. HTTPS obligatorio en producción. No se usan package.json, npm, Node, Python ni procesos permanentes en producción.
 
-## Archivos y configuración
+## Despliegue confirmado: raíz del repositorio
 
-Preferir document root `public/`, dejando `src`, `templates`, `config`, `database`, `storage` y `tools` fuera. Si Hostinger usa `public_html` fijo, copiar allí únicamente los archivos públicos y ajustar las dos rutas de bootstrap a la ubicación privada verificada.
+El propietario confirmó que Hostinger despliega la carpeta raíz completa del repositorio. No mover archivos ni cambiar el document root a `public/` para esta instalación. En la raíz quedan `index.php` (entrada HTML), `api/index.php` (entrada JSON), `.htaccess` y todas las carpetas del proyecto. Las dos entradas delegan en los controladores existentes; no hay lógica de negocio duplicada.
 
-Un despliegue Git de todo el repositorio en `public_html` necesita revisar aislamiento y reglas del servidor. No asumir que `.htaccess` garantiza protección: comprobar solicitudes directas a configuración, almacenamiento y fuentes en el sitio real antes de habilitarlo.
+El HTML de esta disposición carga `/public/assets/css/app.css` y `/public/assets/js/{app,http,planning}.js`. `.htaccess` permite únicamente esas rutas, `/`, `/index.php` y `/api/index.php`; bloquea cualquier otra ruta con 403. Las carpetas privadas conservan además sus reglas locales. No sirve documentación, SQL, tests, herramientas CLI, ZIP/handoff, Git, archivos de configuración ni almacenamiento.
 
-Copiar `config/config.example.php` a un archivo privado. Puede usarse `config/config.local.php` cuando el repositorio queda fuera del webroot o `AFEC_CONFIG_FILE` para una ruta externa. Las variables `AFEC_DB_HOST`, `AFEC_DB_PORT`, `AFEC_DB_NAME`, `AFEC_DB_USER`, `AFEC_DB_PASSWORD` prevalecen sobre el archivo. Nunca se aceptan rutas de configuración de parámetros HTTP.
+Requisito: Apache/LiteSpeed compatible con `mod_rewrite`, autorización de Apache 2.4 y overrides `.htaccess`. Una configuración que ignore `.htaccess` no es compatible con este despliegue. El servidor integrado de PHP ignora esas reglas y solo se usa con `-t public` en desarrollo. No quitar las reglas de protección para resolver un error de servidor.
+
+Mantener `app.base_path=''` al servir el dominio desde su raíz; si se instala bajo un subdirectorio, configurar ese prefijo explícitamente. No usar `/public` como base_path en la disposición confirmada.
+
+La alternativa con document root aislado `public/` continúa funcionando y usa `/assets/...`. El código distingue la entrada raíz mediante una constante interna, sin usar parámetros del cliente.
+
+## Configuración privada persistente
+
+Copiar `config/config.example.php` a `config/config.local.php` en el servidor y completar los valores privados, o usar `AFEC_CONFIG_FILE` para una ruta externa al webroot. El archivo local está ignorado por Git y protegido por `.htaccess`; verificar que el despliegue conserva archivos locales no versionados. Las variables `AFEC_DB_HOST`, `AFEC_DB_PORT`, `AFEC_DB_NAME`, `AFEC_DB_USER`, `AFEC_DB_PASSWORD` prevalecen sobre el archivo. Nunca se aceptan rutas de configuración de parámetros HTTP.
 
 El archivo privado de este PC no está en Git; debe transferirse de forma privada al hosting. No reutilizar la contraseña MySQL como contraseña de la aplicación. Producción exige HTTPS y cookies Secure.
 
@@ -32,6 +40,12 @@ Guardar el archivo de contraseña fuera del webroot y retirarlo después. El com
 
 ## Verificación y rollback
 
-Comprobar lectura anónima de progreso, login/logout, administración protegida y ausencia de acceso HTTP a archivos privados. El servidor y la base remotos no se han verificado desde este PC. No ejecutar automáticamente migraciones ni importaciones al desplegar código.
+Antes de habilitar el sitio: comprobar `/`, `/index.php`, API, CSS y módulos JavaScript; lectura anónima, login/logout y CRUD de operador. Solicitar directamente `/config/config.local.php`, `/database/migrations/001_initial.sql`, `/.git/HEAD`, `/storage/`, `/tools/preflight.php`, `/README.md` y el ZIP de handoff: deben devolver 403 sin contenido privado. Si alguna ruta entrega contenido, retirar acceso público y revisar la configuración del servidor. La configuración, esquema y primer administrador son pasos necesarios antes de usar la aplicación; un push no incluye secretos ni inicializa MySQL.
 
-Esta fase no habilita carga de entregas ni edición de objetivos. El rollback de código vuelve al commit anterior conservando base y backups. Nunca eliminar registros reales para repetir una instalación. Ensayar restauración aislada antes de futuras migraciones.
+El servidor y la base remotos no se han verificado desde este PC. No ejecutar automáticamente migraciones ni importaciones al desplegar código. Las pruebas locales de Apache no sustituyen la comprobación del servidor real.
+
+La fase 2 habilita CRUD de planificación y objetivos; no habilita carga de entregas. No necesita migración nueva sobre la estructura de fase 1. El rollback de una instalación real restaura una versión de archivos previamente verificada para la misma disposición raíz y conserva configuración privada, base y backups. No restaurar una versión que carezca de entrada raíz o bloqueo HTTP en un webroot que exponga todo el repositorio. Nunca eliminar registros reales para repetir una instalación. Ensayar restauración aislada antes de futuras migraciones.
+
+La adaptación raíz está separada del commit CRUD `26e7c2e`: en desarrollo puede revertirse para volver al modo `public/`, manteniendo datos y auditoría. Todavía no hay despliegue real ejecutado por el agente.
+
+Referencias de servidor: [banderas de mod_rewrite en Apache](https://httpd.apache.org/docs/2.4/rewrite/flags.html), en particular `[F]` para denegar solicitudes y `[L]` para detener la evaluación de la regla.

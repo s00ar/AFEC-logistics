@@ -33,6 +33,12 @@ final class App
         return $this->config['app']['base_path'] . $path;
     }
 
+    public function assetUrl(string $path): string
+    {
+        $prefix = defined('AFEC_REPOSITORY_WEBROOT') && AFEC_REPOSITORY_WEBROOT ? '/public/assets/' : '/assets/';
+        return $this->url($prefix . $path);
+    }
+
     public function logError(\Throwable $error, string $requestId): void
     {
         // Do not log submitted passwords, SQL parameters, DSNs or raw PDO messages.
