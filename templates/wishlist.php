@@ -1,5 +1,6 @@
 <div class="page-heading"><div><p class="eyebrow">PLANIFICACIÓN DE CARGAS</p><h1><?= e($title) ?></h1><p class="muted"><?= $scope==='personal'?'Solo tu cuenta puede consultar y modificar esta lista.':'Todos los usuarios autenticados pueden consultar y modificar esta lista compartida.' ?></p></div><a class="button-quiet" href="<?= e($app->url('/')) ?>">Añadir instalaciones</a></div>
 <p class="data-note">Los totales son faltantes actuales. Las entregas y correcciones los actualizan automáticamente. Las instalaciones terminadas/archivadas y los objetivos retirados quedan excluidos.</p>
+<?php require __DIR__.'/carrier-load.php'; ?>
 <?php foreach($wishlist['commodities']['items'] as $item): ?>
 <section class="installation-panel wishlist-material"><div class="installation-heading"><h2><?= e($item['commodity_name']) ?></h2><div class="status-badges"><span class="badge"><?= units($item['remaining_quantity']) ?> pendientes</span><button type="button" class="button-quiet globe-button" data-logistics="sources" data-record="<?= record_attribute(['commodity_id'=>$item['commodity_id'],'name'=>$item['commodity_name']]) ?>" aria-label="Abastecimiento de <?= e($item['commodity_name']) ?>"><?= $item['source_count']?'🌐':'＋ Lugar de abastecimiento' ?></button></div></div>
 <div class="wishlist-destinations" data-destinations="<?= e($item['commodity_id']) ?>"><ul>

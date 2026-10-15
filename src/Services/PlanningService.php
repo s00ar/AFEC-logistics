@@ -30,7 +30,7 @@ final class PlanningService
         Input::fields($input, ['name', 'description', 'version', 'reason']);
         $data = ['name' => Input::text($input, 'name', 255, true), 'description' => Input::text($input, 'description', 4000, false, true)];
         $version = Input::version($input);
-        $reason = Input::text($input, 'reason', 1000, true, true);
+        $reason = Input::text($input, 'reason', 1000, false, true) ?? 'Actualización de planificación';
         return $this->mutations->run($actor, $authVersion, ['admin', 'operator'], 'planning.system.update', $key, $data + ['id' => $id, 'version' => $version, 'reason' => $reason], function(string $operationId) use ($id, $data, $version, $actor, $reason): array {
             $before = $this->repository->system($id, true);
             self::version($before, $version);
@@ -90,7 +90,7 @@ final class PlanningService
     {
         $data = self::installationInput($input, true);
         $version = Input::version($input);
-        $reason = Input::text($input, 'reason', 1000, true, true);
+        $reason = Input::text($input, 'reason', 1000, false, true) ?? 'Actualización de planificación';
         return $this->mutations->run($actor, $authVersion, ['admin', 'operator'], 'planning.installation.update', $key, $data + ['id' => $id, 'version' => $version, 'reason' => $reason], function(string $operationId) use ($id, $data, $version, $actor, $reason): array {
             [$parent, $before] = $this->repository->lockInstallation($id);
             self::active($parent);

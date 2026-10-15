@@ -69,7 +69,7 @@ Cualquier usuario autenticado, incluido Comandante, puede crear sistemas y const
 
 - **Crear:** en **Sistemas**, pulsar **+ Crear sistema**; completar nombre, descripción opcional y motivo opcional; pulsar **Guardar**. Se abre el sistema creado.
 - **Consultar:** pulsar el nombre del sistema o **Ver instalaciones**. Se muestran sus instalaciones, materiales y progreso.
-- **Modificar:** pulsar **Editar** en la tarjeta o **Editar sistema** dentro del sistema; cambiar los datos, completar el motivo y guardar. No se cambian sus IDs ni las instalaciones vinculadas.
+- **Modificar:** pulsar **Editar** en la tarjeta o **Editar sistema** dentro del sistema; cambiar los datos y guardar (motivo opcional). No se cambian sus IDs ni las instalaciones vinculadas.
 - **Eliminar de la planificación activa:** pulsar **Eliminar** o **Eliminar sistema**, escribir el motivo, marcar la confirmación y guardar. Se archiva y conserva todo el historial; no hay borrado físico.
 - **Restaurar:** en **Sistemas**, pulsar **Mostrar eliminados / archivados**, localizar el sistema y pulsar **Restaurar**. Escribir motivo y guardar. Las instalaciones que ya estaban archivadas conservan su estado propio.
 - **Auditar:** dentro del sistema, pulsar **Ver cambios del sistema**.
@@ -81,7 +81,7 @@ Se administran como instalaciones dentro de un sistema. Un Comandante puede abri
 - **Crear:** desde la tarjeta del sistema, pulsar **+ Agregar facility**, o abrir un sistema activo → **+ Agregar instalación / facility**. Elegir la receta en **Facility / receta** para ver los materiales y cantidades que se cargarán automáticamente. Completar nombre, cuerpo, ubicación y orden visual → **Guardar**. El servidor copia tipo/tier y todos los objetivos de esa versión en una única transacción. Comienza En construcción.
 - **Sin receta:** seleccionar **Sin receta: cargar objetivos manualmente** y completar tipo/tier. Después usar **+ Agregar objetivo**. Si no hay plantillas cargadas, crearlas primero desde **Facilities y recetas** o reutilizar objetivos existentes como se explica abajo.
 - **Consultar:** abrir el sistema; cada instalación tiene su panel de materiales.
-- **Modificar:** **Editar instalación** → cambiar datos → escribir motivo → **Guardar**. No se traslada a otro sistema con este formulario.
+- **Modificar:** **Editar instalación** → cambiar datos → **Guardar** (motivo opcional). No se traslada a otro sistema con este formulario.
 - **Eliminar de la planificación activa:** **Eliminar instalación** → motivo → confirmar baja → **Guardar**. Conserva historial y permite restauración.
 - **Restaurar:** **Mostrar eliminadas / archivadas y objetivos retirados** → **Restaurar instalación** → motivo → guardar. El sistema padre debe estar activo; restaurarlo primero si corresponde.
 - **Auditar:** pulsar **Ver cambios** en los controles de la instalación.
@@ -93,11 +93,11 @@ Las instalaciones anteriores a esta fase conservan su estado libre original y ap
 ## Materiales y objetivos
 
 1. En una instalación activa, pulsar **+ Agregar objetivo**.
-2. Elegir material, ingresar cantidad requerida como entero sin separadores y completar motivo; guardar.
-3. Para cambiar la cantidad, usar **Editar objetivo**, ingresar nueva cantidad y motivo; guardar. No se cambian las entregas históricas.
+2. Elegir material, ingresar cantidad requerida como entero sin separadores; guardar.
+3. Para cambiar la cantidad, usar **Editar objetivo**, ingresar nueva cantidad; guardar. No se cambian las entregas históricas.
 4. Para retirarlo, usar **Retirar objetivo**, motivo y confirmación; guardar.
 5. Para recuperarlo, usar **Mostrar eliminadas / archivadas y objetivos retirados** → **Restaurar objetivo** → revisar cantidad y motivo → guardar.
-6. **Ver cambios** en la fila del material muestra las revisiones del objetivo.
+6. **Ver cambios** en el panel del material muestra las revisiones del objetivo.
 
 Si falta un material en el catálogo, un administrador puede crearlo desde **Sistemas → Agregar material al catálogo**. Los operadores pueden usar el catálogo existente; no dan de alta materiales de catálogo en esta versión.
 
@@ -106,7 +106,7 @@ Si falta un material en el catálogo, un administrador puede crearlo desde **Sis
 Ingresar como Administrador → **Mercancías**. Los demás roles usan el catálogo, pero no modifican sus identidades globales.
 
 1. **Crear:** **+ Crear mercancía** → código, nombre en español, nombre en inglés opcional y alias opcionales, uno por línea → guardar.
-2. **Editar:** **Editar** → corregir nombres/código o alias → motivo → guardar. Se conserva el ID y todos sus objetivos, entregas y lugares de abastecimiento.
+2. **Editar:** **Editar** → corregir nombres/código o alias → guardar. Se conserva el ID y todos sus objetivos, entregas y lugares de abastecimiento.
 3. **Equivalencias:** un alias es otro nombre/código de la misma mercancía. Por defecto se conservan los nombres/códigos anteriores al renombrar. Para corregir identidades equivocadas, desmarcar **Conservar códigos y nombres anteriores como alias** y revisar la lista de alias. No se fusionan mercancías distintas ni sus cantidades. Máximo 30 alias; un código, nombre o alias no puede corresponder a otro ID, incluso desactivado.
 4. **Desactivar:** **Desactivar** → motivo → confirmar → guardar. Deja de aparecer al elegir un material nuevo. Los proyectos, recetas, balances e historial existentes se conservan; las correcciones de entregas siguen disponibles según sus permisos.
 5. **Reactivar:** **Mostrar también desactivadas** → **Reactivar** → motivo → guardar. Recupera el mismo ID.
@@ -145,30 +145,28 @@ Operadores administran las recetas ya cargadas; solo administradores pueden carg
 
 Los 33 materiales de estructuras sin identificar del CSV no se asignan a un tipo supuesto; las 51 filas de tipos sin cantidades no producen recetas vacías. Bio Large suma 8524 en AFEC y 8523 en la referencia comunitaria: ambas variantes se conservan. La celda TOTALES 6375 de AFEC no se usa. Detalle, fuentes y reconstrucción en [SOURCES.md](../resources/catalogue/SOURCES.md).
 
-## Entregas y corrección de cantidades
+## Entregas y correcciones
 
-1. Abrir una instalación no archivada ni terminada; pulsar **Registrar entrega** en la fila de la mercancía.
-2. Ingresar cantidad recibida. Un Comandante registra la entrega con su propia identidad. Operadores/administradores pueden elegir otro comandante o ingresar uno nuevo; no combinar selección y nombre nuevo.
-3. Indicar carrier si corresponde, seleccionando uno existente o ingresando nombre/código nuevos. La fecha es opcional: sin ella se usa la fecha del registro. Una fecha ingresada se interpreta en la zona local del navegador y se guarda en UTC.
-4. Guardar. Se conservan por separado quién entregó y quién registró. Se admiten cantidades mayores al objetivo; se muestran como sobrantes y no compensan otro destino/material.
-5. Para corregir una carga de más, abrir **Historial de entregas** y pulsar **Retirar / corregir** en el movimiento original. Ingresar cantidad parcial o completa, motivo y confirmación; guardar.
+Las entregas se registran desde el panel lateral del material, como se describe abajo. Comandante registra sus aportes; operador/admin puede seleccionar otra identidad. El historial conserva quién entrega, quién registra y las correcciones vinculadas. Para corregir un movimiento concreto, abrir **Historial de entregas** → **Retirar / corregir**, ingresar cantidad y confirmar. No se editan ni se borran los originales.
 
-La corrección agrega un movimiento negativo vinculado al original: no lo modifica ni lo borra. Puede haber varios retiros parciales, hasta el saldo que conserva esa entrega y sin dejar negativo el saldo de la instalación/material. Un Comandante corrige sus entregas (incluidas las registradas en su nombre); operadores/administradores corrigen las de terceros. Se pueden corregir registros de instalaciones terminadas/archivadas desde su historial, sin reabrirlas ni dar por entregado un faltante.
+## Carga de stock y paladas
 
-Para corregir un destino o material equivocado: retirar la cantidad del registro original y registrar una nueva entrega en el destino/material correcto. Son dos operaciones explícitas y auditadas, no un traslado automático.
+1. Abrir un sistema y elegir **Comandante** en la instalación. Operadores/admin pueden seleccionar terceros; los Comandantes operan con su identidad. Si falta la propia, pulsar **Usar mi comandante**.
+2. Escribir **Palada base (t)** y pulsar **Guardar palada**. Solo admite enteros positivos; guardar vacío quita la preferencia. Se conserva por comandante, incluso sin importar 008.
+3. Seleccionar una fila de material. Se abre el panel lateral: **Palada** ofrece −/+; **Cantidad** ofrece un campo numérico y −/+. Enter suma la cantidad indicada.
+4. + suma al stock entregado y − registra una corrección vinculada a las entregas originales del comandante seleccionado. No se pide motivo; se conserva la auditoría. No se puede restar más de su saldo ni dejar negativo el stock.
+5. Los totales se actualizan sin recargar. Se registra toda sobreentrega y se avisa del sobrante. Las instalaciones terminadas/archivadas permiten restas; deben reabrirse/restaurarse para nuevas sumas.
+6. Operadores/admin encuentran edición, retiro/restauración e historial del objetivo dentro de **Objetivo y cambios** en el panel.
 
-## Carga rápida desde la tabla y paladas
+Una respuesta incierta conserva la solicitud y ofrece **Comprobar y reintentar** con su misma clave, incluso tras recargar. No registrar de nuevo la entrega con otra clave.
 
-1. Abrir un sistema. En cada instalación, elegir **Comandante** una sola vez. Un Comandante opera con su identidad; operador/admin puede elegir terceros. **Más comandantes** permite recorrer el catálogo completo.
-2. Escribir su **Palada estándar (t)** y pulsar **Guardar palada**. Cada comandante tiene su propia preferencia; dejar el campo vacío y guardar la quita. Cambiar la selección actualiza la palada y la cantidad propuesta en las filas. El valor queda guardado en MySQL; el comandante seleccionado se conserva durante la sesión por instalación.
-3. En una mercancía, **+ Palada** registra la cantidad configurada. Para otra cantidad, escribir toneladas enteras sin separadores en la fila y usar **+ Cantidad** o Enter. Se conservan comandante y pantalla para seguir cargando.
-4. Para corregir, completar **Motivo de resta** en la cabecera y pulsar **− Cantidad** con un importe manual, o **− Palada**. Se compensan primero las entregas más antiguas del comandante elegido, incluso si hay que repartir la resta entre varias. No se editan los originales. No se puede retirar más de su saldo disponible ni dejar negativa la mercancía.
-5. Las cantidades y el porcentaje se actualizan sin recargar; la confirmación aparece debajo de los controles del comandante. Si se supera lo pendiente se registra todo y se avisa del sobrante. Una instalación terminada/archivada conserva la posibilidad de corregir entregas, pero necesita reabrirse/restaurarse para recibir nuevas.
-6. Para indicar carrier, otra fecha o crear una identidad nueva, usar **Entrega detallada / carrier**. Su selector también propone la palada configurada. Las cuentas sin identidad vinculada pueden crearla con su primera entrega detallada y recargar para usar el modo rápido.
+## Carga total en carrier y reparto automático
 
-Durante el envío se bloquean los botones para evitar duplicados. Si aparece **Comprobar y reintentar la misma operación**, usar ese botón: recupera el resultado o reintenta con la misma clave. No crear otra entrega para reemplazar una cuyo resultado es incierto. Si el mensaje confirma que ya se guardó pero falló la actualización de totales, recargar la página sin repetir la carga.
+En **Mi lista** o **Flota**, usar **Tu carga en carrier**: elegir o registrar el carrier, seleccionar material, escribir el **total a bordo** y guardar. El total reemplaza el registro anterior de esa cuenta, carrier y material; 0 lo vacía. Cada carga se vincula a una de las dos listas.
 
-Las paladas requieren la migración 008. Mientras falte, el sitio conserva la carga manual y avisa del requisito. Los datos anteriores no se modifican. Detalles y pruebas en [CARGA_RAPIDA.md](CARGA_RAPIDA.md).
+El sistema propone los destinos automáticamente desde los faltantes de las instalaciones seleccionadas, siguiendo el orden visible: cubre cada faltante antes del siguiente. Con 3000 t y faltantes de 1000, 500 y 1500 t, muestra esas tres asignaciones. Agregar/quitar instalaciones o registrar entregas actualiza las propuestas al consultar la lista o pulsar **Actualizar reparto**. Los sobrantes permanecen sin destino y varios carriers propios no cubren dos veces el mismo faltante.
+
+La carga a bordo y el stock entregado se registran por separado. Al descargar, registrar la entrega en su instalación y actualizar el total del carrier. Este reparto es planificación propia; no reserva material entre cuentas. Detalles y límites en [STOCK_Y_CARRIERS.md](STOCK_Y_CARRIERS.md).
 
 ## Listas personal y de flota
 

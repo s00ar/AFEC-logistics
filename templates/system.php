@@ -43,24 +43,18 @@
     <?php if ($user!==null): require __DIR__.'/quick-load-toolbar.php'; endif ?>
     <p class="table-hint">Deslizá la tabla para ver todas las columnas.</p>
     <div class="table-scroll" tabindex="0" role="region" aria-label="Materiales de <?= e($installation['name']) ?>">
-        <table><caption class="sr-only">Requerimientos y entregas de <?= e($installation['name']) ?></caption><thead><tr><th scope="col">Material</th><th scope="col" class="numeric">Requerido</th><th scope="col" class="numeric">Entregado</th><th scope="col" class="numeric">Pendiente</th><th scope="col" class="numeric">Sobrante</th><?php if ($canPlan): ?><th scope="col">Objetivo</th><?php endif ?><?php if($user!==null): ?><th scope="col">Entrega</th><?php endif ?></tr></thead><tbody>
+        <table><caption class="sr-only">Requerimientos y entregas de <?= e($installation['name']) ?></caption><thead><tr><th scope="col">Material</th><th scope="col" class="numeric">Requerido</th><th scope="col" class="numeric">Entregado</th><th scope="col" class="numeric">Pendiente</th><th scope="col" class="numeric">Sobrante</th></tr></thead><tbody>
         <?php foreach ($requirements as $requirement): ?>
-        <tr data-material="<?= e($requirement['commodity_id']) ?>" class="<?= !(bool)$requirement['active'] ? 'retired-row' : '' ?>">
+        <tr data-material="<?= e($requirement['commodity_id']) ?>" class="<?= !(bool)$requirement['active'] ? 'retired-row' : '' ?> <?= $user!==null?'stock-row':'' ?>" <?php if($user!==null): ?>data-quick-row tabindex="0" aria-haspopup="dialog" aria-label="Gestionar stock de <?= e($requirement['commodity_name']) ?>" data-commodity="<?= e($requirement['commodity_id']) ?>" data-name="<?= e($requirement['commodity_name']) ?>" data-remaining="<?= e($requirement['remaining_quantity']) ?>" data-editable="<?= $editable?'1':'0' ?>" data-open="<?= $open && (bool)$requirement['active']?'1':'0' ?>" data-record="<?= record_attribute($requirement+['system_id'=>$system['id']]) ?>"<?php endif ?>>
             <th scope="row"><?= e($requirement['commodity_name']) ?><?php if($user!==null): ?><button type="button" class="button-quiet globe-button" data-logistics="sources" data-record="<?= record_attribute(['commodity_id'=>$requirement['commodity_id'],'name'=>$requirement['commodity_name']]) ?>" aria-label="<?= $requirement['source_count']?'Consultar':'Registrar' ?> abastecimiento de <?= e($requirement['commodity_name']) ?>"><?= $requirement['source_count']?'🌐':'＋' ?></button><?php endif ?><?php if (!(bool)$requirement['active']): ?><span class="retired-label">Retirado</span><?php endif ?></th>
             <td class="numeric" data-balance="required_quantity"><?= units($requirement['required_quantity']) ?></td><td class="numeric" data-balance="delivered_quantity"><?= units($requirement['delivered_quantity']) ?></td><td data-balance="remaining_quantity" class="numeric <?= $requirement['remaining_quantity'] === '0' ? 'complete' : '' ?>"><?= units($requirement['remaining_quantity']) ?></td><td class="numeric" data-balance="surplus_quantity"><?= units($requirement['surplus_quantity']) ?></td>
-            <?php if ($canPlan): ?>
-            <td><div class="row-actions">
-                <button type="button" class="button-quiet" data-action="requirement-edit" data-record="<?= record_attribute($requirement + ['system_id' => $system['id']]) ?>" <?= !$editable || !(bool)$requirement['commodity_active'] ? 'disabled' : '' ?>><?= (bool)$requirement['active'] ? 'Editar objetivo' : 'Restaurar objetivo' ?></button>
-                <?php if ((bool)$requirement['active']): ?><button type="button" class="button-quiet" data-action="requirement-archive" data-record="<?= record_attribute($requirement + ['system_id' => $system['id']]) ?>" <?= !$editable ? 'disabled' : '' ?>>Retirar objetivo</button><?php endif ?>
-                <button type="button" class="button-quiet" data-action="history" data-record="<?= record_attribute(['type' => 'requirement', 'id' => $installation['id'], 'commodity_id' => $requirement['commodity_id']]) ?>">Ver cambios</button>
-            </div></td>
-            <?php endif ?>
-            <?php if($user!==null): ?><td><?php require __DIR__.'/quick-load-cell.php'; ?></td><?php endif ?>
         </tr>
-        <?php endforeach; if ($requirements === []): ?><tr><td colspan="<?= 5+($canPlan?1:0)+($user!==null?1:0) ?>" class="muted">No hay materiales requeridos.</td></tr><?php endif ?>
+        <?php endforeach; if ($requirements === []): ?><tr><td colspan="5" class="muted">No hay materiales requeridos.</td></tr><?php endif ?>
         </tbody></table>
     </div>
     <?php if ($installation['negative_balances'] > 0): ?><p class="form-error">Hay saldos negativos que requieren revisión.</p><?php endif ?>
 </section>
 <?php endforeach ?>
 <?php $paginationQuery = ['page' => 'system', 'id' => $system['id'], 'include_archived' => $includeArchived ? '1' : '0']; require __DIR__ . '/pagination.php'; ?>
+
+<?php if($user!==null): require __DIR__.'/quick-load-panel.php'; endif ?>

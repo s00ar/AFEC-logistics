@@ -47,6 +47,10 @@ final class ExpansionController
                     Response::json(['data'=>$repo->choices()]);
                 case 'quick/options':
                     Response::json(['data'=>(new \Afec\Repositories\CommanderLoadRepository($app->database))->options($actor,$page)]);
+                case 'carrier/loads':
+                    \Afec\Validation\PlanningInput::fields($_GET,['route','scope']);
+                    $scope=Input::choice($_GET,'scope',['personal','fleet']);
+                    Response::json(['data'=>(new \Afec\Repositories\CarrierLoadRepository($app->database))->listing($actor['id'],$scope)]);
                 case 'commander/load':
                     if ($actor['role']==='viewer' && $actor['commander_id']!==$id()) { throw new HttpError(403,'forbidden','Solo podés consultar tu propia palada.'); }
                     Response::json(['data'=>(new \Afec\Repositories\CommanderLoadRepository($app->database))->find($id())]);
@@ -66,7 +70,7 @@ final class ExpansionController
         $allowed=match($route) {
             'admin/users','admin/user/password','admin/user/restore','wishlist/entries','sources','source/restore','deliveries','movement/withdraw'=>['POST'],
             'admin/user','source'=>['PATCH','DELETE'],
-            'installation/status','commander/load'=>['PATCH'], 'quick/withdraw'=>['POST'], 'wishlist/entry'=>['DELETE'],default=>[],
+            'installation/status','commander/load'=>['PATCH'], 'quick/withdraw','carrier/load','commander/identity'=>['POST'], 'wishlist/entry'=>['DELETE'],default=>[],
         };
         if(!in_array($method,$allowed,true)) { header('Allow: '.implode(', ',$allowed)); throw new HttpError(405,'method_not_allowed','Método no permitido.'); }
         $app->session()->verifyCsrf(); $body=Request::json(); $key=$_SERVER['HTTP_IDEMPOTENCY_KEY']??''; $auth=$app->session()->authVersion();
@@ -87,9 +91,11 @@ final class ExpansionController
                 'movement/withdraw'=>$service->withdraw($actor,$auth,$key,$id(),$body),
                 'quick/withdraw'=>$service->quickWithdraw($actor,$auth,$key,$installation(),$commodity(),$body),
                 'commander/load'=>(new \Afec\Services\CommanderLoadService($app->database))->save($actor,$auth,$key,$id(),$body),
+                'commander/identity'=>(new \Afec\Services\CommanderLoadService($app->database))->identity($actor,$auth,$key,$body),
+                'carrier/load'=>(new \Afec\Services\CarrierLoadService($app->database))->save($actor,$auth,$key,$body),
             };
         } catch(\PDOException $error) {
-            if($route==='deliveries' && (int)($error->errorInfo[1]??0)===1062) { throw new HttpError(409,'carrier_exists','Ese código de carrier ya existe; seleccioná el carrier registrado.'); }
+            if(in_array($route,['deliveries','carrier/load'],true) && (int)($error->errorInfo[1]??0)===1062) { throw new HttpError(409,'carrier_exists','Ese código de carrier ya existe; seleccioná el carrier registrado.'); }
             throw $error;
         }
         Response::json(['data'=>$result['data'],'operation_id'=>$result['operation_id'],'replayed'=>$result['replayed']],$result['status']);

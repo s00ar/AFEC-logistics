@@ -160,7 +160,7 @@ final class LogisticsService
         Input::fields($input,['quantity','use_standard_load','commander_id','reason']);
         $standard=self::standardFlag($input);
         $data=['installation_id'=>$installation,'commodity_id'=>$commodity,'commander_id'=>L::id($input,'commander_id'),
-            'use_standard_load'=>$standard,'quantity'=>$standard?null:L::amount($input),'reason'=>Input::text($input,'reason',1000,true,true)];
+            'use_standard_load'=>$standard,'quantity'=>$standard?null:L::amount($input),'reason'=>Input::text($input,'reason',1000,false,true) ?? 'Resta de stock desde panel de material'];
         if ($actor['role']==='viewer' && $actor['commander_id']!==$data['commander_id']) { throw new HttpError(403,'forbidden','Solo podés restar entregas de tu propio comandante.'); }
         return $this->run($actor,$authVersion,'logistics.quick.withdraw',$key,$data,function(string $op) use($actor,$installation,$commodity,$data): array {
             [$parent,$place]=$this->planning->lockInstallation($installation);

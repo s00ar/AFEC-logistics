@@ -1,5 +1,7 @@
 # Carga rápida y paladas individuales — 15/10/2026
 
+La interfaz y la compatibilidad de paladas se actualizaron posteriormente: consultar [STOCK_Y_CARRIERS.md](STOCK_Y_CARRIERS.md) para el panel lateral, motivos y reparto desde listas. El documento siguiente conserva el alcance de la implementación inicial.
+
 ## Alcance y compatibilidad
 
 Referencia: instrucciones aportadas por el propietario, con la tabla conceptual de Excel/Sheets. No se recibió una nueva planilla ni se afirma haber auditado fuentes externas. Se conserva PHP/PDO, HTML y JavaScript vanilla, sin build ni dependencias de producción.

@@ -68,6 +68,10 @@ final class LogisticsRepository
     {
         return $this->page($this->rows('SELECT n.* FROM (' . $this->needsSql() . ') n WHERE n.commodity_id=? AND n.remaining_quantity>0 ORDER BY n.system_name,n.installation_name,n.installation_id LIMIT 26 OFFSET ' . (($page-1)*25),[self::listKey($scope,$actor),$commodity]),$page);
     }
+    public function allDestinations(string $scope, string $actor, string $commodity): array
+    {
+        return $this->rows('SELECT n.* FROM (' . $this->needsSql() . ') n WHERE n.commodity_id=? AND n.remaining_quantity>0 ORDER BY n.system_name,n.installation_name,n.installation_id', [self::listKey($scope,$actor),$commodity]);
+    }
     public function movement(string $id,bool $lock=false): array
     {
         return $this->rows('SELECT * FROM movements WHERE id=?' . ($lock?' FOR UPDATE':''),[$id])[0] ?? throw new HttpError(404,'not_found','No se encontró el movimiento.');
@@ -104,6 +108,9 @@ final class LogisticsRepository
     public function choices(): array
     {
         $load=(new CommanderLoadRepository($this->database))->ready()?'standard_load_quantity':'NULL AS standard_load_quantity';
-        return ['commanders'=>$this->rows('SELECT id,display_name,'.$load.' FROM commanders WHERE active=1 ORDER BY display_name,id LIMIT 101'), 'carriers'=>$this->rows('SELECT id,name,code FROM carriers WHERE active=1 ORDER BY name,id LIMIT 101')];
+        $commanders=$this->rows('SELECT id,display_name,'.$load.' FROM commanders WHERE active=1 ORDER BY display_name,id LIMIT 101');
+        $loads=new CommanderLoadRepository($this->database);
+        foreach($commanders as &$commander) { $commander['standard_load_quantity']=$loads->find($commander['id'])['standard_load_quantity']; } unset($commander);
+        return ['commanders'=>$commanders, 'carriers'=>$this->rows('SELECT id,name,code FROM carriers WHERE active=1 ORDER BY name,id LIMIT 101')];
     }
 }

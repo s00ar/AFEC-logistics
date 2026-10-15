@@ -11,7 +11,7 @@
 <template id="form-system">
     <label>Nombre del sistema<input name="name" maxlength="255" required></label>
     <label>Descripción<textarea name="description" maxlength="4000" rows="3"></textarea></label>
-    <label>Motivo<textarea name="reason" maxlength="1000" rows="2"></textarea></label>
+    <label>Motivo (opcional)<textarea name="reason" maxlength="1000" rows="2"></textarea></label>
 </template>
 <template id="form-catalogue">
     <input name="snapshot_sha256" type="hidden">
@@ -26,7 +26,7 @@
     <div class="form-columns"><label>Cuerpo<input name="body_name" maxlength="255"></label><label>Ubicación<input name="location_label" maxlength="255"></label></div>
     <div class="form-columns"><label>Tier<input name="tier" maxlength="20"></label><label>Tipo<input name="type" maxlength="80"></label></div>
     <input name="state" type="hidden" value="planned"><label>Orden visual<input name="sort_order" type="number" step="1" min="-2147483648" max="2147483647" value="0" required></label><p class="muted">Las instalaciones nuevas comienzan En construcción. Podés terminarlas o reabrirlas desde su panel.</p>
-    <label>Motivo<textarea name="reason" maxlength="1000" rows="2"></textarea></label>
+    <label>Motivo (opcional)<textarea name="reason" maxlength="1000" rows="2"></textarea></label>
 </template>
 <template id="form-recipe">
     <label>Nombre de la receta<input name="name" maxlength="160" required placeholder="Nombre y variante de la facility"></label>

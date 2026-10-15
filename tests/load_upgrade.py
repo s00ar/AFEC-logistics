@@ -53,7 +53,13 @@ $commander=$delivery['data']['commander_id'];
 $row=(new Afec\Repositories\UserRepository($a->database))->findById('1');$actor=Afec\Repositories\UserRepository::publicUser($row);
 $service->quickWithdraw($actor,(int)$row['auth_version'],'legacy_manual_subtract_0001','1','1',['commander_id'=>$commander,'quantity'=>'2','reason'=>'Legacy manual mode']);
 $options=(new Afec\Repositories\CommanderLoadRepository($a->database))->options($actor,1);
-echo $options['presets_ready']?'wrong':'legacy-manual-ok';"""
+if (!$options['presets_ready'] || $options['load_columns_ready']) { throw new RuntimeException('Base loads should work without 008'); }
+$loads=new Afec\Services\CommanderLoadService($a->database);
+$loads->save($actor,(int)$row['auth_version'],'legacy_base_load_save_0001',$commander,['quantity'=>'784','version'=>'1']);
+$delivery=$service->deliver($actor,(int)$row['auth_version'],'legacy_standard_delivery_0001','1','1',['commander_id'=>$commander,'use_standard_load'=>true]);
+if ($delivery['data']['delta_quantity']!=='784') { throw new RuntimeException('Legacy load precision'); }
+$service->quickWithdraw($actor,(int)$row['auth_version'],'legacy_standard_subtract_0001','1','1',['commander_id'=>$commander,'use_standard_load'=>true]);
+echo 'legacy-manual-ok';"""
 assert command('-r',legacy)=='legacy-manual-ok','Manual operations must work before migration 008'
 assert sql('SELECT SUM(delta_quantity) FROM movements WHERE installation_id=1 AND commodity_id=1;').decode().strip()=='5'
 def snapshot():
@@ -71,6 +77,7 @@ assert b'PALADAS ESTANDAR HABILITADAS' in sql(upgrade)
 assert snapshot()==before,'Upgrade modified existing data'
 assert b'PALADAS ESTANDAR HABILITADAS' in sql(upgrade) and snapshot()==before,'Repeated upgrade changed existing data'
 assert command('-r',"$a=require 'src/bootstrap.php';echo (new Afec\\Repositories\\CommanderLoadRepository($a->database))->ready()?'ready':'legacy';")=='ready'
+assert command('-r',"$a=require 'src/bootstrap.php';$q=$a->database->connection()->query('SELECT commander_id FROM users WHERE id=1')->fetchColumn();$row=(new Afec\\Repositories\\CommanderLoadRepository($a->database))->find((string)$q);echo $row['standard_load_quantity'].'/'.$row['load_version'];")=='784/2','Importing 008 must retain an existing audited base load'
 assert 'No hay migraciones pendientes' in command('tools/migrate.php')
 checksum = hashlib.sha256((ROOT/'database/migrations/008_commander_standard_load.sql').read_bytes()).hexdigest()
 assert sql("SELECT checksum FROM schema_migrations WHERE version='008_commander_standard_load.sql' AND status='applied';").decode('utf-8').strip()==checksum

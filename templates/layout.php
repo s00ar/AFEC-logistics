@@ -15,6 +15,7 @@
     <?php if (in_array($page, ['account','password-help','password-requests'], true)): ?><script src="<?= e($app->assetUrl('js/account-security.js')) ?>" type="module"></script><?php endif ?>
     <?php if ($user !== null): ?><script src="<?= e($app->assetUrl('js/planning.js')) ?>" type="module"></script><script src="<?= e($app->assetUrl('js/logistics.js')) ?>" type="module"></script><?php endif ?>
     <?php if ($user !== null && $page==='system'): ?><script src="<?= e($app->assetUrl('js/quick-load.js')) ?>" type="module"></script><?php endif ?>
+    <?php if ($user !== null && $page==='wishlist'): ?><script src="<?= e($app->assetUrl('js/carrier-load.js')) ?>" type="module"></script><?php endif ?>
 </head>
 <body>
 <a class="skip-link" href="#main">Saltar al contenido</a>

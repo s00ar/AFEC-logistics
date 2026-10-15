@@ -16,7 +16,7 @@ Pasos de acceso y flujos actuales en [docs/GUIA_USO.md](docs/GUIA_USO.md). La pr
 
 CRUD administrativo de mercancías ampliado: nombres/códigos, alias, desactivación/reactivación e historial. Requiere importar la actualización 007 desde phpMyAdmin para habilitar equivalencias; el push no ejecuta SQL. Alcance y comprobaciones en [docs/CRUD_MERCANCIAS.md](docs/CRUD_MERCANCIAS.md).
 
-Carga rápida y paladas individuales implementadas para verificación local: controles en cada fila, suma/resta manual o estándar, selección persistente y actualización de totales. Migración 008 aditiva; no aplicada ni publicada automáticamente en producción. Alcance, permisos y pruebas en [docs/CARGA_RAPIDA.md](docs/CARGA_RAPIDA.md).
+Stock por material mediante panel lateral con palada base numérica y suma/resta de cantidades. Paladas persistidas también antes de importar 008. Las listas personal/flota permiten registrar el total a bordo de cada carrier y calcular su reparto por los faltantes actuales, manteniendo separadas las entregas recibidas. Uso, API, pruebas y rollback en [docs/STOCK_Y_CARRIERS.md](docs/STOCK_Y_CARRIERS.md); antecedentes en [docs/CARGA_RAPIDA.md](docs/CARGA_RAPIDA.md).
 
 Todos los usuarios pueden cambiar su contraseña desde **Mi cuenta**. Desde el login se puede solicitar ayuda a un administrador; los avisos aparecen al ingresar como administrador y se resuelven al restablecer la contraseña o marcarlos atendidos. No utiliza correo ni requiere SQL nuevo. Funcionamiento, almacenamiento privado, pruebas y rollback en [docs/CUENTAS_Y_AYUDA.md](docs/CUENTAS_Y_AYUDA.md).
 

@@ -13,6 +13,15 @@ final class CommanderLoadService
 {
     public function __construct(private readonly Database $database) {}
 
+    public function identity(array $actor,int $authVersion,string $key,array $input): array
+    {
+        Input::fields($input,[]);
+        return (new MutationService($this->database))->run($actor,$authVersion,['admin','operator','viewer'],'logistics.commander.identity',$key,[],function(string $op) use($actor): array {
+            $id=(new \Afec\Repositories\LogisticsRepository($this->database))->ownCommander($actor);
+            return ['data'=>(new CommanderLoadRepository($this->database))->find($id),'status'=>200];
+        });
+    }
+
     public function save(array $actor, int $authVersion, string $key, string $id, array $input): array
     {
         Input::fields($input,['quantity','version']);
@@ -22,13 +31,16 @@ final class CommanderLoadService
         return (new MutationService($this->database))->run($actor,$authVersion,['admin','operator','viewer'],'logistics.load.save',$key,$data,
             function(string $op) use($actor,$id,$data): array {
                 $repo = new CommanderLoadRepository($this->database);
-                if (!$repo->ready()) { throw new HttpError(409,'schema_missing','Importá la migración 008 para guardar paladas.'); }
                 $before = $repo->find($id,true);
                 if (!$before['active']) { throw new HttpError(409,'inactive','El comandante no está activo.'); }
                 if ($before['load_version'] !== $data['version'] || $before['load_version'] === '4294967295') { throw new HttpError(409,'stale_version','La palada cambió. Actualizá antes de guardar.'); }
-                $query=$this->database->connection()->prepare('UPDATE commanders SET standard_load_quantity=?,load_version=load_version+1,updated_at=UTC_TIMESTAMP(6) WHERE id=?');
-                $query->execute([$data['quantity'],$id]);
-                $after=$repo->find($id);
+                $after=$before;
+                $after['standard_load_quantity']=$data['quantity'];
+                $after['load_version']=(string)((int)$before['load_version']+1);
+                if ($repo->ready()) {
+                    $query=$this->database->connection()->prepare('UPDATE commanders SET standard_load_quantity=?,load_version=?,updated_at=UTC_TIMESTAMP(6) WHERE id=?');
+                    $query->execute([$data['quantity'],$after['load_version'],$id]);
+                }
                 (new PlanningRepository($this->database))->audit('commander',$id,'standard_load',$before,$after,$actor['id'],'Configuración de palada estándar',$op);
                 return ['data'=>$after,'status'=>200];
             });
