@@ -14,7 +14,7 @@
 </div>
 <?php endif ?>
 <?php if ($system['installations'] === []): ?><section class="empty-state"><h2>No hay instalaciones en esta página</h2><p>Las instalaciones y sus materiales aparecerán aquí.</p></section><?php endif ?>
-<?php if ($user!==null): ?><div id="quick-pending" class="pending-banner" role="status" hidden><p>Hay una operación de carga rápida cuyo resultado falta confirmar.</p><button type="button" class="button-quiet" id="quick-retry">Comprobar y reintentar la misma operación</button></div><?php endif ?>
+<?php if ($user!==null): require __DIR__.'/quick-load-pending.php'; endif ?>
 <?php foreach ($system['installations'] as $installation): ?>
 <?php
     $requirements = array_values(array_filter($system['requirements'], static fn(array $row): bool => $row['installation_id'] === $installation['id']));

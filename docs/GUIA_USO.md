@@ -211,9 +211,9 @@ Importación completa de sistemas/instalaciones/entregas de Sheets, clasificaci�
 
 ## Registrar entregas desde Mi lista y Flota
 
-1. Buscar la mercancía y localizar el settlement donde ya descargaste. Pulsar **Registrar entrega** en ese destino; **Más destinos** permite acceder a los siguientes.
-2. Comprobar material, sistema y settlement en el formulario e ingresar la **Cantidad entregada**. Comandante propio por defecto; se puede seleccionar otro. Carrier y fecha son opcionales.
-3. Guardar la cantidad indicada o pulsar **Cargar faltante**, debajo del campo de cantidad, para completar esa mercancía sin escribir toneladas. Se registra la entrega real, se recarga la lista y se actualizan los faltantes de Mi lista y Flota y el progreso de esa instalación. No se reparte la cantidad entre otros settlements. El servidor calcula el faltante al guardar; si ya está completo no crea otra entrega.
+1. Buscar la mercancía y localizar el settlement donde ya descargaste. Pulsar su **fila de destino**, o enfocarla y usar Enter/espacio; **Más destinos** permite acceder a los siguientes. **Ver sistema** abre la página de sus instalaciones.
+2. Se abre el mismo panel lateral de las instalaciones, con el material y destino elegidos. **Comandante y palada** permite elegir identidad y guardar la **Palada base (t)** compartida con las instalaciones. Se despliega automáticamente cuando todavía falta configurar la palada.
+3. Usar **Palada +**, escribir una **Cantidad (t)** y pulsar +/Enter, o **Cargar faltante** para completar esa mercancía. Las restas generan correcciones vinculadas a las entregas del comandante seleccionado. Al confirmar se cierra el panel y se recarga la lista; ambas listas y la instalación reflejan la misma entrega. El servidor calcula el faltante al guardar y no reparte cantidades entre destinos.
 4. **Historial / corregir** permite revisar y corregir movimientos. También hay **Historial de entregas** en cada instalación seleccionada, incluso cuando ya no quedan materiales pendientes.
 5. El apartado **Carga a bordo en carrier (opcional)** conserva el registro independiente de mercancía transportada. No se convierte en entrega al descargar ni se modifica al registrar estas entregas.
 

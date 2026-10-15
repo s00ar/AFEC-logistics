@@ -1,0 +1,1 @@
+<div id="quick-pending" class="pending-banner" role="status" hidden><p>Hay una operación de carga rápida cuyo resultado falta confirmar.</p><button type="button" class="button-quiet" id="quick-retry">Comprobar y reintentar la misma operación</button></div>

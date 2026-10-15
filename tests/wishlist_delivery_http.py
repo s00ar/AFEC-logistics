@@ -11,7 +11,7 @@ class DeliveryButtons(HTMLParser):
         super().__init__(); self.records=[]; self.material_rows=[]; self.feed(text)
     def handle_starttag(self, tag, attrs):
         data=dict(attrs)
-        if tag=='button' and data.get('data-action')=='delivery-create':
+        if tag=='li' and 'data-quick-row' in data:
             self.records.append(json.loads(data['data-record']))
         if tag=='tr' and 'data-material' in data:self.material_rows.append(data)
 
@@ -42,10 +42,12 @@ def run_wishlist_delivery_checks(anonymous,admin,viewer,operator,check,command,e
         page,_=material_page(viewer,scope)
         html=viewer.page('/?page=wishlist&scope='+scope+'&list_page='+str(page))[1]
         found=[row for row in DeliveryButtons(html).records if row['commodity_id']==material]
-        check({row['installation_id'] for row in found}==set(places),'Delivery buttons identify both actual '+scope+' destinations')
-        check(all(row['installation_name'] in row['name'] and row['commodity_name'] in row['name'] for row in found),'Delivery dialog identifies destination and commodity')
+        check({row['installation_id'] for row in found}==set(places),'Quick rows identify both actual '+scope+' destinations')
+        check(all(row['installation_name'] and row['commodity_name'] and row['system_name'] for row in found),'Shared panel receives destination and commodity context')
         check('data-cargo-adjust' not in html,'On-board increments do not replace actual delivery controls')
-        check('data-delivery-remaining>Cargar faltante' in html,'Delivery dialog in '+scope+' offers server-calculated completion')
+        check('data-quick-list' in html and html.count('id="quick-material-panel"')==1 and 'js/quick-load.js?v=' in html,'Wishlist reuses one installation stock panel and its module')
+        check(all('data-quick="'+action+'"' in html for action in ['add-load','subtract-load','add','subtract','add-remaining']),'Shared wishlist panel exposes standard, manual and full remaining operations')
+        check('data-action="delivery-create"' not in html,'Destination rows replace separate delivery buttons')
         records+=found
     route=f'deliveries&installation_id={records[0]["installation_id"]}&commodity_id={records[0]["commodity_id"]}'
     expect(write(anonymous,route,{'quantity':'40'}),401,'Anonymous cannot submit list delivery')

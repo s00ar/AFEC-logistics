@@ -16,7 +16,7 @@
     <?php if (in_array($page, ['account','password-help','password-requests'], true)): ?><script src="<?= e($app->assetUrl('js/account-security.js')) ?>" type="module"></script><?php endif ?>
     <?php if ($user !== null && $page==='markets'): ?><script src="<?= e($app->assetUrl('js/markets.js')) ?>" type="module"></script><?php endif ?>
     <?php if ($user !== null): ?><script src="<?= e($app->assetUrl('js/planning.js')) ?>" type="module"></script><script src="<?= e($app->assetUrl('js/logistics.js')) ?>" type="module"></script><?php endif ?>
-    <?php if ($user !== null && $page==='system'): ?><script src="<?= e($app->assetUrl('js/quick-load.js')) ?>" type="module"></script><?php endif ?>
+    <?php if ($user !== null && in_array($page,['system','wishlist'],true)): ?><script src="<?= e($app->assetUrl('js/quick-load.js')) ?>" type="module"></script><?php endif ?>
     <?php if ($user !== null && $page==='wishlist'): ?><script src="<?= e($app->assetUrl('js/carrier-load.js')) ?>" type="module"></script><?php endif ?>
     <?php if (in_array($page, ['system','wishlist','commodities'], true)): ?><script src="<?= e($app->assetUrl('js/commodity-search.js')) ?>" type="module"></script><?php endif ?>
 </head>

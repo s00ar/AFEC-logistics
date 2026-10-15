@@ -1,11 +1,6 @@
 import { request } from './http.js';
-
-export function positiveQuantity(value) {
-  if (typeof value !== 'string' || !/^[1-9][0-9]{0,18}$/.test(value) || BigInt(value) > 9223372036854775807n) {
-    throw new Error('Ingresá toneladas enteras positivas, sin separadores (máximo 9223372036854775807).');
-  }
-  return value;
-}
+import { positiveQuantity } from './quantity.js';
+export { positiveQuantity } from './quantity.js';
 
 export function loadRequest(action, commander, manual, preset, reason = '') {
   if (!commander) throw new Error('Seleccioná un comandante.');
@@ -22,6 +17,10 @@ async function initQuickLoad() {
   const panels = [...document.querySelectorAll('[data-quick-installation]')];
   if (!panels.length) return;
   const drawer = document.querySelector('#quick-material-panel');
+  // Keep one set of handlers if the module is loaded by multiple page entry points.
+  if (drawer.dataset.quickInitialized) return;
+  drawer.dataset.quickInitialized = '1';
+  const listMode = drawer.hasAttribute('data-quick-list');
   let activePanel = null, activeRow = null;
   const actor = document.querySelector('meta[name="user-id"]').content;
   const storageKey = `afec.quick.pending.${actor}`;
@@ -49,6 +48,7 @@ async function initQuickLoad() {
     const check = `afec.quick.check.${actor}`;
     sessionStorage.setItem(check, 'ok'); sessionStorage.removeItem(check);
     pending = JSON.parse(sessionStorage.getItem(storageKey) || 'null');
+    if (listMode && pending) drawer.dataset.quickInstallation = pending.installation;
   } catch {
     blocked = true; banner.querySelector('p').textContent = 'Habilitá el almacenamiento de la sesión para identificar y recuperar operaciones sin duplicarlas.';
   }
@@ -97,6 +97,7 @@ async function initQuickLoad() {
   }
   const units = value => String(value).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   async function refresh() {
+    if (listMode) { window.location.reload(); return; }
     const url = new URL(window.location.href);
     const query = { id: url.searchParams.get('id'), list_page: url.searchParams.get('list_page') || '1' };
     if (url.searchParams.get('include_archived') === '1') query.include_archived = '1';
@@ -120,7 +121,7 @@ async function initQuickLoad() {
   }
   async function execute(job) {
     if (busy || blocked) return;
-    const panel = panels.find(item => item.dataset.quickInstallation === job.installation);
+    const panel = listMode ? drawer : panels.find(item => item.dataset.quickInstallation === job.installation);
     busy = true; pending = job;
     message(panel, 'Guardando…');
     try { sessionStorage.setItem(storageKey, JSON.stringify(job)); }
@@ -137,11 +138,14 @@ async function initQuickLoad() {
         commanders.set(result.data.id, result.data);
         for (const card of panels) if (selected(card)?.id === result.data.id) propose(card);
         message(panel, 'Palada estándar guardada.');
+        if (listMode) drawer.querySelector('[data-quick-config]').open = !result.data.standard_load_quantity;
       } else {
         const quantity = result.data.delta_quantity?.replace('-', '') || result.data.quantity;
         const name = commanders.get(job.body.commander_id)?.display_name || 'Comandante';
         const note = result.data.exceeds_pending ? ' Supera lo pendiente: se registró completa y el excedente figura como sobrante.' : '';
-        message(panel, `${job.route === 'deliveries' ? '+' : '−'}${units(quantity)} t · ${name}. Guardado.${note}`);
+        const text = `${job.route === 'deliveries' ? '+' : '−'}${units(quantity)} t · ${name}. Guardado.${note}`;
+        message(panel, text);
+        if (listMode) { try { sessionStorage.setItem('afec.planning.flash',text); } catch { /* The delivery is already confirmed. */ } }
         if (panel === activePanel && activeRow?.dataset.commodity === job.query.commodity_id && drawer.open) drawer.close();
         try { await refresh(); } catch { message(panel, 'La operación se guardó. No se pudieron actualizar los totales; recargá la página sin repetir la entrega.'); }
       }
@@ -180,27 +184,47 @@ async function initQuickLoad() {
           key: crypto.randomUUID(), installation: panel.dataset.quickInstallation });
       } catch (failure) { message(panel, failure.message); }
     });
-    const openRow = row => {
+    const openRow = async row => {
+      if (busy || pending || blocked) return;
+      const record = JSON.parse(row.dataset.record);
       activePanel = panel; activeRow = row;
       drawer.querySelector('#quick-material-title').textContent = row.dataset.name;
-      drawer.querySelector('[data-quick-installation-name]').textContent = panel.querySelector('h2').textContent;
+      drawer.querySelector('[data-quick-installation-name]').textContent = listMode ? `${record.system_name} · ${record.installation_name}` : panel.querySelector('h2').textContent;
       drawer.querySelector('[data-quick-remaining]').textContent = units(row.dataset.remaining);
       drawer.querySelector('[data-quick-quantity]').value = '';
       drawer.querySelector('[data-quick-drawer-status]').textContent = '';
-      const record = JSON.parse(row.dataset.record);
+      if (listMode) {
+        panel.dataset.quickInstallation = record.installation_id;
+        const select = panel.querySelector('[data-quick-commander]');
+        let saved = own?.id || '';
+        try { saved = sessionStorage.getItem(`afec.quick.commander.${actor}.${record.installation_id}`) || saved; } catch { /* Checked at initialization. */ }
+        if (saved && !commanders.has(saved)) {
+          busy = true; lock();
+          try {
+            const result = await request('commander/load',{query:{id:saved}});
+            if (result.data.active) { commanders.set(saved,result.data); select.add(new Option(result.data.display_name,saved)); }
+          } catch (failure) { message(panel,failure.message); }
+          finally { busy = false; }
+        }
+        select.value = commanders.has(saved) ? saved : '';
+        select.setAttribute('aria-label',`Comandante para ${record.installation_name}`);
+      }
       for (const button of drawer.querySelectorAll('[data-stock-planning]')) {
         button.dataset.record = button.dataset.action === 'history' ? JSON.stringify({type:'requirement',id:record.installation_id,commodity_id:record.commodity_id}) : row.dataset.record;
         button.disabled = button.dataset.action !== 'history' && (row.dataset.editable !== '1' || (button.dataset.action === 'requirement-edit' && !Number(record.commodity_active)));
         if (button.dataset.action === 'requirement-edit') button.textContent = Number(record.active) ? 'Editar objetivo' : 'Restaurar objetivo';
         if (button.dataset.action === 'requirement-archive') button.hidden = !Number(record.active);
       }
-      propose(panel); lock(); drawer.showModal();
+      propose(panel);
+      if (listMode) drawer.querySelector('[data-quick-config]').open = !selected(panel)?.standard_load_quantity;
+      lock(); drawer.showModal();
     };
-    panel.addEventListener('click', event => {
+    const rowContainer = listMode ? document : panel;
+    rowContainer.addEventListener('click', event => {
       if (event.target.closest('button, a, input, select, textarea')) return;
       const row = event.target.closest('[data-quick-row]'); if (row) openRow(row);
     });
-    panel.addEventListener('keydown', event => {
+    rowContainer.addEventListener('keydown', event => {
       if (['Enter',' '].includes(event.key) && event.target.matches('[data-quick-row]')) { event.preventDefault(); openRow(event.target); }
     });
   }

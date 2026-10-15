@@ -1009,6 +1009,10 @@ tbody th {
 .stock-panel::backdrop { background:rgba(0,0,0,.45); }
 .stock-panel h2 { font-size:1.5rem; overflow-wrap:anywhere; }
 .stock-panel .dialog-heading { align-items:flex-start; }
+.stock-panel .quick-load-bar { padding:16px 0; }
+.stock-list-settings>summary { cursor:pointer; padding:10px 0; }
+.stock-panel .quick-load-bar label { width:100%; min-width:0; }
+.stock-panel .quick-load-bar select, .stock-panel .quick-load-bar input { width:100%; min-width:0; max-width:100%; }
 .stock-operation { padding:20px 0; border-top:1px solid var(--line); }
 .stock-operation h3 { display:flex; justify-content:space-between; gap:12px; margin:0 0 14px; }
 .stock-operation h3 small { color:var(--muted); font-size:.8rem; font-weight:400; }

@@ -1,5 +1,5 @@
 import { request } from './http.js';
-import { positiveQuantity } from './quick-load.js';
+import { positiveQuantity } from './quantity.js';
 
 async function initCarrierLoads() {
   const section = document.querySelector('[data-carrier-scope]');
