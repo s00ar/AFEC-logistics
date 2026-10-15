@@ -116,6 +116,7 @@ def run_quick_checks(anonymous,admin,viewer,operator,check,command,env,php,root)
     expect(save(viewer,own,'784'),200,'Restore normal individual load after precision test')
     html=viewer.page('/?page=system&id='+system)[1]
     check('data-quick-row' in html and 'quick-material-panel' in html and 'data-quick="add-load"' in html and 'data-quick-commander' in html,'Authenticated table exposes a shared stock panel and commander selector')
+    check('data-quick="add-remaining">Cargar faltante' in html,'Settlement stock panel offers completion below manual quantity')
     check('Entrega detallada / carrier' not in html and 'data-quick-reason' not in html,'Stock rows omit carrier delivery and reason controls')
     check('data-quick-row' not in anonymous.page('/?page=system&id='+system)[1],'Public table has no quick mutation controls')
     check(all(value in html for value in ['data-balance="delivered_quantity"','data-quick-progress','quick-load.js?v=']),'Rows and percentages expose live refresh hooks and versioned JavaScript')

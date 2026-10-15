@@ -98,11 +98,14 @@ final class LogisticsService
     }
     public function deliver(array $actor,int $authVersion,string $key,string $installation,string $commodity,array $input): array
     {
-        Input::fields($input,['quantity','use_standard_load','commander_id','commander_name','carrier_id','carrier_name','carrier_code','occurred_at','reason']);
+        Input::fields($input,['quantity','use_standard_load','use_remaining','commander_id','commander_name','carrier_id','carrier_name','carrier_code','occurred_at','reason']);
         $standard = self::standardFlag($input);
-        $data=['installation_id'=>$installation,'commodity_id'=>$commodity,'quantity'=>$standard?null:L::amount($input),'commander_id'=>L::id($input,'commander_id',true),'commander_name'=>Input::text($input,'commander_name',160),'carrier_id'=>L::id($input,'carrier_id',true),'carrier_name'=>Input::text($input,'carrier_name',160),'carrier_code'=>Input::text($input,'carrier_code',40),'occurred_at'=>L::date($input),'reason'=>Input::text($input,'reason',1000,false,true)];
+        $remaining = array_key_exists('use_remaining',$input)?$input['use_remaining']:false;
+        if (!is_bool($remaining) || ($remaining && ($standard || array_key_exists('quantity',$input)))) { throw new HttpError(422,'validation','Elegí cargar faltante, palada estándar o cantidad manual, sin combinarlas.'); }
+        $data=['installation_id'=>$installation,'commodity_id'=>$commodity,'quantity'=>($standard || $remaining)?null:L::amount($input),'commander_id'=>L::id($input,'commander_id',true),'commander_name'=>Input::text($input,'commander_name',160),'carrier_id'=>L::id($input,'carrier_id',true),'carrier_name'=>Input::text($input,'carrier_name',160),'carrier_code'=>Input::text($input,'carrier_code',40),'occurred_at'=>L::date($input),'reason'=>Input::text($input,'reason',1000,false,true)];
         // Keep the exact hash of pre-upgrade manual requests for pending retries.
         if ($standard) { $data['use_standard_load']=true; }
+        if ($remaining) { $data['use_remaining']=true; }
         if($data['commander_id'] && $data['commander_name'] || $data['carrier_id'] && $data['carrier_name'] || $data['carrier_code'] && !$data['carrier_name']) { throw new HttpError(422,'validation','Elegí una identidad existente o ingresá una nueva, sin combinar ambas.'); }
         return $this->run($actor,$authVersion,'logistics.delivery',$key,$data,function(string $op) use($actor,$data,$installation,$commodity): array {
             [$parent,$place]=$this->planning->lockInstallation($installation);
@@ -119,6 +122,10 @@ final class LogisticsService
             }
             if($carrier && !$this->repo->rows('SELECT id FROM carriers WHERE id=? AND active=1',[$carrier])) { throw new HttpError(422,'validation','El carrier no está activo.'); }
             $pending=$this->repo->rows('SELECT CAST(GREATEST(CAST(? AS DECIMAL(65,0))-COALESCE(SUM(delta_quantity),0),0) AS CHAR) AS pending_quantity FROM movements WHERE installation_id=? AND commodity_id=?',[$requirement['required_quantity'],$installation,$commodity])[0]['pending_quantity'];
+            if ($data['use_remaining']??false) {
+                if ($pending==='0') { throw new HttpError(409,'nothing_pending','Esta mercancía ya está completa. Actualizá los datos para ver su estado.'); }
+                $quantity=L::amount(['quantity'=>$pending]);
+            }
             $excess=L::compare($quantity,$pending)>0;
             $this->repo->execute("INSERT INTO movements (installation_id,commodity_id,created_by_user_id,commander_id,carrier_id,delta_quantity,movement_type,operation_id,occurred_at,reason) VALUES (?,?,?,?,?,?,'delivery',?,?,?)",[$installation,$commodity,$actor['id'],$commander,$carrier,$quantity,$op,$data['occurred_at']??gmdate('Y-m-d H:i:s'),$data['reason']]);
             $id=$this->database->connection()->lastInsertId(); $after=$this->repo->movement($id);

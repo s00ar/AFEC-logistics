@@ -153,9 +153,9 @@ La **lupa flotante abajo a la izquierda** abre **Buscar mercancía** para ubicar
 
 1. Abrir un sistema y elegir **Comandante** en la instalación. Ambos roles pueden seleccionar su identidad o la de terceros. Si falta la propia, pulsar **Usar mi comandante**.
 2. Escribir **Palada base (t)** y pulsar **Guardar palada**. Solo admite enteros positivos; guardar vacío quita la preferencia. Se conserva por comandante, incluso sin importar 008.
-3. Seleccionar una fila de material. Se abre el panel lateral: **Palada** ofrece −/+; **Cantidad** ofrece un campo numérico y −/+. Enter suma la cantidad indicada.
+3. Seleccionar una fila de material. Se abre el panel lateral: **Palada** ofrece −/+; **Cantidad** ofrece un campo numérico y −/+. Enter suma la cantidad indicada. Debajo, **Cargar faltante** registra de una vez lo que falta para completar esa mercancía en la instalación, con el comandante seleccionado; no requiere escribir cantidad.
 4. + suma al stock entregado y − registra una corrección vinculada a las entregas originales del comandante seleccionado. No se pide motivo; se conserva la auditoría. No se puede restar más de su saldo ni dejar negativo el stock.
-5. Los totales se actualizan sin recargar. Se registra toda sobreentrega y se avisa del sobrante. Las instalaciones terminadas/archivadas permiten restas; deben reabrirse/restaurarse para nuevas sumas.
+5. Al confirmar una carga/corrección se cierra el panel derecho y los totales se actualizan sin recargar. La fila de una mercancía completa queda roja; vuelve a su aspecto habitual si una corrección deja faltante. Se registra toda sobreentrega y se avisa del sobrante. Las instalaciones terminadas/archivadas permiten restas; deben reabrirse/restaurarse para nuevas sumas. Un error de guardado conserva abierto el panel.
 6. Comandantes y administradores encuentran edición, retiro/restauración e historial del objetivo dentro de **Objetivo y cambios** en el panel.
 
 Una respuesta incierta conserva la solicitud y ofrece **Comprobar y reintentar** con su misma clave, incluso tras recargar. No registrar de nuevo la entrega con otra clave.
@@ -213,7 +213,7 @@ Importación completa de sistemas/instalaciones/entregas de Sheets, clasificaci�
 
 1. Buscar la mercancía y localizar el settlement donde ya descargaste. Pulsar **Registrar entrega** en ese destino; **Más destinos** permite acceder a los siguientes.
 2. Comprobar material, sistema y settlement en el formulario e ingresar la **Cantidad entregada**. Comandante propio por defecto; se puede seleccionar otro. Carrier y fecha son opcionales.
-3. Guardar. Se registra la entrega real, se recarga la lista y se actualizan los faltantes de Mi lista y Flota y el progreso de esa instalación. No se reparte la cantidad entre otros settlements.
+3. Guardar la cantidad indicada o pulsar **Cargar faltante**, debajo del campo de cantidad, para completar esa mercancía sin escribir toneladas. Se registra la entrega real, se recarga la lista y se actualizan los faltantes de Mi lista y Flota y el progreso de esa instalación. No se reparte la cantidad entre otros settlements. El servidor calcula el faltante al guardar; si ya está completo no crea otra entrega.
 4. **Historial / corregir** permite revisar y corregir movimientos. También hay **Historial de entregas** en cada instalación seleccionada, incluso cuando ya no quedan materiales pendientes.
 5. El apartado **Carga a bordo en carrier (opcional)** conserva el registro independiente de mercancía transportada. No se convierte en entrega al descargar ni se modifica al registrar estas entregas.
 

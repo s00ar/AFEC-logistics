@@ -11,9 +11,10 @@ export function loadRequest(action, commander, manual, preset, reason = '') {
   if (!commander) throw new Error('Seleccioná un comandante.');
   const subtract = action.startsWith('subtract');
   const standard = action.endsWith('-load');
-  positiveQuantity(standard ? preset ?? '' : manual);
+  const remaining = action === 'add-remaining';
+  if (!remaining) positiveQuantity(standard ? preset ?? '' : manual);
   return { route: subtract ? 'quick/withdraw' : 'deliveries', scope: subtract ? 'logistics.quick.withdraw' : 'logistics.delivery',
-    body: { commander_id: commander, ...(standard ? { use_standard_load: true } : { quantity: manual }),
+    body: { commander_id: commander, ...(remaining ? { use_remaining: true } : standard ? { use_standard_load: true } : { quantity: manual }),
       ...(subtract ? { reason: reason.trim() || 'Resta de stock desde panel de material' } : {}) } };
 }
 
@@ -39,7 +40,7 @@ async function initQuickLoad() {
   function lock() {
     for (const control of document.querySelectorAll('[data-quick], [data-quick-save], [data-quick-preset], [data-quick-quantity], [data-quick-commander], [data-quick-more], [data-quick-identity-create]')) {
       const presetAction = control.matches('[data-quick-save], [data-quick-preset], [data-quick$="-load"]');
-      control.disabled = busy || blocked || !!pending || originallyDisabled.has(control) || (presetAction && !ready) || (control.matches('[data-quick^="add"]') && activeRow?.dataset.open !== '1') || (control.matches('[data-quick$="-load"]') && !selected(activePanel)?.standard_load_quantity);
+      control.disabled = busy || blocked || !!pending || originallyDisabled.has(control) || (presetAction && !ready) || (control.matches('[data-quick^="add"]') && activeRow?.dataset.open !== '1') || (control.matches('[data-quick="add-remaining"]') && activeRow?.dataset.remaining === '0') || (control.matches('[data-quick$="-load"]') && !selected(activePanel)?.standard_load_quantity);
     }
     retry.disabled = busy || blocked;
     banner.hidden = (!pending || busy) && !blocked;
@@ -111,6 +112,7 @@ async function initQuickLoad() {
           const cell = tr.querySelector(`[data-balance="${field}"]`); if (cell) cell.textContent = units(row[field]);
         }
         const cell = tr.querySelector('[data-balance="remaining_quantity"]'); cell?.classList.toggle('complete', row.remaining_quantity === '0');
+        tr.classList.toggle('requirement-complete', Boolean(Number(row.active)) && row.remaining_quantity === '0');
         tr.dataset.remaining = row.remaining_quantity;
         if (tr === activeRow) drawer.querySelector('[data-quick-remaining]').textContent = units(row.remaining_quantity);
       }
@@ -140,6 +142,7 @@ async function initQuickLoad() {
         const name = commanders.get(job.body.commander_id)?.display_name || 'Comandante';
         const note = result.data.exceeds_pending ? ' Supera lo pendiente: se registró completa y el excedente figura como sobrante.' : '';
         message(panel, `${job.route === 'deliveries' ? '+' : '−'}${units(quantity)} t · ${name}. Guardado.${note}`);
+        if (panel === activePanel && activeRow?.dataset.commodity === job.query.commodity_id && drawer.open) drawer.close();
         try { await refresh(); } catch { message(panel, 'La operación se guardó. No se pudieron actualizar los totales; recargá la página sin repetir la entrega.'); }
       }
     } catch (failure) {
@@ -148,6 +151,7 @@ async function initQuickLoad() {
       } else {
         try { sessionStorage.removeItem(storageKey); pending = null; } catch { blocked = true; }
         message(panel, failure.message);
+        if (failure.code === 'nothing_pending') { try { await refresh(); } catch { /* Keep the server's explanation until reload. */ } }
         if (failure.code === 'stale_version') { try { await options(true); } catch { /* keep the original failure */ } }
       }
     } finally { busy = false; lock(); }

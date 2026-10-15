@@ -22,6 +22,7 @@ try {
         'update' => $service->updateSystem($actor, (int)$user['auth_version'], $job['key'], $job['id'], $job['body']),
         'requirement' => $service->saveRequirement($actor, (int)$user['auth_version'], $job['key'], $job['installation_id'], $job['commodity_id'], $job['body']),
         'withdraw' => (new Afec\Services\LogisticsService($app->database))->withdraw($actor,(int)$user['auth_version'],$job['key'],$job['id'],$job['body']),
+        'deliver' => (new Afec\Services\LogisticsService($app->database))->deliver($actor,(int)$user['auth_version'],$job['key'],$job['installation_id'],$job['commodity_id'],$job['body']),
         'user_update' => (new Afec\Services\UserService($app->database))->write($actor,(int)$user['auth_version'],$job['key'],'update',$job['id'],$job['body']),
         'list_add' => (new Afec\Services\LogisticsService($app->database))->listChange($actor,(int)$user['auth_version'],$job['key'],$job['id'],$job['body']),
         'catalogue_import' => (new Afec\Services\RecipeCatalogueService($app->database, new Afec\Services\RecipeCatalogue(dirname(__DIR__) . '/resources/catalogue')))->import($actor, (int)$user['auth_version'], $job['key']),

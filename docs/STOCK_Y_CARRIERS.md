@@ -1,5 +1,15 @@
 # Stock por material y reparto de carriers
 
+## Cargar faltante — 16/10/2026
+
+Alcance: botón **Cargar faltante** debajo de la cantidad en el panel de materiales de cada instalación y en el formulario Registrar entrega de Mi lista/Flota. Registra una entrega por el pendiente actual de esa mercancía en esa instalación, usando el comandante seleccionado. El servidor calcula el importe dentro de la transacción y los bloqueos existentes; no usa el pendiente mostrado como cantidad definitiva. Si ya está cubierta, no crea un movimiento. Las cantidades manuales conservan su comportamiento, incluidas las sobreentregas.
+
+Archivos previstos: `LogisticsService.php`, `quick-load.js`, `planning.js`, parciales del panel/formulario y pruebas de API/JavaScript. Sin DDL ni dependencias nuevas. Riesgos: doble clic/reintento, otra entrega concurrente, objetivo retirado/cerrado y cantidades fuera del límite de un movimiento; se conservan autenticación, CSRF, idempotencia y validación transaccional. Pruebas: completar tras entregas parciales, repetir sin duplicar, dos solicitudes concurrentes, rechazo de modos combinados, objetivo ya cubierto y reflejo en instalación/listas. Rollback: revertir solo código, conservando movimientos, compensaciones y recibos; las operaciones pendientes con `use_remaining=true` deben resolverse antes de volver a una versión que no lo admita.
+
+Ampliación solicitada: cerrar el panel derecho tras confirmar una carga/corrección y pintar en rojo la fila cuyo objetivo activo tenga pendiente cero, también al recargar. Archivos adicionales: `system.php` y CSS; prueba de cierre, color tras completar y retirada del color si una corrección vuelve a dejar faltante. Los errores y operaciones inciertas conservan el panel y su recuperación.
+
+Resultado: **923 HTTP y 12 SQL aprobadas** con Apache/FastCGI y reglas reales; migrador local simulado/repetido. **21 comprobaciones JavaScript** de cantidades/payloads, sintaxis PHP/JS y diff-check aprobados. La regresión cubre cálculo tras otra entrega, precisión superior a Number, límite por movimiento, dos completados concurrentes sin sobrantes, reintentos y rollback. UI local aislada: completar 90 t, completar desde ambas listas sin cantidad y aunque hubiera otra escrita, Enter conserva entrega manual, panel cerrado tras suma/corrección/completar, fila roja al llegar a cero y color retirado al volver a faltar 1 t; error de resta mantiene el panel abierto, sin errores de consola y sesión cerrada. No se escribieron entregas de prueba en producción.
+
 ## Aclaración del 16/10/2026: entregas recibidas desde las listas
 
 El propietario confirmó que «ir marcando cuánto se carga» significa **mercancía ya descargada en un settlement**. En Mi lista y Flota, cada destino de un material ofrece **Registrar entrega** y **Historial / corregir**. El diálogo identifica material, sistema y settlement, permite indicar cantidad recibida y comandante (propio por defecto), y admite datos opcionales de carrier/fecha. Guardar registra una entrega real y recarga la lista; los faltantes de ambas vistas y el progreso de la instalación se derivan de esos mismos movimientos.
@@ -43,6 +53,7 @@ Riesgos: registrar como total un incremento, atribuir stock al comandante incorr
 - `GET carrier/loads&scope=personal|fleet`: cargas propias y propuestas actuales, sin selector de otra cuenta.
 - `POST carrier/load`: `scope`, `commodity_id`, `quantity` como cadena no negativa, `version` (`"0"` en el alta), y `carrier_id` o `carrier_name`/`carrier_code`. Recibo `logistics.carrier.load`.
 - `POST quick/withdraw`: `reason` es opcional; se mantiene una descripción automática si se omite.
+- `POST deliveries`: `use_remaining=true` reemplaza a `quantity` y `use_standard_load=true`. Resuelve el pendiente del objetivo activo bajo bloqueo transaccional y registra una entrega; si no queda pendiente devuelve `409 nothing_pending`. Respeta el máximo firmado de un movimiento y conserva el hash de las solicitudes manuales/estándar previas. Reintentar con la misma clave devuelve la cantidad original.
 
 Los endpoints anteriores de entregas siguen compatibles para clientes API y operaciones pendientes.
 

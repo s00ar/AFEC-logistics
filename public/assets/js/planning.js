@@ -352,6 +352,7 @@ async function selectRecipe() {
 fields.addEventListener('change',event=>{ if (event.target.name==='facility_recipe_id') selectRecipe(); });
 fields.addEventListener('click',event=>{
   if (busy || pending) return;
+  if (event.target.closest('[data-delivery-remaining]')) submitOperation(event, true);
   if (event.target.closest('[data-add-recipe-material]')) addRecipeMaterial();
   const remove=event.target.closest('[data-remove-recipe-material]');
   if (remove) { const rows=fields.querySelectorAll('.recipe-material'); if (rows.length>1) remove.closest('.recipe-material').remove(); else toast('La receta debe conservar al menos un material.'); }
@@ -382,9 +383,17 @@ function finish(operation, result) {
   window.location.assign(destination);
 }
 
-form.addEventListener('submit', async event => {
+async function submitOperation(event, fillRemaining = false) {
   event.preventDefault();
-  if (busy || !active || (!pending && !form.reportValidity())) return;
+  if (busy || !active) return;
+  const remaining = !pending && active.action === 'delivery-create' && fillRemaining;
+  if (!pending) {
+    // This action does not use the typed quantity; validate the other delivery fields normally.
+    if (remaining) form.elements.quantity.disabled = true;
+    const valid = form.reportValidity();
+    if (remaining) form.elements.quantity.disabled = false;
+    if (!valid) return;
+  }
   const definition = definitions[active.action];
   const wasPending = Boolean(pending);
   let priorResultAbsent = !wasPending;
@@ -397,6 +406,7 @@ form.addEventListener('submit', async event => {
       if (name === 'occurred_at' && control.value) body[name] = new Date(control.value).toISOString().replace(/\.\d{3}Z$/,'Z');
       if (name === 'aliases') body[name] = control.value.split(/\r?\n/).map(value=>value.trim()).filter(Boolean);
     }
+    if (remaining) { delete body.quantity; body.use_remaining = true; }
     if (definition.template==='recipe') {
       body.materials=Array.from(fields.querySelectorAll('.recipe-material'),row=>({commodity_id:row.querySelector('[data-recipe-commodity]').value, required_quantity:row.querySelector('[data-recipe-quantity]').value}));
       if (!body.materials.length || body.materials.some(row=>!/[1-9]/.test(row.required_quantity)) || new Set(body.materials.map(row=>row.commodity_id)).size!==body.materials.length) {
@@ -460,7 +470,8 @@ form.addEventListener('submit', async event => {
     banner.hidden = !pending;
     busyState(false);
   }
-});
+}
+form.addEventListener('submit', event => submitOperation(event));
 
 dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
 dialog.addEventListener('close', () => { ++editorGeneration; banner.hidden = !pending; });
