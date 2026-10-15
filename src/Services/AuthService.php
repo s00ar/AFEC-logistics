@@ -55,6 +55,10 @@ final class AuthService
     {
         $username = $input['username'] ?? null;
         $password = $input['password'] ?? null;
+        $rememberMe = array_key_exists('remember_me', $input) ? $input['remember_me'] : false;
+        if (!is_bool($rememberMe)) {
+            throw new HttpError(422, 'validation', 'La opción de mantener la sesión debe ser verdadera o falsa.');
+        }
         if (!is_string($username) || !is_string($password) || !preg_match('/^[a-zA-Z0-9_.@+-]{3,120}$/D', $username) || strlen($password) < 1 || strlen($password) > 1024) {
             throw new HttpError(422, 'validation', 'Ingresá un usuario y una contraseña válidos.');
         }
@@ -96,7 +100,7 @@ final class AuthService
                 $query = $db->prepare('UPDATE users SET password_hash = ?, updated_at = UTC_TIMESTAMP(6) WHERE id = ? AND password_hash = ?');
                 $query->execute([password_hash($password, PASSWORD_DEFAULT), $user['id'], $user['password_hash']]);
             }
-            $this->session->login($user);
+            $this->session->login($user, $rememberMe);
             return UserRepository::publicUser($user);
         } finally {
             foreach (array_reverse($held) as $lock) {

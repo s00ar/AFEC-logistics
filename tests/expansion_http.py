@@ -55,7 +55,7 @@ def run_expansion_checks(anonymous,admin,viewer,operator,Client,check,command,en
     expect(write(admin,'admin/users','POST',create|{'username':'short_password','password':'tiny'}),422,'Short password rejected')
     expect(write(admin,'admin/users','POST',create|{'username':'forged_actor','created_by_user_id':'2'}),422,'Forged account fields rejected')
     expect(admin.call('admin/roles'),200,'Role definitions available to administrator')
-    crew=Client();expect(crew.login('crew_test'),200,'New commander can log in')
+    crew=Client();expect(crew.login('crew_test', remember_me=True),200,'New commander can log in with a remembered session')
     check('Añadir a mi lista' in crew.page('/?page=system&id=1')[1] and '+ Crear sistema' not in crew.page('/')[1],'Commander sees logistics controls without planning permissions')
     html=admin.page('/?page=users')[1]
     check('data-action="user-role"' in html and 'id="form-user-role"' in html and 'data-rename-username' in html,'Account UI separates role changes from explicit username edits')
@@ -160,7 +160,7 @@ def run_expansion_checks(anonymous,admin,viewer,operator,Client,check,command,en
     check(admin.call('movements&installation_id='+iid)[1]['data']['items'],'Deleted user contributions remain auditable')
     account=user(uid)
     account=expect(write(admin,'admin/user/restore&id='+uid,'POST',{'version':account['version'],'reason':'Restaurar prueba'}),200,'Administrator restores account')
-    expect(crew.login('crew_test'),200,'Restored account can log in')
+    expect(crew.login('crew_test', remember_me=True),200,'Restored account can log in with a remembered session')
     check(wish(crew,'personal')['selected']['items'],'Restored account retains its own private list')
     expect(write(admin,'admin/user/password&id='+uid,'POST',{'password':env['AFEC_TEST_PASSWORD']+'x','version':account['version'],'reason':'Reset de prueba'}),200,'Password reset functional')
     check(crew.session()['user'] is None,'Password reset revokes existing session')

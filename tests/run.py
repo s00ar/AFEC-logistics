@@ -83,8 +83,10 @@ class Client:
         except urllib.error.HTTPError as failure: response = failure
         with response: return response.status,response.read(),response.headers
     def session(self): return self.call('session')[1]['data']
-    def login(self, username):
-        return self.call('login', 'POST', {'username': username, 'password': env['AFEC_TEST_PASSWORD']}, self.session()['csrf_token'])
+    def login(self, username, remember_me=None):
+        payload = {'username': username, 'password': env['AFEC_TEST_PASSWORD']}
+        if remember_me is not None: payload['remember_me'] = remember_me
+        return self.call('login', 'POST', payload, self.session()['csrf_token'])
 
 with socket.socket() as sock:
     sock.bind(('127.0.0.1', 0)); port = sock.getsockname()[1]
@@ -167,9 +169,11 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         check(result['data']['csrf_token'] != before and list(admin.cookies)[0].value != old_cookie, 'Login rotates session and CSRF')
         cookie = headers.get('Set-Cookie', '')
         check('HttpOnly' in cookie and 'SameSite=Lax' in cookie, 'Session cookies have required attributes')
+        from session_http import run_session_checks
+        run_session_checks(Client, check, command, env, PRIVATE)
         status, result, _ = admin.call('admin/users')
         check(status == 200 and len(result['data']) == 3 and 'password_hash' not in json.dumps(result), 'Admin account list excludes hashes')
-        viewer = Client(); check(viewer.login('viewer')[0] == 200, 'Viewer can authenticate')
+        viewer = Client(); check(viewer.login('viewer', remember_me=True)[0] == 200, 'Viewer can authenticate with a remembered session')
         check(viewer.call('admin/users')[0] == 403, 'Viewer cannot bypass admin permission through API')
         operator = Client(); check(operator.login('operator')[0] == 200, 'Operator can authenticate for planning')
         check(asset_prefix + 'js/planning.js' in operator.page('/')[1], 'Operator HTML loads planning module for the selected layout')
@@ -189,7 +193,7 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         run_quick_checks(anonymous,admin,viewer,operator,check,command,env,php,ROOT)
         command('tests/fixture.php','deactivate_viewer')
         check(viewer.session()['user'] is None, 'Deactivation invalidates an existing session')
-        operator = Client(); check(operator.login('operator')[0] == 200, 'Operator can authenticate')
+        operator = Client(); check(operator.login('operator', remember_me=True)[0] == 200, 'Operator can authenticate with a remembered session')
         check(operator.call('admin/users')[0] == 403, 'Operator cannot administer users')
         command('tests/fixture.php','revoke_operator')
         check(operator.session()['user'] is None, 'Auth version revokes an existing session')

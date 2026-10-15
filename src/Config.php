@@ -48,7 +48,7 @@ final class Config
         if (!in_array($config['app']['environment'], ['production', 'development', 'test'], true)) {
             throw new RuntimeException('Entorno no válido.');
         }
-        foreach (['idle_seconds', 'absolute_seconds'] as $limit) {
+        foreach (['idle_seconds', 'absolute_seconds', 'remember_seconds'] as $limit) {
             if (!is_int($config['session'][$limit]) || $config['session'][$limit] < 60) {
                 throw new RuntimeException('La caducidad de sesión no es válida.');
             }

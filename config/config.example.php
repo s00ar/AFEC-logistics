@@ -21,6 +21,7 @@ return [
         'name' => 'afec_session',
         'idle_seconds' => 1800,
         'absolute_seconds' => 28800,
+        'remember_seconds' => 2592000, // 30 days from login when remember_me is selected.
         'cookie_secure' => true,
     ],
     'storage_path' => dirname(__DIR__) . '/storage',

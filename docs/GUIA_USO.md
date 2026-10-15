@@ -6,6 +6,8 @@ Actualizado: 15/10/2026. Corresponde a las fases 1–5. El propietario indicó q
 
 Abrir [AFEC Logística](https://logistica.afec.space/) para consultar el progreso público. Para escribir, entrar desde **Ingresar** o abrir [Iniciar sesión](https://logistica.afec.space/?page=login), con una cuenta creada en esa instalación.
 
+El formulario ofrece **Mantener la sesión iniciada**, marcado por defecto. Con esta opción, el acceso se conserva al cerrar y volver a abrir el navegador durante un máximo de 30 días desde el ingreso. En un equipo compartido, desmarcarla: se mantiene la sesión corta (30 minutos sin actividad y hasta 8 horas). **Salir**, un cambio de contraseña o una revocación de la cuenta invalidan el acceso guardado. Si se borran las cookies o se usa navegación privada, será necesario volver a ingresar. El cambio requiere publicar la versión que incorpora esta opción y volver a iniciar sesión una vez; las sesiones anteriores no se convierten automáticamente.
+
 Las cuentas de la demo local no se publican mediante Git. El primer administrador, la configuración privada de MySQL y las migraciones se preparan según [DESPLIEGUE.md](DESPLIEGUE.md). Un push publica código; no crea cuentas ni ejecuta SQL. Si el sitio devuelve 403/500 o un error de conexión, todavía no se puede dar la instalación por operativa.
 
 Para la base vacía se entregó un SQL privado de instalación inicial con el catálogo y una cuenta `admin`. La contraseña está en `ACCESO_ADMINISTRADOR.txt` junto al SQL, fuera de Git. Importación y acceso en [IMPORTAR_PHPMYADMIN.md](IMPORTAR_PHPMYADMIN.md). Después de importar, crear las demás cuentas desde **Usuarios**. Las referencias ya vienen cargadas; no hay que precargar otra vez el catálogo.

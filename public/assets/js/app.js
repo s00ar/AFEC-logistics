@@ -12,7 +12,7 @@ document.querySelector('#login-form')?.addEventListener('submit', async (event) 
   button.disabled = true;
   button.textContent = 'Ingresando…';
   try {
-    await request('login', { method: 'POST', body: { username: form.elements.username.value, password: form.elements.password.value } });
+    await request('login', { method: 'POST', body: { username: form.elements.username.value, password: form.elements.password.value, remember_me: form.elements.remember_me.checked } });
     window.location.assign(homeUrl);
   } catch (failure) {
     error.textContent = failure.message || 'No hay conexión. Intentá de nuevo.';

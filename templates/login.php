@@ -13,6 +13,8 @@
         <input id="username" name="username" type="text" autocomplete="username" minlength="3" maxlength="120" pattern="[a-zA-Z0-9_.@+\-]+" required autofocus>
         <label for="password">Contraseña</label>
         <div class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" maxlength="1024" required><button id="toggle-password" type="button" aria-controls="password" aria-pressed="false">Mostrar</button></div>
+        <label class="remember-session" for="remember-me"><input id="remember-me" name="remember_me" type="checkbox" checked aria-describedby="remember-help"> Mantener la sesión iniciada</label>
+        <p id="remember-help" class="remember-help">Conserva el acceso al cerrar el navegador. Desmarcá esta opción en equipos compartidos.</p>
         <p id="login-error" class="form-error" role="alert" hidden></p>
         <button class="button-primary" id="login-submit" type="submit">Iniciar sesión <span aria-hidden="true">→</span></button>
     </form>

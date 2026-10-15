@@ -571,6 +571,26 @@ p {
 .password-field {
     position:relative;
 }
+.login-panel .remember-session {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+}
+.login-panel .remember-session input {
+    width:18px;
+    height:18px;
+    min-height:18px;
+    padding:0;
+    flex-shrink:0;
+    accent-color:var(--accent);
+}
+.remember-help {
+    color:var(--muted);
+    font-size:.76rem;
+    line-height:1.5;
+    margin:0;
+}
 .password-field input {
     padding-right:83px;
 }
