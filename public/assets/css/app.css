@@ -182,6 +182,61 @@ body {
     min-height:100vh;
     display:flex;
     flex-direction:column;
+    isolation:isolate;
+    background-image:radial-gradient(ellipse at 12% 8%,#cc00000d,transparent 50%),radial-gradient(ellipse at 88% 72%,#ff710009,transparent 48%);
+}
+
+/* Two decorative layers: only transform/opacity animate; no assets, blur or input interception. */
+body::before,body::after {
+    content:"";
+    position:fixed;
+    inset:-48px;
+    z-index:-2;
+    pointer-events:none;
+    background-repeat:repeat;
+}
+body::before {
+    background-image:
+        radial-gradient(circle at 31px 47px,#f5f5f5a6 .7px,transparent 1.3px),
+        radial-gradient(circle at 133px 219px,#c7c7c780 .6px,transparent 1.2px),
+        radial-gradient(circle at 211px 89px,#f5f5f580 .8px,transparent 1.4px),
+        radial-gradient(circle at 69px 173px,#ff710070 .7px,transparent 1.3px);
+    background-size:283px 307px,389px 353px,467px 421px,557px 499px;
+    opacity:.6;
+    animation:afec-stars-drift 100s ease-in-out infinite alternate;
+}
+body::after {
+    z-index:-1;
+    background-image:
+        radial-gradient(circle at 117px 83px,#f5f5f5cc 1px,transparent 1.8px),
+        radial-gradient(circle at 351px 277px,#c7c7c7b3 .9px,transparent 1.7px),
+        radial-gradient(circle at 183px 397px,#ff7100a6 .8px,transparent 1.7px);
+    background-size:619px 577px,733px 691px,859px 787px;
+    opacity:.5;
+    animation:afec-stars-near 65s ease-in-out infinite alternate,afec-stars-shimmer 11s ease-in-out infinite alternate;
+}
+@keyframes afec-stars-drift { to { transform:translate3d(22px,-32px,0); } }
+@keyframes afec-stars-near { to { transform:translate3d(-30px,-42px,0); } }
+@keyframes afec-stars-shimmer { from { opacity:.35; } to { opacity:.7; } }
+@keyframes afec-arrive { from { opacity:0; } to { opacity:1; } }
+@keyframes afec-dialog-arrive { from { opacity:0; transform:translateY(8px) scale(.99); } to { opacity:1; transform:none; } }
+.content,.login-main { animation:afec-arrive .35s ease-out both; }
+.editor-dialog[open] { animation:afec-dialog-arrive .18s ease-out both; }
+.system-card { transition:transform .18s ease-out,border-color .18s ease-out; }
+.button-quiet,.button-primary,.site-header nav a { transition:background-color .15s ease-out,border-color .15s ease-out,color .15s ease-out,transform .15s ease-out; }
+@media(hover:hover) and (pointer:fine) {
+    .system-card:hover { transform:translateY(-3px); border-color:#ff710080; }
+    .button-quiet:not(:disabled):hover,.button-primary:not(:disabled):hover { transform:translateY(-1px); }
+}
+.button-quiet:not(:disabled):active,.button-primary:not(:disabled):active { transform:translateY(1px); }
+@media(max-width:700px) {
+    body::after { display:none; }
+    body::before { opacity:.45; animation-duration:130s; }
+}
+@media(prefers-reduced-motion:reduce) {
+    body::before,body::after,.content,.login-main,.editor-dialog[open] { animation:none; }
+    .system-card,.button-quiet,.button-primary,.site-header nav a { transition:none; }
+    .system-card:hover,.button-quiet:not(:disabled):hover,.button-primary:not(:disabled):hover,.button-quiet:not(:disabled):active,.button-primary:not(:disabled):active { transform:none; }
 }
 a {
     color:inherit;
