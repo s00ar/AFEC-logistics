@@ -97,3 +97,12 @@ El propietario confirmó que aplicará esta actualización manualmente. El códi
 El archivo registra el checksum canónico, usa el mismo bloqueo del migrador y valida los seis prerrequisitos. Si ya está aplicado correctamente, repetirlo no vuelve a alterar la tabla. Añade únicamente `commodities.aliases_json` y su validación JSON; conserva cuentas, instalaciones, objetivos y movimientos. No incluye credenciales. Las rutas de SQL permanecen bloqueadas por HTTP; importar el archivo local.
 
 Para rollback del código, conservar la ampliación y su registro/checksum; el esquema anterior del código ignora el campo nullable adicional. Procedimiento y pruebas en [CRUD_MERCANCIAS.md](CRUD_MERCANCIAS.md).
+
+
+## Paladas individuales y carga rápida: esquema 008
+
+Esta ampliación se prepara y verifica localmente; no se aplica ni publica automáticamente en el sitio real. Antes de activarla en Hostinger, exportar un respaldo de `u969616855_afeclogisitc` y, sobre el esquema 001–007, importar completo **`database/upgrades/AFEC_actualizar_paladas.sql`** desde phpMyAdmin. No usar el instalador inicial ni repetir 007 si ya está aplicado. El resultado esperado es **AFEC: PALADAS ESTANDAR HABILITADAS**.
+
+El paquete registra el checksum de 008 y valida los siete prerrequisitos con el bloqueo del migrador. Puede repetirse si terminó correctamente; un resultado omitido/incompleto requiere revisar los registros y errores antes de reintentar. Añade una cantidad opcional y su versión a `commanders`; no inventa paladas para cuentas existentes ni toca movimientos. El analizador de versión del nuevo paquete elimina el sufijo MariaDB para evitar la advertencia #1292 observada al importar 007.
+
+Publicar conjuntamente `.htaccess`, los nuevos recursos y el backend al activar esta versión: la allowlist de la raíz debe permitir `quick-load.js`. Si falta 008, la web conserva carga manual y correcciones y deshabilita las paladas con un aviso. Rollback: conservar columnas/registro/checksum y restaurar los archivos de una versión compatible con la raíz, sin borrar compensaciones reales. Ver [CARGA_RAPIDA.md](CARGA_RAPIDA.md).

@@ -14,6 +14,7 @@
 </div>
 <?php endif ?>
 <?php if ($system['installations'] === []): ?><section class="empty-state"><h2>No hay instalaciones en esta página</h2><p>Las instalaciones y sus materiales aparecerán aquí.</p></section><?php endif ?>
+<?php if ($user!==null): ?><div id="quick-pending" class="pending-banner" role="status" hidden><p>Hay una operación de carga rápida cuyo resultado falta confirmar.</p><button type="button" class="button-quiet" id="quick-retry">Comprobar y reintentar la misma operación</button></div><?php endif ?>
 <?php foreach ($system['installations'] as $installation): ?>
 <?php
     $requirements = array_values(array_filter($system['requirements'], static fn(array $row): bool => $row['installation_id'] === $installation['id']));
@@ -21,10 +22,10 @@
     $open = $editable && $installation['construction_status'] !== 'completed';
     $recipeMaterials = array_values(array_map(static fn(array $row): array => ['commodity_id' => $row['commodity_id'], 'required_quantity' => $row['required_quantity']], array_filter($requirements, static fn(array $row): bool => (bool)$row['active'] && (bool)$row['commodity_active'] && $row['required_quantity'] !== '0')));
 ?>
-<section class="installation-panel">
+<section class="installation-panel" data-quick-installation="<?= e($installation['id']) ?>">
     <div class="installation-heading">
         <div><h2><?= e($installation['name']) ?></h2><p class="muted"><?= e($installation['body_name'] ?: $installation['location_label'] ?: 'Ubicación sin especificar') ?></p><?php if ($installation['type'] || $installation['tier']): ?><p class="muted facility-meta"><?= e($installation['type'] ?: 'Tipo sin especificar') ?><?= $installation['tier'] ? ' · Tier ' . e($installation['tier']) : '' ?></p><?php endif ?></div>
-        <div class="status-badges"><span class="badge <?= $installation['construction_status']==='completed'?'complete':'' ?>"><?= $installation['construction_status']==='completed'?'Terminada':($installation['construction_status']==='under_construction'?'En construcción':'Sin clasificar') ?></span><span class="badge"><?= $installation['archived_at'] ? 'Archivada' : ($installation['percent'] === null ? 'Sin objetivos' : e(number_format($installation['percent'], 1, ',', '.')) . '%') ?></span></div>
+        <div class="status-badges"><span class="badge <?= $installation['construction_status']==='completed'?'complete':'' ?>"><?= $installation['construction_status']==='completed'?'Terminada':($installation['construction_status']==='under_construction'?'En construcción':'Sin clasificar') ?></span><span class="badge" data-quick-progress><?= $installation['archived_at'] ? 'Archivada' : ($installation['percent'] === null ? 'Sin objetivos' : e(number_format($installation['percent'], 1, ',', '.')) . '%') ?></span></div>
     </div>
     <?php if ($canPlan): ?>
     <div class="installation-actions">
@@ -39,13 +40,14 @@
     <?php endif ?>
     <?php if($user!==null): ?><div class="installation-actions"><button type="button" class="button-quiet" data-action="list-add" data-record="<?= record_attribute(['installation_id'=>$installation['id'],'scope'=>'personal','name'=>$installation['name']]) ?>" <?= !$open?'disabled':'' ?>>Añadir a mi lista</button><button type="button" class="button-quiet" data-action="list-add" data-record="<?= record_attribute(['installation_id'=>$installation['id'],'scope'=>'fleet','name'=>$installation['name']]) ?>" <?= !$open?'disabled':'' ?>>Añadir a la flota</button><button type="button" class="button-quiet" data-logistics="movements" data-record="<?= record_attribute(['installation_id'=>$installation['id'],'name'=>$installation['name']]) ?>">Historial de entregas</button></div><?php endif ?>
     <?php if($installation['construction_status']==='completed' && $installation['remaining_quantity']!=='0'): ?><p class="data-note">Terminada manualmente con <?= units($installation['remaining_quantity']) ?> unidades pendientes en el registro. Queda excluida de las listas de deseos.</p><?php endif ?>
+    <?php if ($user!==null): require __DIR__.'/quick-load-toolbar.php'; endif ?>
     <p class="table-hint">Deslizá la tabla para ver todas las columnas.</p>
     <div class="table-scroll" tabindex="0" role="region" aria-label="Materiales de <?= e($installation['name']) ?>">
         <table><caption class="sr-only">Requerimientos y entregas de <?= e($installation['name']) ?></caption><thead><tr><th scope="col">Material</th><th scope="col" class="numeric">Requerido</th><th scope="col" class="numeric">Entregado</th><th scope="col" class="numeric">Pendiente</th><th scope="col" class="numeric">Sobrante</th><?php if ($canPlan): ?><th scope="col">Objetivo</th><?php endif ?><?php if($user!==null): ?><th scope="col">Entrega</th><?php endif ?></tr></thead><tbody>
         <?php foreach ($requirements as $requirement): ?>
-        <tr class="<?= !(bool)$requirement['active'] ? 'retired-row' : '' ?>">
+        <tr data-material="<?= e($requirement['commodity_id']) ?>" class="<?= !(bool)$requirement['active'] ? 'retired-row' : '' ?>">
             <th scope="row"><?= e($requirement['commodity_name']) ?><?php if($user!==null): ?><button type="button" class="button-quiet globe-button" data-logistics="sources" data-record="<?= record_attribute(['commodity_id'=>$requirement['commodity_id'],'name'=>$requirement['commodity_name']]) ?>" aria-label="<?= $requirement['source_count']?'Consultar':'Registrar' ?> abastecimiento de <?= e($requirement['commodity_name']) ?>"><?= $requirement['source_count']?'🌐':'＋' ?></button><?php endif ?><?php if (!(bool)$requirement['active']): ?><span class="retired-label">Retirado</span><?php endif ?></th>
-            <td class="numeric"><?= units($requirement['required_quantity']) ?></td><td class="numeric"><?= units($requirement['delivered_quantity']) ?></td><td class="numeric <?= $requirement['remaining_quantity'] === '0' ? 'complete' : '' ?>"><?= units($requirement['remaining_quantity']) ?></td><td class="numeric"><?= units($requirement['surplus_quantity']) ?></td>
+            <td class="numeric" data-balance="required_quantity"><?= units($requirement['required_quantity']) ?></td><td class="numeric" data-balance="delivered_quantity"><?= units($requirement['delivered_quantity']) ?></td><td data-balance="remaining_quantity" class="numeric <?= $requirement['remaining_quantity'] === '0' ? 'complete' : '' ?>"><?= units($requirement['remaining_quantity']) ?></td><td class="numeric" data-balance="surplus_quantity"><?= units($requirement['surplus_quantity']) ?></td>
             <?php if ($canPlan): ?>
             <td><div class="row-actions">
                 <button type="button" class="button-quiet" data-action="requirement-edit" data-record="<?= record_attribute($requirement + ['system_id' => $system['id']]) ?>" <?= !$editable || !(bool)$requirement['commodity_active'] ? 'disabled' : '' ?>><?= (bool)$requirement['active'] ? 'Editar objetivo' : 'Restaurar objetivo' ?></button>
@@ -53,7 +55,7 @@
                 <button type="button" class="button-quiet" data-action="history" data-record="<?= record_attribute(['type' => 'requirement', 'id' => $installation['id'], 'commodity_id' => $requirement['commodity_id']]) ?>">Ver cambios</button>
             </div></td>
             <?php endif ?>
-            <?php if($user!==null): ?><td><button type="button" class="button-quiet" data-action="delivery-create" data-record="<?= record_attribute($requirement+['system_id'=>$system['id']]) ?>" <?= !$open || !(bool)$requirement['active']?'disabled':'' ?>>Registrar entrega</button></td><?php endif ?>
+            <?php if($user!==null): ?><td><?php require __DIR__.'/quick-load-cell.php'; ?></td><?php endif ?>
         </tr>
         <?php endforeach; if ($requirements === []): ?><tr><td colspan="<?= 5+($canPlan?1:0)+($user!==null?1:0) ?>" class="muted">No hay materiales requeridos.</td></tr><?php endif ?>
         </tbody></table>

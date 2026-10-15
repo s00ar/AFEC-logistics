@@ -103,6 +103,7 @@ final class LogisticsRepository
     }
     public function choices(): array
     {
-        return ['commanders'=>$this->rows('SELECT id,display_name FROM commanders WHERE active=1 ORDER BY display_name,id LIMIT 101'), 'carriers'=>$this->rows('SELECT id,name,code FROM carriers WHERE active=1 ORDER BY name,id LIMIT 101')];
+        $load=(new CommanderLoadRepository($this->database))->ready()?'standard_load_quantity':'NULL AS standard_load_quantity';
+        return ['commanders'=>$this->rows('SELECT id,display_name,'.$load.' FROM commanders WHERE active=1 ORDER BY display_name,id LIMIT 101'), 'carriers'=>$this->rows('SELECT id,name,code FROM carriers WHERE active=1 ORDER BY name,id LIMIT 101')];
     }
 }

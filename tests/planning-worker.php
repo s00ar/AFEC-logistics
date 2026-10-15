@@ -26,6 +26,7 @@ try {
         'list_add' => (new Afec\Services\LogisticsService($app->database))->listChange($actor,(int)$user['auth_version'],$job['key'],$job['id'],$job['body']),
         'catalogue_import' => (new Afec\Services\RecipeCatalogueService($app->database, new Afec\Services\RecipeCatalogue(dirname(__DIR__) . '/resources/catalogue')))->import($actor, (int)$user['auth_version'], $job['key']),
         'commodity_create' => (new Afec\Services\CommodityService($app->database))->write($actor,(int)$user['auth_version'],$job['key'],'create',null,$job['body']),
+        'quick_withdraw' => (new Afec\Services\LogisticsService($app->database))->quickWithdraw($actor,(int)$user['auth_version'],$job['key'],$job['installation_id'],$job['commodity_id'],$job['body']),
     };
     echo json_encode($result, JSON_THROW_ON_ERROR);
 } catch (Afec\Http\HttpError $error) {

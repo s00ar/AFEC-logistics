@@ -1,6 +1,6 @@
 # Uso de la versión actual
 
-Actualizado: 14/10/2026. Corresponde a las fases 1–5. El propietario indicó que actualizar `main` en GitHub activa el despliegue automático en Hostinger; el estado de publicación y la configuración del servidor se verifican por separado.
+Actualizado: 15/10/2026. Corresponde a las fases 1–5. El propietario indicó que actualizar `main` en GitHub activa el despliegue automático en Hostinger; el estado de publicación y la configuración del servidor se verifican por separado.
 
 ## Ingresar al sitio de Hostinger
 
@@ -145,6 +145,19 @@ Los 33 materiales de estructuras sin identificar del CSV no se asignan a un tipo
 La corrección agrega un movimiento negativo vinculado al original: no lo modifica ni lo borra. Puede haber varios retiros parciales, hasta el saldo que conserva esa entrega y sin dejar negativo el saldo de la instalación/material. Un Comandante corrige sus entregas (incluidas las registradas en su nombre); operadores/administradores corrigen las de terceros. Se pueden corregir registros de instalaciones terminadas/archivadas desde su historial, sin reabrirlas ni dar por entregado un faltante.
 
 Para corregir un destino o material equivocado: retirar la cantidad del registro original y registrar una nueva entrega en el destino/material correcto. Son dos operaciones explícitas y auditadas, no un traslado automático.
+
+## Carga rápida desde la tabla y paladas
+
+1. Abrir un sistema. En cada instalación, elegir **Comandante** una sola vez. Un Comandante opera con su identidad; operador/admin puede elegir terceros. **Más comandantes** permite recorrer el catálogo completo.
+2. Escribir su **Palada estándar (t)** y pulsar **Guardar palada**. Cada comandante tiene su propia preferencia; dejar el campo vacío y guardar la quita. Cambiar la selección actualiza la palada y la cantidad propuesta en las filas. El valor queda guardado en MySQL; el comandante seleccionado se conserva durante la sesión por instalación.
+3. En una mercancía, **+ Palada** registra la cantidad configurada. Para otra cantidad, escribir toneladas enteras sin separadores en la fila y usar **+ Cantidad** o Enter. Se conservan comandante y pantalla para seguir cargando.
+4. Para corregir, completar **Motivo de resta** en la cabecera y pulsar **− Cantidad** con un importe manual, o **− Palada**. Se compensan primero las entregas más antiguas del comandante elegido, incluso si hay que repartir la resta entre varias. No se editan los originales. No se puede retirar más de su saldo disponible ni dejar negativa la mercancía.
+5. Las cantidades y el porcentaje se actualizan sin recargar; la confirmación aparece debajo de los controles del comandante. Si se supera lo pendiente se registra todo y se avisa del sobrante. Una instalación terminada/archivada conserva la posibilidad de corregir entregas, pero necesita reabrirse/restaurarse para recibir nuevas.
+6. Para indicar carrier, otra fecha o crear una identidad nueva, usar **Entrega detallada / carrier**. Su selector también propone la palada configurada. Las cuentas sin identidad vinculada pueden crearla con su primera entrega detallada y recargar para usar el modo rápido.
+
+Durante el envío se bloquean los botones para evitar duplicados. Si aparece **Comprobar y reintentar la misma operación**, usar ese botón: recupera el resultado o reintenta con la misma clave. No crear otra entrega para reemplazar una cuyo resultado es incierto. Si el mensaje confirma que ya se guardó pero falló la actualización de totales, recargar la página sin repetir la carga.
+
+Las paladas requieren la migración 008. Mientras falte, el sitio conserva la carga manual y avisa del requisito. Los datos anteriores no se modifican. Detalles y pruebas en [CARGA_RAPIDA.md](CARGA_RAPIDA.md).
 
 ## Listas personal y de flota
 

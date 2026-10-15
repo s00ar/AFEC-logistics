@@ -37,6 +37,7 @@ try {
         case 'installation/status': case 'wishlist': case 'wishlist/destinations': case 'wishlist/entries': case 'wishlist/entry':
         case 'sources': case 'source': case 'source/restore': case 'deliveries': case 'movement/withdraw':
         case 'movements': case 'logistics/options': case 'operation':
+        case 'quick/options': case 'quick/withdraw': case 'commander/load':
             ExpansionController::dispatch($app,$route);
         case 'session':
             Request::method('GET');

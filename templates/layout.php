@@ -13,6 +13,7 @@
     <link rel="icon" type="image/png" href="<?= e($logoUrl) ?>">
     <script src="<?= e($app->assetUrl('js/app.js')) ?>" type="module"></script>
     <?php if ($user !== null): ?><script src="<?= e($app->assetUrl('js/planning.js')) ?>" type="module"></script><script src="<?= e($app->assetUrl('js/logistics.js')) ?>" type="module"></script><?php endif ?>
+    <?php if ($user !== null && $page==='system'): ?><script src="<?= e($app->assetUrl('js/quick-load.js')) ?>" type="module"></script><?php endif ?>
 </head>
 <body>
 <a class="skip-link" href="#main">Saltar al contenido</a>

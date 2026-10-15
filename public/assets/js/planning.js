@@ -243,9 +243,18 @@ async function openEditor(action, record = {}, resume = false) {
         const select = form.elements[field]; if (!select) continue;
         for (const value of result.data[kind]) {
           const option = document.createElement('option'); option.value = value.id;
+          if (kind === 'commanders') option.dataset.standardLoad = value.standard_load_quantity || '';
           option.textContent = value.display_name || `${value.name}${value.code ? ` (${value.code})` : ''}`; select.append(option);
         }
         if (resume) select.value = pending.request.body[field] || '';
+      }
+      const commander = form.elements.commander_id;
+      if (commander && !resume) {
+        const proposeLoad = () => { form.elements.quantity.value = commander.selectedOptions[0]?.dataset.standardLoad || ''; };
+        commander.addEventListener('change', proposeLoad);
+        const card = document.querySelector(`[data-quick-installation="${record.installation_id}"]`);
+        if (card) commander.value = card.querySelector('[data-quick-commander]')?.value || '';
+        proposeLoad();
       }
       busyState(false);
     } catch (failure) { errorBox.textContent = failure.message; errorBox.hidden = false; submit.disabled = !resume; }

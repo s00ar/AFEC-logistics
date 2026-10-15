@@ -79,7 +79,7 @@ class Client:
         except urllib.error.HTTPError as failure: response = failure
         with response: return response.status, response.read().decode(), response.headers
     def resource(self,path):
-        try: response = self.opener.open(BASE + path, timeout=10)
+        try: response = self.opener.open(BASE + path, timeout=30)
         except urllib.error.HTTPError as failure: response = failure
         with response: return response.status,response.read(),response.headers
     def session(self): return self.call('session')[1]['data']
@@ -141,7 +141,7 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         check(anonymous.page('/config/config.local.php')[0] in [403,404] and anonymous.page('/src/bootstrap.php')[0] in [403,404], 'Private files are unavailable over HTTP')
         asset_prefix = '/public/assets/' if args.webroot == 'repository' else '/assets/'
         check(asset_prefix + 'css/app.css' in html and asset_prefix + 'js/app.js' in html, 'HTML uses assets for the selected deployment layout')
-        for asset in ['css/app.css', 'js/app.js', 'js/http.js', 'js/planning.js','js/logistics.js','js/accounts.js']:
+        for asset in ['css/app.css', 'js/app.js', 'js/http.js', 'js/planning.js','js/logistics.js','js/accounts.js','js/quick-load.js']:
             check(anonymous.page(asset_prefix + asset)[0] == 200, 'Application asset is reachable: ' + asset)
         logo=anonymous.resource(asset_prefix+'images/'+urllib.parse.quote('Emblema AFEC Logística Espacial.png'))
         check(logo[0]==200 and logo[1]==(ROOT/'resources/branding/afec-logistica.png').read_bytes() and logo[2].get('Content-Type','').startswith('image/png'),'Original AFEC logo is served correctly')
@@ -154,7 +154,8 @@ with (PRIVATE / 'http-server.log').open('w') as output:
                 '/public/assets/js/unknown.js', '/public/assets/js/app.js.bak', '/api/index.php/extra', '/unknown',
                 '/resources/catalogue/initial-recipes.json', '/resources/catalogue/sources/afec-research.csv',
                 '/tools/seed-recipes.php', '/tools/build-recipe-catalogue.py', '/database/migrations/006_recipe_provenance.sql', '/database/migrations/007_commodity_aliases.sql',
-                '/database/upgrades/AFEC_actualizar_mercancias.sql']
+                '/database/upgrades/AFEC_actualizar_mercancias.sql', '/database/migrations/008_commander_standard_load.sql',
+                '/database/upgrades/AFEC_actualizar_paladas.sql']
             for path in private_paths:
                 check(anonymous.page(path)[0] == 403, 'Apache denies non-public repository path: ' + path)
         check(anonymous.page('/?page=login')[0] == 200 and 'login-form' in anonymous.page('/?page=login')[1], 'Public site has an explicit login page')
@@ -184,6 +185,8 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         run_catalogue_checks(anonymous,admin,viewer,operator,Client,check,command,env,php,ROOT)
         from commodity_http import run_commodity_race
         run_commodity_race(admin,check,env,php,ROOT)
+        from quick_http import run_quick_checks
+        run_quick_checks(anonymous,admin,viewer,operator,check,command,env,php,ROOT)
         command('tests/fixture.php','deactivate_viewer')
         check(viewer.session()['user'] is None, 'Deactivation invalidates an existing session')
         operator = Client(); check(operator.login('operator')[0] == 200, 'Operator can authenticate')

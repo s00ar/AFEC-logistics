@@ -59,7 +59,7 @@ assert b'EQUIVALENCIAS HABILITADAS' in sql(upgrade)
 assert snapshot()==before,'Upgrade modified existing data'
 assert b'EQUIVALENCIAS HABILITADAS' in sql(upgrade) and snapshot()==before,'Repeated upgrade changed existing data'
 assert command('-r',"$a=require 'src/bootstrap.php';echo (new Afec\\Repositories\\CommodityRepository($a->database))->aliasesReady()?'ready':'legacy';")=='ready'
-assert 'No hay migraciones pendientes' in command('tools/migrate.php')
+assert 'Pendiente: 007_commodity_aliases.sql' not in command('tools/migrate.php')
 checksum = hashlib.sha256((ROOT/'database/migrations/007_commodity_aliases.sql').read_bytes()).hexdigest()
 assert sql("SELECT checksum FROM schema_migrations WHERE version='007_commodity_aliases.sql' AND status='applied';").decode('utf-8').strip()==checksum
 # A registry mismatch prevents even the attempt to apply the DDL.

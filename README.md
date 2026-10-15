@@ -16,6 +16,8 @@ Pasos de acceso y flujos actuales en [docs/GUIA_USO.md](docs/GUIA_USO.md). La pr
 
 CRUD administrativo de mercancías ampliado: nombres/códigos, alias, desactivación/reactivación e historial. Requiere importar la actualización 007 desde phpMyAdmin para habilitar equivalencias; el push no ejecuta SQL. Alcance y comprobaciones en [docs/CRUD_MERCANCIAS.md](docs/CRUD_MERCANCIAS.md).
 
+Carga rápida y paladas individuales implementadas para verificación local: controles en cada fila, suma/resta manual o estándar, selección persistente y actualización de totales. Migración 008 aditiva; no aplicada ni publicada automáticamente en producción. Alcance, permisos y pruebas en [docs/CARGA_RAPIDA.md](docs/CARGA_RAPIDA.md).
+
 ## Estructura
 
 ```text

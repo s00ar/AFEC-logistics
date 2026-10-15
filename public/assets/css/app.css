@@ -856,6 +856,20 @@ tbody th {
 .table-hint {
     display:none;
 }
+.quick-load-bar { display:flex; flex-wrap:wrap; align-items:end; gap:.65rem; padding:1rem 1.25rem; border-block:1px solid var(--line); }
+.quick-load-bar label { display:grid; gap:.25rem; font-size:.8rem; }
+.quick-load-bar input, .quick-load-bar select, .quick-load-cell input { font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:7px; padding:.5rem .65rem; min-height:36px; }
+.quick-load-bar select:focus-visible { outline:2px solid var(--highlight); outline-offset:3px; }
+.quick-load-bar select { min-width:12rem; max-width:22rem; }
+.quick-load-bar input { width:12rem; }
+.quick-load-bar .data-note, .quick-status { flex-basis:100%; margin:0; }
+.quick-status { min-height:1.3em; color:var(--text); overflow-wrap:anywhere; }
+.quick-load-cell { min-width:15rem; display:grid; gap:.4rem; }
+.quick-load-cell input { width:10rem; padding:.4rem .6rem; }
+.quick-load-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.35rem; }
+.quick-load-actions button { white-space:nowrap; padding:.4rem .55rem; font-size:.75rem; min-height:36px; margin:0; justify-content:center; }
+.quick-details { margin-top:.4rem; font-size:.72rem; }
+@media(max-width:700px) { .quick-load-bar { padding:1rem; } .quick-load-bar label, .quick-load-bar select { width:100%; max-width:100%; } .quick-load-bar input { width:100%; } }
 @media(max-width:700px) {
     .table-hint {
         display:block;

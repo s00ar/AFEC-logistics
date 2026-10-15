@@ -98,8 +98,11 @@ final class LogisticsService
     }
     public function deliver(array $actor,int $authVersion,string $key,string $installation,string $commodity,array $input): array
     {
-        Input::fields($input,['quantity','commander_id','commander_name','carrier_id','carrier_name','carrier_code','occurred_at','reason']);
-        $data=['installation_id'=>$installation,'commodity_id'=>$commodity,'quantity'=>L::amount($input),'commander_id'=>L::id($input,'commander_id',true),'commander_name'=>Input::text($input,'commander_name',160),'carrier_id'=>L::id($input,'carrier_id',true),'carrier_name'=>Input::text($input,'carrier_name',160),'carrier_code'=>Input::text($input,'carrier_code',40),'occurred_at'=>L::date($input),'reason'=>Input::text($input,'reason',1000,false,true)];
+        Input::fields($input,['quantity','use_standard_load','commander_id','commander_name','carrier_id','carrier_name','carrier_code','occurred_at','reason']);
+        $standard = self::standardFlag($input);
+        $data=['installation_id'=>$installation,'commodity_id'=>$commodity,'quantity'=>$standard?null:L::amount($input),'commander_id'=>L::id($input,'commander_id',true),'commander_name'=>Input::text($input,'commander_name',160),'carrier_id'=>L::id($input,'carrier_id',true),'carrier_name'=>Input::text($input,'carrier_name',160),'carrier_code'=>Input::text($input,'carrier_code',40),'occurred_at'=>L::date($input),'reason'=>Input::text($input,'reason',1000,false,true)];
+        // Keep the exact hash of pre-upgrade manual requests for pending retries.
+        if ($standard) { $data['use_standard_load']=true; }
         if($actor['role']==='viewer' && ($data['commander_name'] || $data['commander_id'] && $data['commander_id']!==$actor['commander_id'])) { throw new HttpError(403,'forbidden','Los comandantes registran sus propias entregas; un operador puede registrar las de terceros.'); }
         if($data['commander_id'] && $data['commander_name'] || $data['carrier_id'] && $data['carrier_name'] || $data['carrier_code'] && !$data['carrier_name']) { throw new HttpError(422,'validation','Elegí una identidad existente o ingresá una nueva, sin combinar ambas.'); }
         return $this->run($actor,$authVersion,'logistics.delivery',$key,$data,function(string $op) use($actor,$data,$installation,$commodity): array {
@@ -110,15 +113,18 @@ final class LogisticsService
             $commander=$data['commander_id'];
             if(!$commander) { $commander=$data['commander_name']?$this->repo->newCommander($data['commander_name']):$this->repo->ownCommander($actor); }
             if(!$this->repo->rows('SELECT id FROM commanders WHERE id=? AND active=1',[$commander])) { throw new HttpError(422,'validation','El comandante no está activo.'); }
+            $quantity=($data['use_standard_load']??false)?(new \Afec\Repositories\CommanderLoadRepository($this->database))->amount($commander):$data['quantity'];
             $carrier=$data['carrier_id'];
             if($data['carrier_name']) {
                 $this->repo->execute('INSERT INTO carriers (name,code) VALUES (?,?)',[$data['carrier_name'],$data['carrier_code']]); $carrier=$this->database->connection()->lastInsertId();
             }
             if($carrier && !$this->repo->rows('SELECT id FROM carriers WHERE id=? AND active=1',[$carrier])) { throw new HttpError(422,'validation','El carrier no está activo.'); }
-            $this->repo->execute("INSERT INTO movements (installation_id,commodity_id,created_by_user_id,commander_id,carrier_id,delta_quantity,movement_type,operation_id,occurred_at,reason) VALUES (?,?,?,?,?,?,'delivery',?,?,?)",[$installation,$commodity,$actor['id'],$commander,$carrier,$data['quantity'],$op,$data['occurred_at']??gmdate('Y-m-d H:i:s'),$data['reason']]);
+            $pending=$this->repo->rows('SELECT CAST(GREATEST(CAST(? AS DECIMAL(65,0))-COALESCE(SUM(delta_quantity),0),0) AS CHAR) AS pending_quantity FROM movements WHERE installation_id=? AND commodity_id=?',[$requirement['required_quantity'],$installation,$commodity])[0]['pending_quantity'];
+            $excess=L::compare($quantity,$pending)>0;
+            $this->repo->execute("INSERT INTO movements (installation_id,commodity_id,created_by_user_id,commander_id,carrier_id,delta_quantity,movement_type,operation_id,occurred_at,reason) VALUES (?,?,?,?,?,?,'delivery',?,?,?)",[$installation,$commodity,$actor['id'],$commander,$carrier,$quantity,$op,$data['occurred_at']??gmdate('Y-m-d H:i:s'),$data['reason']]);
             $id=$this->database->connection()->lastInsertId(); $after=$this->repo->movement($id);
             $this->planning->audit('movement',$id,'delivery',null,$after,$actor['id'],$data['reason']??'Entrega recibida en instalación',$op);
-            return ['data'=>$after+['system_id'=>$parent['id']],'status'=>201];
+            return ['data'=>$after+['system_id'=>$parent['id'],'exceeds_pending'=>$excess],'status'=>201];
         });
     }
     public function withdraw(array $actor,int $authVersion,string $key,string $id,array $input): array
@@ -139,6 +145,49 @@ final class LogisticsService
             $new=$this->database->connection()->lastInsertId(); $after=$this->repo->movement($new);
             $this->planning->audit('movement',$new,'withdraw',null,$after,$actor['id'],$data['reason'],$op);
             return ['data'=>$after+['system_id'=>$parent['id']],'status'=>201];
+        });
+    }
+
+    private static function standardFlag(array $input): bool
+    {
+        $standard=array_key_exists('use_standard_load',$input)?$input['use_standard_load']:false;
+        if (!is_bool($standard) || ($standard && array_key_exists('quantity',$input))) { throw new HttpError(422,'validation','Elegí palada estándar o cantidad manual, sin combinarlas.'); }
+        return $standard;
+    }
+
+    public function quickWithdraw(array $actor,int $authVersion,string $key,string $installation,string $commodity,array $input): array
+    {
+        Input::fields($input,['quantity','use_standard_load','commander_id','reason']);
+        $standard=self::standardFlag($input);
+        $data=['installation_id'=>$installation,'commodity_id'=>$commodity,'commander_id'=>L::id($input,'commander_id'),
+            'use_standard_load'=>$standard,'quantity'=>$standard?null:L::amount($input),'reason'=>Input::text($input,'reason',1000,true,true)];
+        if ($actor['role']==='viewer' && $actor['commander_id']!==$data['commander_id']) { throw new HttpError(403,'forbidden','Solo podés restar entregas de tu propio comandante.'); }
+        return $this->run($actor,$authVersion,'logistics.quick.withdraw',$key,$data,function(string $op) use($actor,$installation,$commodity,$data): array {
+            [$parent,$place]=$this->planning->lockInstallation($installation);
+            $this->planning->requirement($installation,$commodity,true);
+            $commander=(new \Afec\Repositories\CommanderLoadRepository($this->database))->find($data['commander_id'],true);
+            if (!$commander['active']) { throw new HttpError(422,'inactive','El comandante no está activo.'); }
+            $quantity=$data['use_standard_load']?(new \Afec\Repositories\CommanderLoadRepository($this->database))->amount($data['commander_id']):$data['quantity'];
+            $balance=$this->repo->rows('SELECT CAST(COALESCE(SUM(delta_quantity),0) AS CHAR) AS balance_quantity FROM movements WHERE installation_id=? AND commodity_id=?',[$installation,$commodity])[0]['balance_quantity'];
+            if ($balance[0]==='-' || L::compare($quantity,$balance)>0) { throw new HttpError(409,'negative_balance','La resta supera lo entregado y dejaría un saldo negativo.'); }
+            // All writers take the installation lock first. Oldest positive entries are compensated first.
+            $originals=$this->repo->rows('SELECT m.id,m.carrier_id,CAST(m.delta_quantity+COALESCE((SELECT SUM(r.delta_quantity) FROM movements r WHERE r.reverses_movement_id=m.id),0) AS CHAR) AS available_quantity FROM movements m WHERE m.installation_id=? AND m.commodity_id=? AND m.commander_id=? AND m.delta_quantity>0 AND m.reverses_movement_id IS NULL ORDER BY m.id FOR UPDATE',[$installation,$commodity,$data['commander_id']]);
+            $remaining=(int)$quantity; $parts=[];
+            foreach ($originals as $row) {
+                $available=$row['available_quantity'];
+                if ($available[0]==='-' || $available==='0') { continue; }
+                $take=min($remaining,(int)$available); $parts[]=['id'=>$row['id'],'carrier_id'=>$row['carrier_id'],'quantity'=>(string)$take]; $remaining-=$take;
+                if (count($parts)>65535) { throw new HttpError(409,'entry_limit','La corrección abarca demasiadas entregas. Usá restas más pequeñas.'); }
+                if ($remaining===0) { break; }
+            }
+            if ($remaining!==0) { throw new HttpError(409,'withdrawal_limit','La cantidad supera las entregas que conserva el comandante seleccionado.'); }
+            $ids=[];
+            foreach ($parts as $index=>$part) {
+                $this->repo->execute("INSERT INTO movements (installation_id,commodity_id,created_by_user_id,commander_id,carrier_id,delta_quantity,movement_type,reverses_movement_id,operation_id,entry_number,occurred_at,reason) VALUES (?,?,?,?,?,?,'reversal',?,?,?,UTC_TIMESTAMP(6),?)",[$installation,$commodity,$actor['id'],$data['commander_id'],$part['carrier_id'],'-'.$part['quantity'],$part['id'],$op,$index+1,$data['reason']]);
+                $new=$this->database->connection()->lastInsertId(); $after=$this->repo->movement($new); $ids[]=$new;
+                $this->planning->audit('movement',$new,'withdraw',null,$after,$actor['id'],$data['reason'],$op);
+            }
+            return ['data'=>['movement_ids'=>$ids,'quantity'=>$quantity,'commander_id'=>$data['commander_id'],'installation_id'=>$installation,'commodity_id'=>$commodity,'system_id'=>$parent['id']],'status'=>201];
         });
     }
 }
