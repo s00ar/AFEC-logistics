@@ -43,8 +43,8 @@ try {
         $marketOptions=$marketsReady?$marketRepository->options():['stations'=>[],'systems'=>[],'economies'=>[],'stale_days'=>$app->config['markets']['stale_days']];
         $marketListing=$marketsReady?($marketFilters['missing']?$marketRepository->missing($marketFilters['system'],$listPage):$marketRepository->listing($marketFilters,$listPage)):['items'=>[],'pagination'=>['page'=>1,'has_more'=>false]];
         $pagination=$marketListing['pagination'];
-        $marketImports=$marketsReady && $user['role']==='admin'?$marketRepository->imports()['items']:[];
-        $marketCommodities=$marketsReady && $user['role']==='admin'?(new \Afec\Repositories\CommodityRepository($app->database))->rows():[];
+        $marketImports=$marketsReady?$marketRepository->imports()['items']:[];
+        $marketCommodities=$marketsReady?(new \Afec\Repositories\CommodityRepository($app->database))->rows():[];
         $title='Mercados del Sistema'; $view='markets';
     } elseif ($page === 'account') {
         $app->auth()->requireUser(); $title = 'Mi cuenta'; $view = 'account';

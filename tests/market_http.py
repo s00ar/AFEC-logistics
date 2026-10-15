@@ -45,9 +45,9 @@ def run_market_checks(anonymous, admin, viewer, operator, check, command, root, 
             if not response[1]['pagination']['has_more']:return rows
             page+=1
     expect(anonymous.call('markets'),401,'Market data requires a session')
-    expect(viewer.call('markets/imports'),403,'Commander cannot read import administration')
-    expect(upload(viewer),403,'Commander cannot import')
-    expect(upload(operator),403,'Operator cannot import commercial inventory')
+    expect(viewer.call('markets/imports'),200,'Commander can read import traceability')
+    expect(upload(viewer),200,'Commander can preview commercial CSVs')
+    expect(upload(operator),200,'Historical operator is a Commander and can preview CSVs')
     expect(upload(admin,token='invalid'),403,'Upload requires CSRF')
     before=stats()
     preview=expect(upload(admin),200,'Actual attached CSVs validate via multipart API')
@@ -76,12 +76,12 @@ def run_market_checks(anonymous, admin, viewer, operator, check, command, root, 
     finally:command('tests/recipe-inspect.php','clear-failure')
     check(stats()==before,'Import rollback leaves all commercial and operational tables unchanged')
     key=str(uuid.uuid4())
-    created=expect(upload(admin,'apply',review=preview['review_hash'],key=key),200,'Real market CSVs imported')
+    created=expect(upload(viewer,'apply',review=preview['review_hash'],key=key),200,'Real market CSVs imported')
     check(created['applied']==197 and created['summary_rows']==4,'Every supplied observation and summary stored')
     seeded=stats()
     check((seeded['market_stations'],seeded['market_products'],seeded['market_stock'],seeded['market_observations'],seeded['market_imports'])==(4,93,197,197,1),'Unique keys preserve the expected source cardinality')
     check(all(seeded[k]==before[k] for k in before if k.endswith('_hash')),'Import preserves all construction, identity and catalogue records')
-    replay=upload(admin,'apply',review=preview['review_hash'],key=key)
+    replay=upload(viewer,'apply',review=preview['review_hash'],key=key)
     check(replay[0]==200 and replay[1]['replayed'] and stats()==seeded,'Same-key replay returns the original receipt')
     duplicate=expect(upload(admin,'apply',review=preview['review_hash']),200,'Same CSV with a new request key is safe')
     check(duplicate['duplicate_import'] and stats()==seeded,'Content uniqueness prevents duplicate import records')
@@ -98,12 +98,12 @@ def run_market_checks(anonymous, admin, viewer, operator, check, command, root, 
     first=next(r for r in rows if r['original_name']=='Food Cartridges' and r['station_name']=='Ciudadela Orbital AFEC Prime')
     station=next(s for s in options['stations'] if s['id']==first['station_id'])
     metadata={'version':station['version'],'economy':'High Tech','max_pad':'L','observed_on':'2026-10-15','source':'Synthetic metadata verification','reason':'Test large ship filter'}
-    updated_station=expect(write('station',station['id'],metadata),200,'Administrator can declare verified station metadata')
+    updated_station=expect(write('station',station['id'],metadata,client=operator),200,'Historical operator Commander can update verified station metadata')
     check(len(listing('&ship_size=L'))==48 and len(listing('&economy=High%20Tech'))==48,'Large and economy filters reflect declared metadata')
     expect(write('station',station['id'],metadata),409,'Concurrent metadata edit rejected')
     expect(write('station',station['id'],metadata|{'version':updated_station['version'],'observed_on':'2026-10-14'}),409,'Older station metadata rejected')
     expect(write('station',station['id'],metadata|{'version':updated_station['version'],'max_pad':'X'}),422,'Invalid pad rejected')
-    expect(write('station',station['id'],metadata,client=operator),403,'Operator cannot edit station metadata')
+    expect(write('station',station['id'],metadata,client=operator),409,'Commander metadata edits still require the current version')
     older=one({'fecha_fuente':'2026-10-14','oferta_t':'999'})
     prior=expect(upload(admin,stock_data=older,summary_data=None),200,'Older CSV validates independently')
     old=expect(upload(admin,'apply',stock_data=older,summary_data=None,review=prior['review_hash']),200,'Older CSV retained as history')
@@ -122,11 +122,11 @@ def run_market_checks(anonymous, admin, viewer, operator, check, command, root, 
     expect(write('stock',first['product_id'],body),409,'Stale stock version rejected')
     expect(write('stock',first['product_id'],body|{'version':manual['version'],'observed_on':'2026-10-14'}),409,'Old manual stock rejected')
     expect(write('stock',first['product_id'],body|{'version':manual['version'],'quantity':'-1'}),422,'Negative manual stock rejected')
-    expect(write('stock',first['product_id'],body|{'version':manual['version']},client=viewer),403,'Commander cannot edit commercial stock')
-    history=expect(admin.call('markets/history&station_id='+first['station_id']+'&product_id='+first['product_id']),200,'Observation history visible to administrator')
-    check(len(history)==4 and sum(not int(r['applied']) for r in history)==2,'History retains old, conflicting and manual observations')
-    # Two independent administrator actors import the same new content concurrently.
-    actors=[admin.session()['user']['id'],next(u['id'] for u in admin.call('admin/users')[1]['data'] if u['username']=='seed_admin')]
+    expect(write('stock',first['product_id'],body|{'version':manual['version']},client=viewer),200,'Commander can update commercial stock with audit and version control')
+    history=expect(viewer.call('markets/history&station_id='+first['station_id']+'&product_id='+first['product_id']),200,'Observation history visible to Commander')
+    check(len(history)==5 and sum(not int(r['applied']) for r in history)==2,'History retains old, conflicting and manual observations')
+    # Two independent actors with different effective roles import the same content.
+    actors=[admin.session()['user']['id'],viewer.session()['user']['id']]
     directory=root/'.local/test-artifacts'/('market-race-'+uuid.uuid4().hex);directory.mkdir()
     barrier=directory/'start';workers=[]
     for actor in actors:
@@ -141,12 +141,12 @@ def run_market_checks(anonymous, admin, viewer, operator, check, command, root, 
     results=[]
     for process in workers:
         output,error=process.communicate(timeout=25)
-        check(process.returncode==0,'Independent administrator market worker completed')
+        check(process.returncode==0,'Independent authenticated market worker completed')
         results.append(json.loads(output))
     check(len({r['data']['import_id'] for r in results})==1 and sum(bool(r['data'].get('duplicate_import')) for r in results)==1,'Concurrent imports serialize to one dataset across actors')
     sample=next(r for r in rows if r['commodity_id'] is None)
     target=next(r['commodity_id'] for r in rows if r['commodity_id'] is not None)
-    mapped=expect(write('product',sample['product_id'],{'version':sample['product_version'],'commodity_id':target,'reason':'Synthetic equivalence'}),200,'Administrator maps an unmatched original name')
+    mapped=expect(write('product',sample['product_id'],{'version':sample['product_version'],'commodity_id':target,'reason':'Synthetic equivalence'},client=viewer),200,'Commander maps an unmatched original name')
     check(mapped['original_name']==sample['product_name'] and mapped['commodity_id']==target,'Equivalence preserves original material name')
     for changes,status in [({'estacion':'Unknown test','oferta_t':'','fecha_fuente':'','verificacion':'Sin verificar'},'unknown'),({'estacion':'Stale test','fecha_fuente':'2000-01-01'},'stale'),({'estacion':'Zero test','oferta_t':'0','disponible_para_compra':'NO'},'confirmed')]:
         data=one(changes);prior=expect(upload(admin,stock_data=data,summary_data=None),200,'Valid boundary observation preview')
@@ -160,7 +160,7 @@ def run_market_checks(anonymous, admin, viewer, operator, check, command, root, 
     expect(viewer.call('markets&ship_size=INVALID'),422,'Invalid ship filter rejected')
     html=admin.page('/?page=markets')[1]
     check('Mercados del Sistema' in html and 'market-import-form' in html and '&lt;script&gt;alert(1)&lt;/script&gt;' in html and '<script>alert(1)</script>' not in html,'Markets admin HTML escapes source text')
-    check('market-import-form' not in viewer.page('/?page=markets')[1],'Import UI is restricted to administrators')
+    check('market-import-form' in viewer.page('/?page=markets')[1],'Commander sees market import and maintenance UI')
     check('Dónde conseguir' in viewer.page('/?page=system&id=1')[1],'Required material table links to system market providers')
     after=stats()
     check(all(after[k]==before[k] for k in before if k.endswith('_hash')),'All market imports and edits leave operational tables byte-for-byte intact')

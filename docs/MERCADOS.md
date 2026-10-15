@@ -18,7 +18,7 @@ No aplicar migraciones reales por push ni desde peticiones web. El paquete phpMy
 
 Se conservan copias exactas de ambos archivos del 15/10/2026 en `resources/markets/`. El inventario contiene **197 existencias, 93 mercancías distintas y cuatro estaciones** de `Col 359 Sector TN-A c1-20`. El resumen contiene cuatro filas coincidentes: Ciudadela Orbital AFEC Prime (48 mercancías), Clarke Station (61), Hardie Sanctuary (38) y Toure Venture (50).
 
-El catálogo actual reconoce 45 mercancías mediante código, nombre o alias; las otras 48 se conservan con su nombre original, sin crear materiales de colonización ni adivinar equivalencias. Un administrador puede vincularlas mediante **Equivalencia**. El nombre original permanece visible y en cada observación.
+El catálogo actual reconoce 45 mercancías mediante código, nombre o alias; las otras 48 se conservan con su nombre original, sin crear materiales de colonización ni adivinar equivalencias. Un Comandante o Administrador puede vincularlas mediante **Equivalencia**. El nombre original permanece visible y en cada observación.
 
 | Tabla nueva | Contenido / unicidad |
 |---|---|
@@ -28,7 +28,7 @@ El catálogo actual reconoce 45 mercancías mediante código, nombre o alias; la
 | `market_observations` | Observaciones inmutables de cantidad, disponibilidad, fecha, fuente y verificación; una por importación/estación/mercancía |
 | `market_stock` | Una observación vigente por estación/mercancía, con versión para impedir actualizaciones perdidas |
 
-Las instalaciones comerciales están separadas de las instalaciones en construcción. Las escrituras usan PDO, `MutationService`, autorización administrativa revalidada, CSRF, recibos idempotentes, auditoría existente y una transacción con bloqueo común de mercados. Un fallo revierte observaciones, stock, importación y auditoría juntos.
+Las instalaciones comerciales están separadas de las instalaciones en construcción. Las escrituras usan PDO, `MutationService`, autorización operativa revalidada para Comandante y Administrador, CSRF, recibos idempotentes, auditoría existente y una transacción con bloqueo común de mercados. Un fallo revierte observaciones, stock, importación y auditoría juntos.
 
 ## Activación en una instalación existente
 
@@ -36,7 +36,7 @@ Las instalaciones comerciales están separadas de las instalaciones en construcc
 
 1. Respaldar la base actual y verificar que las migraciones 001–007 estén completas y sin modificaciones.
 2. En phpMyAdmin, seleccionar la base correcta e importar **`database/upgrades/AFEC_actualizar_mercados.sql`**. Verificar el resultado **`AFEC: MERCADOS DEL SISTEMA HABILITADOS`**. Este paquete valida checksums, toma un bloqueo y registra la migración 009; admite 008 ausente y no la aplica por su cuenta. No importar a la vez otro paquete/migración.
-3. Iniciar sesión como administrador → **Mercados del Sistema** → **Administración: importar CSV**. Seleccionar los dos originales, **Validar archivos**, revisar los recuentos, marcar confirmación y **Importar CSV validados**. El sistema del resumen se deduce del inventario; no hace falta escribirlo para este par de archivos.
+3. Iniciar sesión como Comandante o Administrador → **Mercados del Sistema** → **Administración: importar CSV**. Seleccionar los dos originales, **Validar archivos**, revisar los recuentos, marcar confirmación y **Importar CSV validados**. El sistema del resumen se deduce del inventario; no hace falta escribirlo para este par de archivos.
 4. Comprobar las cuatro estaciones, buscar **CMM** o **Compuestos CMM** (Clarke Station, 279.426 t, fecha 2026-10-15) y repetir los mismos archivos: la aplicación informa que ya están registrados, sin duplicarlos.
 5. Completar economía y pad mediante **Datos de estación** únicamente con información verificada, indicando fecha, fuente y motivo. Hasta entonces sus valores son desconocidos y no aparecen en filtros de tamaño concreto.
 
@@ -47,7 +47,7 @@ Alternativa CLI, siempre con `AFEC_CONFIG_FILE` privado fuera del webroot:
 ```text
 php tools/migrate.php
 php tools/migrate.php --apply
-php tools/import-markets.php --user=ADMIN --stock=resources/markets/AFEC_mercados_stock_confirmado_2026-10-15.csv --summary=resources/markets/AFEC_mercados_resumen_2026-10-15.csv
+php tools/import-markets.php --user=USUARIO --stock=resources/markets/AFEC_mercados_stock_confirmado_2026-10-15.csv --summary=resources/markets/AFEC_mercados_resumen_2026-10-15.csv
 ```
 
 El importador solo valida por defecto. Añadir `--apply` para escribir; en producción se exige además `--allow-production`, respaldo y autorización específica. El migrador CLI aplica todas las migraciones pendientes en orden (puede incluir 008); el paquete phpMyAdmin es la alternativa que aplica únicamente 009 sobre 001–007.
@@ -60,9 +60,9 @@ Todos los usuarios autenticados pueden buscar por nombre original o nombre de co
 
 Estados calculados al consultar (UTC, precisión de día): **Confirmado** si cantidad, fecha y disponibilidad son conocidas y la observación está verificada, con antigüedad de hasta siete días; **Desactualizado** si supera siete días; **Desconocido** si falta alguno de esos datos o verificación. Cero confirmado se muestra como cero; ausencia en un CSV conserva la observación anterior. **Materiales requeridos sin proveedores** requiere elegir sistema y enumera materiales de obras activas sin stock positivo registrado en ese sistema; puede haber proveedores desactualizados, por lo que conviene revisar sus fechas. Esa consulta utiliza el sistema y no los filtros de economía/nave/estado.
 
-Solo administradores pueden importar, ver historial de observaciones/importaciones, corregir stock, vincular equivalencias y editar metadatos de estación. Las correcciones piden motivo, fuente, fecha y versión. Una corrección manual crea otra observación y conserva la anterior. Los administradores pueden corregir datos del mismo día con versión vigente; no pueden retroceder la fecha.
+Comandantes y administradores pueden importar, ver historial de observaciones/importaciones, corregir stock, vincular equivalencias y editar metadatos de estación, según la política vigente de dos roles. El acceso permanece autenticado; cuentas y roles continúan reservados a Administrador. Las correcciones piden motivo, fuente, fecha y versión. Una corrección manual crea otra observación y conserva la anterior. Ambos roles pueden corregir datos del mismo día con versión vigente; no pueden retroceder la fecha.
 
-Una importación solo reemplaza stock con fecha **estrictamente posterior**. Registros antiguos o distintos del mismo día quedan trazados en el historial y en los contadores, sin sustituir lo vigente. El CSV no contiene hora, así que un conflicto del mismo día requiere comprobación y corrección manual. Dos administradores importando a la vez el mismo contenido obtienen una sola importación. Los cambios de nombre de archivo no crean una segunda carga si el contenido/contexto coincide. Cada carga nueva conserva archivos originales y su resultado; no elimina mercancías omitidas.
+Una importación solo reemplaza stock con fecha **estrictamente posterior**. Registros antiguos o distintos del mismo día quedan trazados en el historial y en los contadores, sin sustituir lo vigente. El CSV no contiene hora, así que un conflicto del mismo día requiere comprobación y corrección manual. Dos usuarios autenticados importando a la vez el mismo contenido obtienen una sola importación. Los cambios de nombre de archivo no crean una segunda carga si el contenido/contexto coincide. Cada carga nueva conserva archivos originales y su resultado; no elimina mercancías omitidas.
 
 ## Formato CSV y API
 
@@ -84,12 +84,12 @@ Rutas bajo `/api/index.php?route=`:
 |---|---|
 | GET `markets` | Autenticado; `q`, `system`, `station_id`, `economy`, `ship_size=S/M/L`, `status=confirmed/stale/unknown`, `sort=stock/updated/station`, `commodity_id`, `missing=1`, `list_page` |
 | GET `markets/options` | Autenticado; estaciones, sistemas, economías y caducidad |
-| GET `markets/imports` | Admin; trazabilidad paginada |
-| GET `markets/history&station_id=ID&product_id=ID` | Admin; observaciones paginadas |
-| POST `markets/import` | Admin; multipart `stock_file`, `summary_file`, `system`, `action=preview/apply`; apply requiere `review_hash`, `confirmed=1` y clave idempotente |
-| PATCH `markets/stock&id=PRODUCT_ID` | Admin; JSON con `station_id`, `version`, `quantity`, `available` booleano/null, `verified` booleano, `observed_on`, `source`, `reason` |
-| PATCH `markets/station&id=ID` | Admin; `version`, `economy`, `max_pad` S/M/L/null, `observed_on`, `source`, `reason` |
-| PATCH `markets/product&id=ID` | Admin; `version`, `commodity_id` o null, `reason` |
+| GET `markets/imports` | Comandante / Administrador; trazabilidad paginada |
+| GET `markets/history&station_id=ID&product_id=ID` | Comandante / Administrador; observaciones paginadas |
+| POST `markets/import` | Comandante / Administrador; multipart `stock_file`, `summary_file`, `system`, `action=preview/apply`; apply requiere `review_hash`, `confirmed=1` y clave idempotente |
+| PATCH `markets/stock&id=PRODUCT_ID` | Comandante / Administrador; JSON con `station_id`, `version`, `quantity`, `available` booleano/null, `verified` booleano, `observed_on`, `source`, `reason` |
+| PATCH `markets/station&id=ID` | Comandante / Administrador; `version`, `economy`, `max_pad` S/M/L/null, `observed_on`, `source`, `reason` |
+| PATCH `markets/product&id=ID` | Comandante / Administrador; `version`, `commodity_id` o null, `reason` |
 
 Todas las escrituras y la previsualización requieren `X-CSRF-Token`; escrituras requieren `Idempotency-Key`. Sin 009 las consultas del módulo responden `503 market_schema` y la pantalla muestra la actualización pendiente; sistemas y logística siguen funcionando.
 

@@ -62,7 +62,7 @@ final class MarketService
     {
         $parsed=MarketCsv::parse($stock,$summary,$context);
         if (!hash_equals($parsed['hash'],$reviewHash)) { throw new HttpError(409,'market_review','Los archivos o el sistema cambiaron. Volvé a validar antes de importar.'); }
-        return (new MutationService($this->database))->run($actor,$authVersion,['admin'],'markets.import',$key,['hash'=>$parsed['hash']],function(string $operation) use($parsed,$stock,$summary,$stockName,$summaryName,$actor): array {
+        return (new MutationService($this->database))->run($actor,$authVersion,['admin','viewer'],'markets.import',$key,['hash'=>$parsed['hash']],function(string $operation) use($parsed,$stock,$summary,$stockName,$summaryName,$actor): array {
             $this->lock();
             $existing=$this->markets->rows('SELECT id,result_json FROM market_imports WHERE content_sha256=? FOR UPDATE',[$parsed['hash']]);
             if($existing) { $data=json_decode($existing[0]['result_json'],true,32,JSON_THROW_ON_ERROR); return ['data'=>$data+['duplicate_import'=>true],'status'=>200]; }
@@ -123,7 +123,7 @@ final class MarketService
                 if($data['available']===0 && $data['quantity']!==null && $data['quantity']!=='0') { throw new HttpError(422,'validation','Stock positivo incompatible con disponibilidad NO.'); }
             }
         }
-        return (new MutationService($this->database))->run($actor,$authVersion,['admin'],'markets.'.$kind,$key,$data,function(string $operation) use($actor,$data,$kind,$id,$version,$reason): array {
+        return (new MutationService($this->database))->run($actor,$authVersion,['admin','viewer'],'markets.'.$kind,$key,$data,function(string $operation) use($actor,$data,$kind,$id,$version,$reason): array {
             $this->lock();
             $before=match($kind) { 'station'=>$this->markets->station($id,true), 'product'=>$this->markets->product($id,true), 'stock'=>$this->markets->stock($data['station_id'],$id,true)??throw new HttpError(404,'not_found','Existencias no encontradas.') };
             if($before['version']!==$version) { throw new HttpError(409,'stale_version','Los datos cambiaron. Recargá antes de guardar.'); }

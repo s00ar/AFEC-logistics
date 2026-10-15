@@ -23,8 +23,7 @@ final class MarketController
         $method=$_SERVER['REQUEST_METHOD']??'GET';
         $allowed=match($route) { 'markets','markets/options','markets/imports','markets/history'=>['GET'], 'markets/import'=>['POST'], 'markets/stock','markets/station','markets/product'=>['PATCH'] };
         if(!in_array($method,$allowed,true)) { header('Allow: '.implode(', ',$allowed)); throw new HttpError(405,'method_not_allowed','Método no permitido.'); }
-        $admin=$method!=='GET' || in_array($route,['markets/imports','markets/history'],true);
-        $actor=$admin?$app->auth()->requireAdmin():$app->auth()->requireUser();
+        $actor=$app->auth()->requireUser();
         $repository=new MarketRepository($app->database,$app->config['markets']['stale_days']);
         if(!$repository->ready()) { throw new HttpError(503,'market_schema','Mercados requiere aplicar la migración 009. El resto de la aplicación sigue disponible.'); }
         if($method==='GET') {
