@@ -1,4 +1,5 @@
 import { request } from './http.js';
+import './starfield.js';
 const homeUrl = document.querySelector('meta[name="home-url"]').content;
 
 document.querySelector('#login-form')?.addEventListener('submit', async (event) => {

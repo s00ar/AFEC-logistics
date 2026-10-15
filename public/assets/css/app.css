@@ -186,11 +186,11 @@ body {
     background-image:radial-gradient(ellipse at 12% 8%,#cc00000d,transparent 50%),radial-gradient(ellipse at 88% 72%,#ff710009,transparent 48%);
 }
 
-/* Two decorative layers: only transform/opacity animate; no assets, blur or input interception. */
+/* Separate depths combine bounded pointer/scroll parallax with a slow ambient drift. */
 body::before,body::after {
     content:"";
     position:fixed;
-    inset:-48px;
+    inset:-80px;
     z-index:-2;
     pointer-events:none;
     background-repeat:repeat;
@@ -215,9 +215,23 @@ body::after {
     opacity:.5;
     animation:afec-stars-near 65s ease-in-out infinite alternate,afec-stars-shimmer 11s ease-in-out infinite alternate;
 }
-@keyframes afec-stars-drift { to { transform:translate3d(22px,-32px,0); } }
-@keyframes afec-stars-near { to { transform:translate3d(-30px,-42px,0); } }
+@keyframes afec-stars-drift {
+    from { transform:translate3d(var(--stars-far-x,0px),var(--stars-far-y,0px),0); }
+    to { transform:translate3d(calc(var(--stars-far-x,0px) + 22px),calc(var(--stars-far-y,0px) - 32px),0); }
+}
+@keyframes afec-stars-near {
+    from { transform:translate3d(var(--stars-near-x,0px),var(--stars-near-y,0px),0); }
+    to { transform:translate3d(calc(var(--stars-near-x,0px) - 30px),calc(var(--stars-near-y,0px) - 42px),0); }
+}
 @keyframes afec-stars-shimmer { from { opacity:.35; } to { opacity:.7; } }
+.starfield-paused::before,.starfield-paused::after { animation-play-state:paused; }
+.starfield-jumps { position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+.stellar-jump { position:absolute; height:10px; margin-top:-5px; transform-origin:0 50%; overflow:hidden; pointer-events:none; color:#ffd6b6; }
+.stellar-jump::before,.stellar-jump::after { content:""; position:absolute; top:4px; width:2px; height:2px; border-radius:50%; background:#fff1e5; box-shadow:0 0 4px #ff710080; }
+.stellar-jump::before { left:0; }
+.stellar-jump::after { right:0; }
+.stellar-jump-trail { position:absolute; top:4px; left:0; height:1.5px; border-radius:50%; transform-origin:100% 50%; background:linear-gradient(90deg,transparent,#ff710026 20%,#ffb578b3 72%,#fff4e8); }
+.stellar-jump-trail::after { content:""; position:absolute; right:0; top:-.75px; width:3px; height:3px; border-radius:50%; background:#fff4e8; box-shadow:0 0 4px #ffe7d4,0 0 8px #ff710080; }
 @keyframes afec-arrive { from { opacity:0; } to { opacity:1; } }
 @keyframes afec-dialog-arrive { from { opacity:0; transform:translateY(8px) scale(.99); } to { opacity:1; transform:none; } }
 .content,.login-main { animation:afec-arrive .35s ease-out both; }
@@ -235,6 +249,8 @@ body::after {
 }
 @media(prefers-reduced-motion:reduce) {
     body::before,body::after,.content,.login-main,.editor-dialog[open] { animation:none; }
+    body::before,body::after { transform:none; }
+    .starfield-jumps { display:none; }
     .system-card,.button-quiet,.button-primary,.site-header nav a { transition:none; }
     .system-card:hover,.button-quiet:not(:disabled):hover,.button-primary:not(:disabled):hover,.button-quiet:not(:disabled):active,.button-primary:not(:disabled):active { transform:none; }
 }
