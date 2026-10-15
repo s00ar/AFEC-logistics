@@ -53,6 +53,9 @@ final class Config
                 throw new RuntimeException('La caducidad de sesión no es válida.');
             }
         }
+        if (!is_int($config['markets']['stale_days']) || $config['markets']['stale_days'] < 1 || $config['markets']['stale_days'] > 3650) {
+            throw new RuntimeException('La antigüedad de mercados debe ser de 1 a 3650 días.');
+        }
         return $config;
     }
 }

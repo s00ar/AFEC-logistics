@@ -30,12 +30,22 @@ try {
     $listPage = Request::page($_GET['list_page'] ?? null);
     $csrf = $app->session()->csrf();
     $page = $_GET['page'] ?? 'dashboard';
-    if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login','wishlist', 'recipes','commodities','account','password-help','password-requests'], true)) {
+    if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login','wishlist', 'recipes','commodities','account','password-help','password-requests','markets'], true)) {
         throw new HttpError(404, 'not_found', 'No se encontró esta página.');
     }
     if ($user === null && ($page === 'login' || (!$app->config['app']['public_read'] && $page !== 'password-help'))) {
         $title = 'Iniciar sesión';
         $view = 'login';
+    } elseif ($page === 'markets') {
+        $app->auth()->requireUser();
+        $marketRepository=new \Afec\Repositories\MarketRepository($app->database,$app->config['markets']['stale_days']);
+        $marketsReady=$marketRepository->ready(); $marketFilters=\Afec\Repositories\MarketRepository::filters($_GET);
+        $marketOptions=$marketsReady?$marketRepository->options():['stations'=>[],'systems'=>[],'economies'=>[],'stale_days'=>$app->config['markets']['stale_days']];
+        $marketListing=$marketsReady?($marketFilters['missing']?$marketRepository->missing($marketFilters['system'],$listPage):$marketRepository->listing($marketFilters,$listPage)):['items'=>[],'pagination'=>['page'=>1,'has_more'=>false]];
+        $pagination=$marketListing['pagination'];
+        $marketImports=$marketsReady && $user['role']==='admin'?$marketRepository->imports()['items']:[];
+        $marketCommodities=$marketsReady && $user['role']==='admin'?(new \Afec\Repositories\CommodityRepository($app->database))->rows():[];
+        $title='Mercados del Sistema'; $view='markets';
     } elseif ($page === 'account') {
         $app->auth()->requireUser(); $title = 'Mi cuenta'; $view = 'account';
     } elseif ($page === 'password-help') {

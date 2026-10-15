@@ -24,5 +24,6 @@ return [
         'remember_seconds' => 2592000, // 30 days from login when remember_me is selected.
         'cookie_secure' => true,
     ],
+    'markets' => ['stale_days' => 7], // Observations older than this many calendar days are stale.
     'storage_path' => dirname(__DIR__) . '/storage',
 ];

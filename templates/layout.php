@@ -10,12 +10,15 @@
     <meta name="user-id" content="<?= e($user['id'] ?? '') ?>">
     <title><?= e($title) ?> · AFEC Logística</title>
     <link rel="stylesheet" href="<?= e($app->assetUrl('css/app.css')) ?>">
+    <?php if ($page==='markets'): ?><link rel="stylesheet" href="<?= e($app->assetUrl('css/markets.css')) ?>"><?php endif ?>
     <link rel="icon" type="image/png" href="<?= e($logoUrl) ?>">
     <script src="<?= e($app->assetUrl('js/app.js')) ?>" type="module"></script>
     <?php if (in_array($page, ['account','password-help','password-requests'], true)): ?><script src="<?= e($app->assetUrl('js/account-security.js')) ?>" type="module"></script><?php endif ?>
+    <?php if ($user !== null && $page==='markets'): ?><script src="<?= e($app->assetUrl('js/markets.js')) ?>" type="module"></script><?php endif ?>
     <?php if ($user !== null): ?><script src="<?= e($app->assetUrl('js/planning.js')) ?>" type="module"></script><script src="<?= e($app->assetUrl('js/logistics.js')) ?>" type="module"></script><?php endif ?>
     <?php if ($user !== null && $page==='system'): ?><script src="<?= e($app->assetUrl('js/quick-load.js')) ?>" type="module"></script><?php endif ?>
     <?php if ($user !== null && $page==='wishlist'): ?><script src="<?= e($app->assetUrl('js/carrier-load.js')) ?>" type="module"></script><?php endif ?>
+    <?php if (in_array($page, ['system','wishlist','commodities'], true)): ?><script src="<?= e($app->assetUrl('js/commodity-search.js')) ?>" type="module"></script><?php endif ?>
 </head>
 <body>
 <a class="skip-link" href="#main">Saltar al contenido</a>
@@ -23,6 +26,7 @@
     <a class="brand" href="<?= e($app->url('/')) ?>" aria-label="AFEC Logística, inicio"><img class="brand-logo" src="<?= e($logoUrl) ?>" alt="" width="120" height="120"><span>AFEC <strong>LOGÍSTICA</strong></span></a>
     <nav aria-label="Navegación principal">
         <a href="<?= e($app->url('/')) ?>" <?= $page === 'dashboard' ? 'aria-current="page"' : '' ?>>Sistemas</a>
+        <?php if ($user !== null): ?><a href="<?= e($app->url('/?page=markets')) ?>" <?= $page==='markets'?'aria-current="page"':'' ?>>Mercados del Sistema</a><?php endif ?>
         <?php if ($canPlan): ?><a href="<?= e($app->url('/?page=recipes')) ?>" <?= $page === 'recipes' ? 'aria-current="page"' : '' ?>>Facilities y recetas</a><?php endif ?>
         <?php if ($user !== null): ?><a href="<?= e($app->url('/?page=wishlist&scope=personal')) ?>" <?= $page==='wishlist' && $scope==='personal'?'aria-current="page"':'' ?>>Mi lista</a><a href="<?= e($app->url('/?page=wishlist&scope=fleet')) ?>" <?= $page==='wishlist' && $scope==='fleet'?'aria-current="page"':'' ?>>Flota</a><?php endif ?>
         <?php if ($user !== null): ?><a href="<?= e($app->url('/?page=commodities')) ?>" <?= $page === 'commodities' ? 'aria-current="page"' : '' ?>>Mercancías</a><?php endif ?><?php if (($user['role'] ?? null) === 'admin'): ?><a href="<?= e($app->url('/?page=users')) ?>" <?= $page === 'users' ? 'aria-current="page"' : '' ?>>Usuarios</a><?php endif ?>
@@ -39,6 +43,7 @@
     <?php if ($passwordHelpError): ?><aside class="password-help-alert" role="status">No se pudo consultar la cola de ayuda. Reintentá desde Solicitudes de ayuda o contactá al responsable del sitio.</aside><?php endif ?>
     <?php require __DIR__ . '/' . $view . '.php'; ?>
 </main>
+<?php if (in_array($page, ['system','wishlist','commodities'], true)): require __DIR__.'/commodity-search.php'; endif ?>
 <?php if ($user !== null): ?><?php require __DIR__ . '/planning-dialog.php'; require __DIR__ . '/logistics-dialogs.php'; ?><?php endif ?>
 <footer class="site-footer"><span>AFEC · Colonización coordinada</span><span>Elite Dangerous</span></footer>
 <div id="global-message" class="toast" role="status" hidden></div>

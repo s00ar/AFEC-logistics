@@ -149,6 +149,8 @@ Las entregas se registran desde el panel lateral del material, como se describe 
 
 ## Carga de stock y paladas
 
+La **lupa flotante abajo a la izquierda** abre **Buscar mercancía** para ubicar materiales por nombre en las tablas de los settlements de un sistema, las listas personal/flota y el catálogo. Cerrada muestra solo la lupa. Marca las coincidencias de la página actual y salta a la primera sin ocultar el resto. Usar las flechas o Enter / Mayús + Enter para recorrerlas; Escape cierra y quita las marcas. No distingue mayúsculas ni tildes. En el catálogo también busca por código, nombre en inglés y alias. Los paginadores siguen disponibles para consultar otras páginas.
+
 1. Abrir un sistema y elegir **Comandante** en la instalación. Ambos roles pueden seleccionar su identidad o la de terceros. Si falta la propia, pulsar **Usar mi comandante**.
 2. Escribir **Palada base (t)** y pulsar **Guardar palada**. Solo admite enteros positivos; guardar vacío quita la preferencia. Se conserva por comandante, incluso sin importar 008.
 3. Seleccionar una fila de material. Se abre el panel lateral: **Palada** ofrece −/+; **Cantidad** ofrece un campo numérico y −/+. Enter suma la cantidad indicada.
@@ -203,4 +205,16 @@ Las contraseñas nuevas no se guardan en el almacenamiento de recuperación del 
 
 ## Funcionalidades todavía pendientes
 
-Importación completa de sistemas/instalaciones/entregas de Sheets, clasificación de estructuras desconocidas y tiers pendientes, reservas/cargas en tránsito y un módulo completo de edición/retiro de comandantes y carriers. Estos últimos pueden seleccionarse o darse de alta al registrar una entrega; no cuentan todavía con pantalla administrativa completa. No hay integración de stock externo, registro público de cuentas ni roles personalizados. El despliegue y la inicialización reales en Hostinger siguen pendientes.
+La importación de mercados por CSV ya está disponible con la migración 009; los pendientes indicados a continuación se refieren a automatización externa y otros módulos.
+
+Importación completa de sistemas/instalaciones/entregas de Sheets, clasificación de estructuras desconocidas y tiers pendientes, reservas/cargas en tránsito y un módulo completo de edición/retiro de comandantes y carriers. Estos últimos pueden seleccionarse o darse de alta al registrar una entrega; no cuentan todavía con pantalla administrativa completa. No hay sincronización automática de stock externo, registro público de cuentas ni roles personalizados. Las actualizaciones de esquema de producción se aplican expresamente mediante sus paquetes SQL.
+
+## Mercados del Sistema
+
+1. Iniciar sesión y abrir **Mercados del Sistema**, o pulsar **Dónde conseguir** junto a un material requerido o en Mi lista/Flota.
+2. Buscar por nombre original o de colonización, elegir sistema/estación/economía y tamaño de nave. Pulsar el nombre de una estación para consultar sus materiales. **Large** solo aparece si se registró pad L verificado.
+3. Revisar cantidad, fuente y fecha: **Confirmado** hasta siete días, **Desactualizado** después, **Desconocido** si faltan datos/verificación. El stock de mercado no es una entrega y no reduce faltantes. Una mercancía ausente del CSV no implica stock cero.
+4. Elegir sistema y marcar **Materiales requeridos sin proveedores** para identificar materiales de sus construcciones sin suministro positivo registrado.
+5. Administradores: desplegar **Administración: importar CSV**, cargar inventario/resumen, validar, revisar y confirmar. Repetir los mismos archivos no duplica registros. **Actualizar stock**, **Equivalencia**, **Historial** y **Datos de estación** permiten mantenimiento con motivo y control de versiones.
+
+Si aparece actualización pendiente, aplicar primero el paquete 009 siguiendo [MERCADOS.md](MERCADOS.md). La guía incluye los archivos originales, formato, activación segura y rollback. Los CSV del 15/10/2026 no informan economía ni pads; deben completarse con información verificada.

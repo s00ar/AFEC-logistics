@@ -16,7 +16,7 @@ Pasos de acceso y flujos actuales en [docs/GUIA_USO.md](docs/GUIA_USO.md). La pr
 
 CRUD administrativo de mercancías ampliado: nombres/códigos, alias, desactivación/reactivación e historial. Requiere importar la actualización 007 desde phpMyAdmin para habilitar equivalencias; el push no ejecuta SQL. Alcance y comprobaciones en [docs/CRUD_MERCANCIAS.md](docs/CRUD_MERCANCIAS.md).
 
-Stock por material mediante panel lateral con palada base numérica y suma/resta de cantidades. Paladas persistidas también antes de importar 008. Las listas personal/flota permiten registrar el total a bordo de cada carrier y calcular su reparto por los faltantes actuales, manteniendo separadas las entregas recibidas. Uso, API, pruebas y rollback en [docs/STOCK_Y_CARRIERS.md](docs/STOCK_Y_CARRIERS.md); antecedentes en [docs/CARGA_RAPIDA.md](docs/CARGA_RAPIDA.md).
+Stock por material mediante panel lateral con palada base numérica y suma/resta de cantidades. Paladas persistidas también antes de importar 008. Buscador flotante por nombre en sistemas, listas y catálogo, con resaltado y navegación entre coincidencias de la página. Las listas personal/flota permiten registrar el total a bordo de cada carrier y calcular su reparto por los faltantes actuales, manteniendo separadas las entregas recibidas. Uso, API, pruebas y rollback en [docs/STOCK_Y_CARRIERS.md](docs/STOCK_Y_CARRIERS.md); antecedentes en [docs/CARGA_RAPIDA.md](docs/CARGA_RAPIDA.md).
 
 Todos los usuarios pueden cambiar su contraseña desde **Mi cuenta**. Desde el login se puede solicitar ayuda a un administrador; los avisos aparecen al ingresar como administrador y se resuelven al restablecer la contraseña o marcarlos atendidos. No utiliza correo ni requiere SQL nuevo. Funcionamiento, almacenamiento privado, pruebas y rollback en [docs/CUENTAS_Y_AYUDA.md](docs/CUENTAS_Y_AYUDA.md).
 
@@ -122,3 +122,7 @@ El servidor integrado de PHP ignora `.htaccess`: usarlo únicamente con `-t publ
 Simular/aplicar estructura con `php tools/migrate.php` / `php tools/migrate.php --apply`. En producción se exige además `--allow-production` y un backup revisado. El migrador detecta versiones modificadas o incompletas; no intenta revertir automáticamente DDL.
 
 La guía de preparación del servidor y rollback está en [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md). No conectar despliegues automáticos a producción antes de validar layout, configuración privada, esquema y respaldos.
+
+## Mercados del Sistema
+
+Consulta autenticada de proveedores y existencias, enlaces **Dónde conseguir** desde los materiales/listas, filtros de economía/pad y caducidad configurable de siete días. Importación administrativa de CSV validada, transaccional, idempotente y con historial; no modifica entregas ni objetivos. Requiere aplicar la actualización 009 y cargar los CSV desde el panel administrativo: el push no ejecuta SQL ni importa inventario. Datos, archivos modificados, pruebas, activación en phpMyAdmin y rollback en [docs/MERCADOS.md](docs/MERCADOS.md).

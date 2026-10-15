@@ -34,6 +34,14 @@ Riesgos: registrar como total un incremento, atribuir stock al comandante incorr
 
 Los endpoints anteriores de entregas siguen compatibles para clientes API y operaciones pendientes.
 
+## Buscador flotante de mercancías
+
+En sistemas (también públicos), listas personal/flota y catálogo, una **lupa flotante abajo a la izquierda** abre el panel **Buscar mercancía**. Al cerrar queda únicamente el icono circular, con etiqueta accesible. Busca por nombre sin distinguir tildes ni mayúsculas, marca las filas/tarjetas y desplaza la vista a la coincidencia actual. Flechas, Enter y Mayús + Enter recorren las coincidencias; Escape o cerrar quitan las marcas y devuelven el foco al botón. En el catálogo también se incluyen código, nombre en inglés y alias. Busca solo en la página cargada; no consulta otros sistemas ni páginas del paginador.
+
+La interfaz se comparte mediante `templates/commodity-search.php` y `public/assets/js/commodity-search.js`, cargados solo en esas vistas y permitidos en `.htaccess`. No hace solicitudes ni escrituras adicionales, no oculta materiales y conserva los clics de carga. El desplazamiento respeta la preferencia de movimiento reducido.
+
+Prueba manual reproducible: abrir un sistema con un material repetido entre instalaciones, buscar su nombre con mayúsculas/tildes y comprobar el contador y las marcas; recorrer con Enter, Mayús + Enter y las flechas; buscar un nombre inexistente y cerrar con Escape. Buscar por código en el catálogo y por nombre en una lista. Repetir a 390 px y seleccionar una fila encontrada para abrir su panel de stock. No se necesita registrar entregas para esta comprobación. Rollback del buscador: revertir su código/vistas/estilos/allowlist; no hay datos que restaurar.
+
 ## Verificación y rollback
 
 ```text

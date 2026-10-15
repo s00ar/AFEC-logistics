@@ -4,6 +4,7 @@
 resources/catalogue/**/*.json text eol=lf
 # Preserve the user's original CSV bytes; normalized data is diffable in the JSON.
 resources/catalogue/sources/afec-research.csv binary
+resources/markets/*.csv -text whitespace=cr-at-eol
 *.js text eol=lf
 *.css text eol=lf
 *.py text eol=lf

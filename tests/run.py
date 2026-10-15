@@ -144,7 +144,7 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         check(anonymous.page('/config/config.local.php')[0] in [403,404] and anonymous.page('/src/bootstrap.php')[0] in [403,404], 'Private files are unavailable over HTTP')
         asset_prefix = '/public/assets/' if args.webroot == 'repository' else '/assets/'
         check(asset_prefix + 'css/app.css' in html and asset_prefix + 'js/app.js' in html, 'HTML uses assets for the selected deployment layout')
-        for asset in ['css/app.css', 'js/app.js', 'js/http.js', 'js/planning.js','js/logistics.js','js/accounts.js','js/quick-load.js','js/account-security.js','js/carrier-load.js']:
+        for asset in ['css/app.css', 'js/app.js', 'js/http.js', 'js/planning.js','js/logistics.js','js/accounts.js','js/quick-load.js','js/account-security.js','js/carrier-load.js','js/commodity-search.js']:
             check(anonymous.page(asset_prefix + asset)[0] == 200, 'Application asset is reachable: ' + asset)
         logo=anonymous.resource(asset_prefix+'images/'+urllib.parse.quote('Emblema AFEC Logística Espacial.png'))
         check(logo[0]==200 and logo[1]==(ROOT/'resources/branding/afec-logistica.png').read_bytes() and logo[2].get('Content-Type','').startswith('image/png'),'Original AFEC logo is served correctly')
@@ -198,6 +198,8 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         from carrier_http import run_carrier_checks
         run_carrier_checks(anonymous,admin,viewer,operator,check,command)
         from account_http import run_account_checks
+        from market_http import run_market_checks
+        run_market_checks(anonymous,admin,viewer,operator,check,command,ROOT,env,php)
         run_account_checks(anonymous,admin,viewer,operator,Client,check,command,env,php,ROOT)
         legacy = admin.call('admin/user&id=3')[1]['data']
         legacy_saved = admin.call('admin/user&id=3', 'PATCH', {'username':legacy['username'],'display_name':legacy['display_name'],'role':'viewer','active':True,'version':legacy['version']}, admin.session()['csrf_token'], key='normalize-legacy-role-test')

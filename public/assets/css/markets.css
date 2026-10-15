@@ -1,0 +1,24 @@
+.market-filters { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 18px;padding:22px;background:var(--panel);border:1px solid var(--line,#343840);border-radius:12px;margin:20px 0; }
+.market-filters .toolbar { grid-column:1/-1;margin:8px 0 0; }
+.market-filters>label,.market-import label,#market-editor label { display:flex;flex-direction:column;gap:8px;margin-bottom:14px;font-size:.9rem; }
+.market-filters input:not([type="checkbox"]),.market-filters select,.market-import input:not([type="checkbox"]),#market-editor input:not([type="checkbox"]),#market-editor select,#market-editor textarea { box-sizing:border-box;display:block;width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #454851;border-radius:7px;background:#0f1219;color:#ededee;font:inherit; }
+.market-filters .confirm-row,.market-import .confirm-row,#market-editor .confirm-row { flex-direction:row;align-items:center;line-height:1.45; }
+.market-filters input[type="checkbox"],.market-import input[type="checkbox"],#market-editor input[type="checkbox"] { flex:0 0 auto;width:18px;height:18px;accent-color:#ff7100; }
+.market-secondary { display:block;color:var(--muted,#b6b7bc);font-weight:400;font-size:.8rem;margin-top:6px;line-height:1.45;overflow-wrap:anywhere; }
+.market-table th,.market-table td { vertical-align:top; }
+.market-table td:nth-child(3) { min-width:150px; }
+.market-table td:nth-child(5) { min-width:190px; }
+.market-large { color:#ff9c4a; }
+.market-confirmed { border-color:#408c70;color:#a8e4c8; }
+.market-stale { border-color:#bd883e;color:#f0ce8b; }
+.market-unknown { color:#c7c7c7; }
+.market-actions { display:flex;flex-direction:column;align-items:stretch;gap:8px; }
+.market-section { margin:24px 0;padding:20px;border:1px solid var(--line,#343840);border-radius:12px;background:var(--panel); }
+.market-section>summary { cursor:pointer;font-weight:600;margin-bottom:14px; }
+.market-import { max-width:850px; }
+.market-section li { margin-bottom:10px;overflow-wrap:anywhere; }
+#market-editor fieldset { border:0;margin:0;padding:0;min-width:0; }
+#market-editor [hidden] { display:none; }
+.market-provider-link { display:inline-block;font-size:.75rem;margin:6px 8px 0 0; }
+@media(max-width:800px) { .market-filters { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:520px) { .market-filters { grid-template-columns:1fr;padding:15px; } .market-section { padding:14px; } }
