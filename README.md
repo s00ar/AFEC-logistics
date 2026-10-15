@@ -18,6 +18,8 @@ CRUD administrativo de mercancías ampliado: nombres/códigos, alias, desactivac
 
 Carga rápida y paladas individuales implementadas para verificación local: controles en cada fila, suma/resta manual o estándar, selección persistente y actualización de totales. Migración 008 aditiva; no aplicada ni publicada automáticamente en producción. Alcance, permisos y pruebas en [docs/CARGA_RAPIDA.md](docs/CARGA_RAPIDA.md).
 
+Todos los usuarios pueden cambiar su contraseña desde **Mi cuenta**. Desde el login se puede solicitar ayuda a un administrador; los avisos aparecen al ingresar como administrador y se resuelven al restablecer la contraseña o marcarlos atendidos. No utiliza correo ni requiere SQL nuevo. Funcionamiento, almacenamiento privado, pruebas y rollback en [docs/CUENTAS_Y_AYUDA.md](docs/CUENTAS_Y_AYUDA.md).
+
 ## Estructura
 
 ```text
@@ -28,7 +30,7 @@ src/           Configuración, sesión, servicios y repositorios PDO
 templates/     Presentación HTML
 config/        Ejemplo y configuración local ignorada
 database/      SQL versionado
-storage/       Sesiones y logs privados (ignorados)
+storage/       Sesiones, avisos de ayuda y logs privados (ignorados)
 tools/         Preparación privada por CLI
 tests/         Pruebas contra una base local aislada
 docs/          Decisiones y despliegue
@@ -56,6 +58,10 @@ Entrada HTTP: `/api/index.php?route=...` en ambos modos de despliegue (las opera
 | --- | --- | --- |
 | GET | `session` | Sesión propia y token CSRF |
 | POST | `login`, `logout` | Token CSRF; login devuelve errores genéricos y limita intentos |
+| POST | `password/help` | Público con CSRF; aviso de ayuda sin cambiar la contraseña |
+| POST | `account/password` | Cambio de contraseña propia con contraseña actual, CSRF y clave idempotente |
+| GET | `admin/password-help` | Administrador; solicitudes de ayuda pendientes |
+| POST | `admin/password-help/close&id=ID` | Administrador, CSRF y clave idempotente; marcar solicitud atendida |
 | GET | `systems` | Público |
 | GET | `system&id=ID` | Público; instalaciones y requerimientos |
 | GET | `installation&id=ID` | Público; metadatos de instalación |

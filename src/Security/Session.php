@@ -42,6 +42,7 @@ final class Session
     public function csrf(): string { return $_SESSION['csrf']; }
     public function userId(): ?string { return isset($_SESSION['user_id']) ? (string) $_SESSION['user_id'] : null; }
     public function authVersion(): ?int { return $_SESSION['auth_version'] ?? null; }
+    public function remembered(): bool { return ($_SESSION['remember_me'] ?? false) === true; }
 
     public function verifyCsrf(): void
     {

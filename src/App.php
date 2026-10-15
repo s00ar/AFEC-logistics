@@ -11,6 +11,7 @@ final class App
 {
     private ?AuthService $auth = null;
     private ?Session $session = null;
+    private ?\Afec\Services\AccountService $accounts = null;
     public readonly Database $database;
 
     public function __construct(public readonly array $config)
@@ -31,6 +32,11 @@ final class App
     public function url(string $path): string
     {
         return $this->config['app']['base_path'] . $path;
+    }
+
+    public function accounts(): \Afec\Services\AccountService
+    {
+        return $this->accounts ??= new \Afec\Services\AccountService($this->database, new \Afec\Repositories\PasswordHelpRepository($this->config['storage_path']));
     }
 
     public function assetUrl(string $path): string

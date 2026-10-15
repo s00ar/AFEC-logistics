@@ -14,6 +14,12 @@ Para la base vacía se entregó un SQL privado de instalación inicial con el ca
 
 Estado comprobado el 14/10/2026: después de cargar la configuración y el esquema, panel y API de sistemas responden 200. El propietario confirmó que puede administrar cuentas y cambiar roles. El fallo inicial de configuración y la instalación por phpMyAdmin se documentan en [DESPLIEGUE.md](DESPLIEGUE.md); los controles nuevos de identidad están en [CORRECCION_ROLES.md](CORRECCION_ROLES.md).
 
+## Cambiar tu contraseña o pedir ayuda
+
+- Con la sesión iniciada, pulsar **Mi cuenta** en la cabecera. Completar contraseña actual, nueva contraseña y confirmación; pulsar **Guardar nueva contraseña**. La sesión actual continúa y las otras sesiones de esa cuenta se revocan.
+- Si no se puede ingresar, abrir **¿No podés ingresar? Pedí ayuda con tu contraseña** desde el login e indicar el usuario de acceso. Pedir ayuda conserva la contraseña actual y no cierra sesiones. No se necesita cargar un correo.
+- Al ingresar como administrador, un aviso indica las solicitudes pendientes. Abrir **Ver solicitudes**, confirmar la identidad por el canal habitual de AFEC y pulsar **Restablecer contraseña**. Comunicar la nueva contraseña por ese canal. El restablecimiento elimina automáticamente el aviso pendiente; también se puede **Marcar como atendida**, indicando un motivo, si el usuario ya recuperó el acceso.
+
 ## Ingresar a la demo
 
 1. Abrir `http://127.0.0.1:8077/?page=login` en este PC, con los servicios locales activos.

@@ -591,6 +591,50 @@ p {
     line-height:1.5;
     margin:0;
 }
+.account-panel {
+    max-width:620px;
+    padding:28px;
+    margin:22px 0;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--panel, #151820);
+}
+.account-panel h2 { margin-top:0; }
+.account-panel label { display:block; margin:18px 0 8px; font-size:.88rem; }
+.account-panel input {
+    display:block;
+    width:100%;
+    min-height:46px;
+    padding:12px;
+    margin-top:8px;
+    border:1px solid #45484f;
+    border-radius:7px;
+    background:#101218;
+    color:var(--text);
+}
+.account-panel .muted { line-height:1.6; }
+.account-panel form + .muted { margin-top:24px; }
+.account-panel .button-quiet { margin-top:10px; }
+.account-panel .button-primary { gap:12px; justify-content:center; }
+.form-success { color:#9bd6a8; line-height:1.5; }
+.account-link { font-size:.85rem; text-decoration:none; }
+.account-link span { display:block; max-width:clamp(90px,24vw,200px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:3px; color:var(--muted); font-size:.75rem; }
+.password-help-alert {
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:18px 22px;
+    margin:0 0 24px;
+    border:1px solid var(--accent);
+    border-radius:10px;
+    background:#251b14;
+}
+.password-help-alert p { margin:6px 0 0; color:var(--muted); }
+.password-request-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr)); gap:20px; }
+.password-request-card { max-width:none; margin:0; }
+.close-password-help-form { border-top:1px solid var(--line); margin-top:22px; padding-top:4px; }
 .password-field input {
     padding-right:83px;
 }

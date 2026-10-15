@@ -29,6 +29,8 @@ try {
         return $flag;
     };
     switch ($route) {
+        case 'password/help': case 'account/password': case 'admin/password-help': case 'admin/password-help/close':
+            \Afec\Http\AccountController::dispatch($app, $route);
         case 'admin/commodities': case 'admin/commodity': case 'admin/commodity/restore': case 'admin/commodity/history':
             \Afec\Http\CommodityController::dispatch($app, $route);
         case 'facility/recipes': case 'facility/recipe': case 'facility/recipe/restore': case 'facility/recipe/history': case 'facility/catalogue': case 'facility/catalogue/import':

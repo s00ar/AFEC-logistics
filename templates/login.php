@@ -18,5 +18,5 @@
         <p id="login-error" class="form-error" role="alert" hidden></p>
         <button class="button-primary" id="login-submit" type="submit">Iniciar sesión <span aria-hidden="true">→</span></button>
     </form>
-    <p class="login-help">Si necesitás una cuenta, contactá con un administrador de AFEC.</p>
+    <p class="login-help"><a href="<?= e($app->url('/?page=password-help')) ?>">¿No podés ingresar? Pedí ayuda con tu contraseña.</a><br>Si necesitás una cuenta, contactá con un administrador de AFEC.</p>
 </section>

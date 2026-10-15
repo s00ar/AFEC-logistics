@@ -30,12 +30,21 @@ try {
     $listPage = Request::page($_GET['list_page'] ?? null);
     $csrf = $app->session()->csrf();
     $page = $_GET['page'] ?? 'dashboard';
-    if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login','wishlist', 'recipes','commodities'], true)) {
+    if (!is_string($page) || !in_array($page, ['dashboard', 'system', 'users', 'login','wishlist', 'recipes','commodities','account','password-help','password-requests'], true)) {
         throw new HttpError(404, 'not_found', 'No se encontró esta página.');
     }
-    if ($user === null && ($page === 'login' || !$app->config['app']['public_read'])) {
+    if ($user === null && ($page === 'login' || (!$app->config['app']['public_read'] && $page !== 'password-help'))) {
         $title = 'Iniciar sesión';
         $view = 'login';
+    } elseif ($page === 'account') {
+        $app->auth()->requireUser(); $title = 'Mi cuenta'; $view = 'account';
+    } elseif ($page === 'password-help') {
+        $title = 'Ayuda para ingresar'; $view = 'password-help';
+    } elseif ($page === 'password-requests') {
+        $app->auth()->requireAdmin();
+        $passwordRequests = $app->accounts()->pending($listPage);
+        $pagination = ['page'=>$listPage, 'has_more'=>$passwordRequests['has_more']];
+        $title = 'Solicitudes de ayuda'; $view = 'password-requests';
     } elseif ($page === 'recipes') {
         $app->auth()->requirePlanner();
         $listing = (new RecipeRepository($app->database))->listing($listPage, $includeArchived);
@@ -76,6 +85,11 @@ try {
         $pagination = ['page' => $listing['page'], 'has_more' => $listing['has_more']];
         $title = 'Sistemas de colonización';
         $view = 'dashboard';
+    }
+    $passwordHelpTotal = 0; $passwordHelpError = false;
+    if (($user['role'] ?? null) === 'admin') {
+        try { $passwordHelpTotal = ($passwordRequests ?? $app->accounts()->pending())['total']; }
+        catch (Throwable $error) { $passwordHelpError = true; $app->logError($error, $requestId); }
     }
     require dirname(__DIR__) . '/templates/layout.php';
 } catch (Throwable $error) {

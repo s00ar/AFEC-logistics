@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="<?= e($app->assetUrl('css/app.css')) ?>">
     <link rel="icon" type="image/png" href="<?= e($logoUrl) ?>">
     <script src="<?= e($app->assetUrl('js/app.js')) ?>" type="module"></script>
+    <?php if (in_array($page, ['account','password-help','password-requests'], true)): ?><script src="<?= e($app->assetUrl('js/account-security.js')) ?>" type="module"></script><?php endif ?>
     <?php if ($user !== null): ?><script src="<?= e($app->assetUrl('js/planning.js')) ?>" type="module"></script><script src="<?= e($app->assetUrl('js/logistics.js')) ?>" type="module"></script><?php endif ?>
     <?php if ($user !== null && $page==='system'): ?><script src="<?= e($app->assetUrl('js/quick-load.js')) ?>" type="module"></script><?php endif ?>
 </head>
@@ -26,13 +27,15 @@
         <?php if (($user['role'] ?? null) === 'admin'): ?><a href="<?= e($app->url('/?page=commodities')) ?>" <?= $page === 'commodities' ? 'aria-current="page"' : '' ?>>Mercancías</a><a href="<?= e($app->url('/?page=users')) ?>" <?= $page === 'users' ? 'aria-current="page"' : '' ?>>Usuarios</a><?php endif ?>
     </nav>
     <?php if ($user !== null): ?>
-    <div class="account"><span><?= e($user['display_name']) ?></span><button class="button-quiet" id="logout" type="button">Salir</button></div>
+    <div class="account"><a class="account-link" href="<?= e($app->url('/?page=account')) ?>" <?= $page==='account'?'aria-current="page"':'' ?>>Mi cuenta <span><?= e($user['display_name']) ?></span></a><button class="button-quiet" id="logout" type="button">Salir</button></div>
     <?php else: ?>
     <div class="account"><a class="button-quiet" href="<?= e($app->url('/?page=login')) ?>">Iniciar sesión</a></div>
     <?php endif ?>
 </header>
 <main id="main" class="<?= $view === 'login' ? 'login-main' : 'content' ?>">
     <?php if ($user !== null): ?><div id="pending-operation" class="pending-banner" role="status" hidden><p>Hay una operación cuyo resultado falta confirmar.</p><button type="button" class="button-quiet" id="resume-operation">Comprobar y reintentar</button></div><?php endif ?>
+    <?php if ($passwordHelpTotal > 0): ?><aside id="password-help-alert" class="password-help-alert" role="status"><div><strong>Hay <?= e($passwordHelpTotal) ?> <?= $passwordHelpTotal===1?'solicitud pendiente':'solicitudes pendientes' ?> de ayuda para ingresar.</strong><p>Revisá las cuentas que necesitan restablecer su contraseña.</p></div><a class="button-quiet" href="<?= e($app->url('/?page=password-requests')) ?>">Ver solicitudes</a></aside><?php endif ?>
+    <?php if ($passwordHelpError): ?><aside class="password-help-alert" role="status">No se pudo consultar la cola de ayuda. Reintentá desde Solicitudes de ayuda o contactá al responsable del sitio.</aside><?php endif ?>
     <?php require __DIR__ . '/' . $view . '.php'; ?>
 </main>
 <?php if ($user !== null): ?><?php require __DIR__ . '/planning-dialog.php'; require __DIR__ . '/logistics-dialogs.php'; ?><?php endif ?>
