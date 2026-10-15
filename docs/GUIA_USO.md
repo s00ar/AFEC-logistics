@@ -23,7 +23,7 @@ Estado comprobado el 14/10/2026: después de cargar la configuración y el esque
 ## Ingresar a la demo
 
 1. Abrir `http://127.0.0.1:8077/?page=login` en este PC, con los servicios locales activos.
-2. Usar `admin` para administración, `operator` para planificación/entregas de terceros o `viewer` para el rol Comandante: entregas propias, listas y abastecimiento.
+2. Usar `admin` para administración o `viewer` para Comandante, con toda la gestión operativa. La cuenta histórica `operator` también se reconoce como Comandante.
 3. La contraseña sintética de estas cuentas está en `.local/preview-password.txt`, ignorado por Git. Copiar el contenido sin el salto de línea y pulsar **Iniciar sesión**. No usar la contraseña MySQL para entrar a la aplicación.
 4. Si ya se inició sesión, pulsar **Salir** para cambiar de cuenta. La consulta pública no muestra botones de escritura.
 
@@ -35,7 +35,7 @@ Ingresar como administrador y abrir **Usuarios**:
 
 1. **Crear:** **+ Crear usuario** → usuario, nombre visible, rol, contraseña inicial y motivo → **Guardar**. Se crea también su identidad de comandante. La contraseña admite entre 12 y 72 bytes; utilizar una contraseña distinta para cada cuenta real y compartirla por el canal acordado.
 2. **Consultar:** la tabla muestra usuario, nombre, rol y estado; usar el paginador si hay más de 25 cuentas.
-3. **Cambiar privilegios:** **Cambiar rol** en la cuenta existente → seleccionar Comandante, Operador o Administrador → **Guardar**. No se pide motivo; la auditoría registra el administrador, los cambios y una descripción automática. Se conserva el usuario de acceso y su identidad de comandante. La cuenta debe volver a iniciar sesión para recibir los nuevos permisos.
+3. **Cambiar privilegios:** **Cambiar rol** en la cuenta existente → seleccionar Comandante o Administrador → **Guardar**. No se pide motivo; la auditoría registra el administrador, los cambios y una descripción automática. Se conserva el usuario de acceso y su identidad de comandante. La cuenta debe volver a iniciar sesión para recibir los nuevos permisos.
 4. **Modificar otros datos:** **Editar usuario** → cambiar nombre visible, rol o **Cuenta activa** → guardar. No se pide motivo. Para renombrar el acceso, marcar explícitamente **Cambiar el nombre de usuario de acceso**. El formulario conserva el usuario original cuando esa opción no está marcada, aunque el navegador intente autocompletarlo con otro nombre. Los cambios revocan las sesiones existentes de esa cuenta y mantienen su auditoría.
 5. **Eliminar:** **Eliminar usuario** → motivo → confirmar baja → guardar. Se revoca el acceso y se conservan aportes, historial y lista personal. El nombre de usuario sigue reservado.
 6. **Restaurar:** localizar la cuenta eliminada → **Restaurar usuario** → motivo → guardar. Recupera acceso y sus datos.
@@ -43,29 +43,27 @@ Ingresar como administrador y abrir **Usuarios**:
 
 Desactivar con **Cuenta activa** permite una suspensión reversible sin marcarla eliminada. No se permite eliminar, desactivar o quitar el rol al último administrador activo; otro administrador debe cambiar tu propio rol o desactivar tu cuenta. Si editás tu propia cuenta o contraseña, iniciá sesión otra vez.
 
-Los roles incorporados son Administrador, Operador y Comandante (identificador técnico `viewer`, conservado por compatibilidad). Se asignan desde el formulario de usuario; no se crean roles personalizados ni existe registro público automático.
+Los dos roles son Administrador y Comandante (identificador técnico `viewer`, conservado por compatibilidad). Las cuentas antiguas de Operador se muestran y funcionan como Comandante sin cambiar su identidad, aportes o historial. No se puede asignar Operador a cuentas nuevas ni al editar. No requiere migración. Ver [ROLES.md](ROLES.md).
 
-| Función | Comandante | Operador | Administrador |
-| --- | --- | --- | --- |
-| Consultar sistemas, instalaciones, materiales y progreso | Sí; también público | Sí | Sí |
-| Registrar y corregir entregas propias | Sí | Sí | Sí |
-| Registrar y corregir entregas de terceros | No | Sí | Sí |
-| Modificar lista personal y lista compartida de la flota | Sí | Sí | Sí |
-| Agregar, editar o retirar lugares de abastecimiento | Sí | Sí | Sí |
-| Crear sistemas y construcciones, usando recetas activas | Sí | Sí | Sí |
-| Editar/archivar/restaurar sistemas, instalaciones y objetivos | No | Sí | Sí |
-| Marcar instalaciones terminadas o reabrirlas | No | Sí | Sí |
-| Administrar recetas de facilities | No | Sí | Sí |
-| Administrar mercancías y cargar el catálogo inicial | No | No | Sí |
-| Crear, editar, eliminar/restaurar usuarios, cambiar roles y contraseñas | No | No | Sí |
+| Función | Comandante | Administrador |
+| --- | --- | --- |
+| Consultar sistemas, instalaciones, materiales y progreso | Sí; también público | Sí |
+| Registrar y corregir entregas propias y de terceros | Sí | Sí |
+| Gestionar lista propia y lista compartida de la flota | Sí | Sí |
+| Gestionar lugares de abastecimiento y paladas por comandante | Sí | Sí |
+| Crear, editar, archivar y restaurar sistemas, instalaciones y objetivos | Sí | Sí |
+| Marcar instalaciones terminadas o reabrirlas | Sí | Sí |
+| Gestionar recetas, mercancías e importar el catálogo inicial | Sí | Sí |
+| Gestionar cuentas, roles, contraseñas ajenas y solicitudes de ayuda | No | Sí |
+| Cambiar su propia contraseña | Sí | Sí |
 
-Las listas personales pertenecen exclusivamente a su cuenta, incluso frente a operadores y administradores. La promoción no mueve ni elimina listas, entregas o historial. El error «Ese usuario ya existe» indica un conflicto de nombre de acceso, no una prohibición de cambiar roles; no utilizar `admin` como nombre de otra cuenta.
+Las listas personales pertenecen exclusivamente a su cuenta, incluso frente a otros comandantes y administradores. La promoción no mueve ni elimina listas, entregas o historial. El error «Ese usuario ya existe» indica un conflicto de nombre de acceso, no una prohibición de cambiar roles; no utilizar `admin` como nombre de otra cuenta.
 
 `tools/create-admin.php` sigue reservado al primer administrador de una instalación vacía. Las cuentas posteriores se gestionan desde la web; no editar hashes manualmente en MySQL.
 
 ## Sistemas
 
-Cualquier usuario autenticado, incluido Comandante, puede crear sistemas y construcciones. Editar, eliminar/restaurar y modificar objetivos sigue reservado a operadores y administradores.
+Comandantes y administradores pueden crear, editar, archivar y restaurar sistemas, construcciones y objetivos.
 
 - **Crear:** en **Sistemas**, pulsar **+ Crear sistema**; completar nombre, descripción opcional y motivo opcional; pulsar **Guardar**. Se abre el sistema creado.
 - **Consultar:** pulsar el nombre del sistema o **Ver instalaciones**. Se muestran sus instalaciones, materiales y progreso.
@@ -76,7 +74,7 @@ Cualquier usuario autenticado, incluido Comandante, puede crear sistemas y const
 
 ## Instalaciones, bases orbitales y settlements
 
-Se administran como instalaciones dentro de un sistema. Un Comandante puede abrir el sistema y pulsar **+ Agregar instalación / facility**, elegir una receta activa, revisar sus materiales y guardar. También dispone de **+ Agregar facility** desde la tarjeta del sistema. Sin receta se crea sin objetivos; un operador/admin deberá completarlos. Operadores y administradores pueden usar **Facilities y recetas** para definir plantillas por tipo, tier y variante; no se presupone una cantidad exacta del juego sin una fuente confirmada.
+Se administran como instalaciones dentro de un sistema. Un Comandante puede abrir el sistema y pulsar **+ Agregar instalación / facility**, elegir una receta activa, revisar sus materiales y guardar. También dispone de **+ Agregar facility** desde la tarjeta del sistema. Sin receta se crea sin objetivos; cualquier comandante o administrador puede completarlos. Ambos roles pueden usar **Facilities y recetas** para definir plantillas por tipo, tier y variante; no se presupone una cantidad exacta del juego sin una fuente confirmada.
 
 - **Crear:** desde la tarjeta del sistema, pulsar **+ Agregar facility**, o abrir un sistema activo → **+ Agregar instalación / facility**. Elegir la receta en **Facility / receta** para ver los materiales y cantidades que se cargarán automáticamente. Completar nombre, cuerpo, ubicación y orden visual → **Guardar**. El servidor copia tipo/tier y todos los objetivos de esa versión en una única transacción. Comienza En construcción.
 - **Sin receta:** seleccionar **Sin receta: cargar objetivos manualmente** y completar tipo/tier. Después usar **+ Agregar objetivo**. Si no hay plantillas cargadas, crearlas primero desde **Facilities y recetas** o reutilizar objetivos existentes como se explica abajo.
@@ -86,9 +84,9 @@ Se administran como instalaciones dentro de un sistema. Un Comandante puede abri
 - **Restaurar:** **Mostrar eliminadas / archivadas y objetivos retirados** → **Restaurar instalación** → motivo → guardar. El sistema padre debe estar activo; restaurarlo primero si corresponde.
 - **Auditar:** pulsar **Ver cambios** en los controles de la instalación.
 
-**Construcción:** operadores/administradores pueden pulsar **Marcar terminada**, indicar motivo y confirmar aunque queden faltantes. El distintivo pasa a **Terminada** y queda fuera de ambas listas de deseos. El registro de entregas y el porcentaje real no se alteran. Para volver a recibir entregas, usar **Reabrir construcción** y un motivo.
+**Construcción:** comandantes y administradores pueden pulsar **Marcar terminada**, indicar motivo y confirmar aunque queden faltantes. El distintivo pasa a **Terminada** y queda fuera de ambas listas de deseos. El registro de entregas y el porcentaje real no se alteran. Para volver a recibir entregas, usar **Reabrir construcción** y un motivo.
 
-Las instalaciones anteriores a esta fase conservan su estado libre original y aparecen **Sin clasificar** hasta que un operador elija **Marcar en construcción** o **Marcar terminada**; no se infiere automáticamente su estado real. Archivar y terminar son acciones distintas.
+Las instalaciones anteriores a esta fase conservan su estado libre original y aparecen **Sin clasificar** hasta que un comandante o administrador elija **Marcar en construcción** o **Marcar terminada**; no se infiere automáticamente su estado real. Archivar y terminar son acciones distintas.
 
 ## Materiales y objetivos
 
@@ -99,11 +97,11 @@ Las instalaciones anteriores a esta fase conservan su estado libre original y ap
 5. Para recuperarlo, usar **Mostrar eliminadas / archivadas y objetivos retirados** → **Restaurar objetivo** → revisar cantidad y motivo → guardar.
 6. **Ver cambios** en el panel del material muestra las revisiones del objetivo.
 
-Si falta un material en el catálogo, un administrador puede crearlo desde **Sistemas → Agregar material al catálogo**. Los operadores pueden usar el catálogo existente; no dan de alta materiales de catálogo en esta versión.
+Si falta un material en el catálogo, un comandante o administrador puede crearlo desde **Sistemas → Agregar material al catálogo**. Ambos roles gestionan el catálogo existente y pueden dar de alta materiales.
 
 ## Catálogo de mercancías
 
-Ingresar como Administrador → **Mercancías**. Los demás roles usan el catálogo, pero no modifican sus identidades globales.
+Ingresar como Comandante o Administrador → **Mercancías**.
 
 1. **Crear:** **+ Crear mercancía** → código, nombre en español, nombre en inglés opcional y alias opcionales, uno por línea → guardar.
 2. **Editar:** **Editar** → corregir nombres/código o alias → guardar. Se conserva el ID y todos sus objetivos, entregas y lugares de abastecimiento.
@@ -116,7 +114,7 @@ Los alias y la conservación automática de nombres anteriores requieren importa
 
 ## Facilities y recetas automáticas
 
-Solo operadores/administradores gestionan este catálogo; no es una lista de instalaciones ya construidas.
+Comandantes y administradores gestionan este catálogo; no es una lista de instalaciones ya construidas.
 
 1. **Crear:** **Facilities y recetas → + Crear receta**. Completar nombre/variante, tipo, tier opcional, fuente/verificación y URL opcional. Añadir cada mercancía y cantidad positiva, sin repetir materiales. Completar motivo → guardar.
 2. **Reutilizar objetivos de AFEC:** abrir una instalación con materiales → **Guardar objetivos como receta**. Revisar el tipo, tier, origen y cantidades precargadas antes de guardar. Se usan los requeridos activos, no los faltantes ni las entregas.
@@ -136,27 +134,27 @@ Para una instalación nueva: **Agregar facility → Facility / receta → elegir
 
 En otra instalación del programa, después de aplicar 006 y crear el administrador:
 
-1. Ingresar como administrador → **Facilities y recetas**.
+1. Ingresar como Comandante o Administrador → **Facilities y recetas**.
 2. Revisar **Catálogo AFEC + comunidad**, fuentes y **Datos pendientes y criterio de carga**.
 3. Pulsar **Cargar catálogo inicial**, confirmar y guardar. Carga únicamente las recetas que faltan y sus mercancías; conserva las recetas existentes, incluso editadas o archivadas. No modifica sistemas, instalaciones, objetivos ni entregas.
 4. Si falta respuesta, usar **Comprobar y reintentar**, conservando la misma operación. Repetir la carga tampoco duplica sus identidades de fuente.
 
-Operadores administran las recetas ya cargadas; solo administradores pueden cargar el paquete inicial porque incluye altas de mercancías. Sus nombres/IDs existentes se conservan. Una coincidencia ambigua o mercancía inactiva detiene la carga completa y requiere revisar ese catálogo antes de reintentar.
+Comandantes y administradores gestionan las recetas y pueden cargar el paquete inicial, incluidas sus mercancías. Sus nombres/IDs existentes se conservan. Una coincidencia ambigua o mercancía inactiva detiene la carga completa y requiere revisar ese catálogo antes de reintentar.
 
 Los 33 materiales de estructuras sin identificar del CSV no se asignan a un tipo supuesto; las 51 filas de tipos sin cantidades no producen recetas vacías. Bio Large suma 8524 en AFEC y 8523 en la referencia comunitaria: ambas variantes se conservan. La celda TOTALES 6375 de AFEC no se usa. Detalle, fuentes y reconstrucción en [SOURCES.md](../resources/catalogue/SOURCES.md).
 
 ## Entregas y correcciones
 
-Las entregas se registran desde el panel lateral del material, como se describe abajo. Comandante registra sus aportes; operador/admin puede seleccionar otra identidad. El historial conserva quién entrega, quién registra y las correcciones vinculadas. Para corregir un movimiento concreto, abrir **Historial de entregas** → **Retirar / corregir**, ingresar cantidad y confirmar. No se editan ni se borran los originales.
+Las entregas se registran desde el panel lateral del material, como se describe abajo. Comandantes y administradores pueden registrar aportes propios o seleccionar otra identidad. El historial conserva quién entrega, quién registra y las correcciones vinculadas. Para corregir un movimiento concreto, abrir **Historial de entregas** → **Retirar / corregir**, ingresar cantidad y confirmar. No se editan ni se borran los originales.
 
 ## Carga de stock y paladas
 
-1. Abrir un sistema y elegir **Comandante** en la instalación. Operadores/admin pueden seleccionar terceros; los Comandantes operan con su identidad. Si falta la propia, pulsar **Usar mi comandante**.
+1. Abrir un sistema y elegir **Comandante** en la instalación. Ambos roles pueden seleccionar su identidad o la de terceros. Si falta la propia, pulsar **Usar mi comandante**.
 2. Escribir **Palada base (t)** y pulsar **Guardar palada**. Solo admite enteros positivos; guardar vacío quita la preferencia. Se conserva por comandante, incluso sin importar 008.
 3. Seleccionar una fila de material. Se abre el panel lateral: **Palada** ofrece −/+; **Cantidad** ofrece un campo numérico y −/+. Enter suma la cantidad indicada.
 4. + suma al stock entregado y − registra una corrección vinculada a las entregas originales del comandante seleccionado. No se pide motivo; se conserva la auditoría. No se puede restar más de su saldo ni dejar negativo el stock.
 5. Los totales se actualizan sin recargar. Se registra toda sobreentrega y se avisa del sobrante. Las instalaciones terminadas/archivadas permiten restas; deben reabrirse/restaurarse para nuevas sumas.
-6. Operadores/admin encuentran edición, retiro/restauración e historial del objetivo dentro de **Objetivo y cambios** en el panel.
+6. Comandantes y administradores encuentran edición, retiro/restauración e historial del objetivo dentro de **Objetivo y cambios** en el panel.
 
 Una respuesta incierta conserva la solicitud y ofrece **Comprobar y reintentar** con su misma clave, incluso tras recargar. No registrar de nuevo la entrega con otra clave.
 
@@ -199,7 +197,7 @@ Paleta AFEC: fondo `#0B0E14`, gris `#C7C7C7`, naranja `#FF7100` y rojo `#CC0000`
 
 ## Conflictos y reintentos
 
-Si otro operador cambió el registro mientras el formulario estaba abierto, se pide actualizar los datos antes de guardar de nuevo. Si falla la conexión y el resultado es incierto, usar **Comprobar y reintentar**: se conserva la operación para confirmar el mismo guardado sin duplicarlo. No reemplazarla por otra carga idéntica.
+Si otra persona cambió el registro mientras el formulario estaba abierto, se pide actualizar los datos antes de guardar de nuevo. Si falla la conexión y el resultado es incierto, usar **Comprobar y reintentar**: se conserva la operación para confirmar el mismo guardado sin duplicarlo. No reemplazarla por otra carga idéntica.
 
 Las contraseñas nuevas no se guardan en el almacenamiento de recuperación del navegador. Después de recargar, se consulta primero el resultado de la operación; si no existe un resultado confirmado, se pide reingresar la contraseña para reintentar con la misma clave. Si cambiaste tu propia cuenta y perdiste la respuesta, iniciá sesión con los datos nuevos y comprobá el resultado antes de repetir la operación.
 

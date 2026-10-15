@@ -45,7 +45,7 @@ final class CommodityService
             }
         }
         if ($action === 'deactivate') { Input::confirmation($input); }
-        return (new MutationService($this->database))->run($actor, $authVersion, ['admin'], 'planning.commodity.' . $action, $key, $data,
+        return (new MutationService($this->database))->run($actor, $authVersion, ['admin', 'viewer'], 'planning.commodity.' . $action, $key, $data,
             function(string $operationId) use ($actor, $action, $id, $data): array {
                 $db = $this->database->connection();
                 // Same mutex as catalogue imports: aliases and codes form one shared namespace.

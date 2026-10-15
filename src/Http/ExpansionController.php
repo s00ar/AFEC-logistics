@@ -30,7 +30,7 @@ final class ExpansionController
                     $row=(new UserRepository($app->database))->findById($id()) ?? throw new HttpError(404,'not_found','No se encontró la cuenta.');
                     Response::json(['data'=>UserRepository::adminView($row)]);
                 case 'admin/roles':
-                    Response::json(['data'=>['admin'=>'Administrador: cuentas, planificación y logística','operator'=>'Operador: planificación y entregas de terceros','viewer'=>'Comandante: crear sistemas/construcciones, entregas propias, listas y abastecimiento']]);
+                    Response::json(['data'=>['admin'=>'Administrador: toda la gestión, incluidas cuentas y roles','viewer'=>'Comandante: planificación, catálogo y logística, incluidos aportes de terceros']]);
                 case 'wishlist':
                 case 'wishlist/destinations':
                     $allowed=$route==='wishlist'?['route','scope','list_page','selection_page']:['route','scope','commodity_id','list_page'];
@@ -52,7 +52,6 @@ final class ExpansionController
                     $scope=Input::choice($_GET,'scope',['personal','fleet']);
                     Response::json(['data'=>(new \Afec\Repositories\CarrierLoadRepository($app->database))->listing($actor['id'],$scope)]);
                 case 'commander/load':
-                    if ($actor['role']==='viewer' && $actor['commander_id']!==$id()) { throw new HttpError(403,'forbidden','Solo podés consultar tu propia palada.'); }
                     Response::json(['data'=>(new \Afec\Repositories\CommanderLoadRepository($app->database))->find($id())]);
                 case 'operation':
                     $key=$_GET['key']??null; $scope=$_GET['scope']??null;

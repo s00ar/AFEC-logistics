@@ -69,7 +69,7 @@ def run_account_checks(anonymous, admin, viewer, operator, Client, check, comman
     check(not any(x['id'] == uid for x in pending()), 'Administrator password reset automatically resolves the notification')
     check(other.session()['user'] is None and login(Client(),account['username'],original)[0] == 401 and login(owner,account['username'],replacement)[0] == 200, 'Manual reset revokes old sessions and old credentials')
 
-    for role in ['viewer','operator','admin']:
+    for role in ['viewer','admin']:
         account = create('own_password_' + role, role); uid = account['id']; owner = Client(); other = Client()
         expect(login(owner,account['username'],original),200,'Own-password account authenticates')
         expect(login(other,account['username'],original),200,'Independent remembered session authenticates')
@@ -79,7 +79,7 @@ def run_account_checks(anonymous, admin, viewer, operator, Client, check, comman
         expect(write(owner,'account/password',{'current_password':original,'new_password':new,'confirmation':'different'}),422,'Confirmation mismatch is rejected')
         expect(write(owner,'account/password',{'current_password':original,'new_password':new,'confirmation':new,'user_id':'1'}),422,'Own password cannot target another account')
         before = stats(uid); old_csrf = owner.session()['csrf_token']; old_cookie = next(iter(owner.cookies)).value
-        if role == 'operator':
+        if role == 'admin':
             command('tests/expansion-inspect.php','fail_audit')
             try:
                 expect(change(owner,original,new),503,'Audit failure prevents a partial password change')

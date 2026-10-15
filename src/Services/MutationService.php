@@ -4,6 +4,7 @@ namespace Afec\Services;
 
 use Afec\Database;
 use Afec\Http\HttpError;
+use Afec\Security\UserRole;
 use PDOException;
 
 /** All domain writes share permission revalidation, idempotency and a single transaction. */
@@ -33,7 +34,7 @@ final class MutationService
                 if (!$user || !(bool)$user['active'] || (int)$user['auth_version'] !== $authVersion) {
                     throw new HttpError(401, 'unauthenticated', 'La sesión ya no es válida.');
                 }
-                if (!in_array($user['role'], $roles, true)) {
+                if (!in_array(UserRole::canonical($user['role']), $roles, true)) {
                     throw new HttpError(403, 'forbidden', 'No tenés permiso para esta operación.');
                 }
                 $query = $db->prepare('SELECT id, request_hash, secret_hash, result_json FROM operations WHERE actor_user_id = ? AND scope = ? AND idempotency_key = ? FOR UPDATE');

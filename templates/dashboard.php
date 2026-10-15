@@ -5,7 +5,7 @@
 <?php if ($user !== null): ?>
 <div class="toolbar">
     <button class="button-primary" type="button" data-action="system-create">+ Crear sistema</button>
-    <?php if ($user['role'] === 'admin'): ?><button class="button-quiet" type="button" data-action="commodity-create">Agregar material al catálogo</button><?php endif ?>
+    <?php if ($user !== null): ?><button class="button-quiet" type="button" data-action="commodity-create">Agregar material al catálogo</button><?php endif ?>
     <?php if ($canPlan): ?><a class="button-quiet" href="<?= e($app->url('/?include_archived=' . ($includeArchived ? '0' : '1'))) ?>"><?= $includeArchived ? 'Mostrar activos' : 'Mostrar eliminados / archivados' ?></a><?php endif ?>
 </div>
 <?php endif ?>

@@ -70,7 +70,7 @@ final class AccountService
         if (($input['confirmation'] ?? null) !== $new) { throw new HttpError(422, 'validation', 'Las contraseñas nuevas no coinciden.'); }
         if ($current === $new) { throw new HttpError(422, 'validation', 'Elegí una contraseña diferente de la actual.'); }
         return (new AccountThrottle($this->database))->run('own-password', $actor['id'], $address, 8, 30, function() use ($actor,$authVersion,$key,$current,$new): array {
-            return (new MutationService($this->database))->run($actor, $authVersion, ['admin','operator','viewer'], 'account.password', $key, ['id'=>$actor['id']], function(string $op) use ($actor,$current,$new): array {
+            return (new MutationService($this->database))->run($actor, $authVersion, ['admin', 'viewer'], 'account.password', $key, ['id'=>$actor['id']], function(string $op) use ($actor,$current,$new): array {
                 $repo = new AccountRepository($this->database); $row = $repo->lockUser($actor['id']);
                 if (!password_verify($current, $row['password_hash'])) { throw new HttpError(403, 'current_password', 'La contraseña actual no es correcta.'); }
                 if ((int)$row['version'] === 4294967295 || (int)$row['auth_version'] === 4294967295) { throw new HttpError(409, 'version_exhausted', 'La cuenta requiere revisión de un administrador.'); }

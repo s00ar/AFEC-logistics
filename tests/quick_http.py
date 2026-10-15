@@ -18,15 +18,15 @@ def run_quick_checks(anonymous,admin,viewer,operator,check,command,env,php,root)
     check(own is not None and own!=other,'Quick tests use distinct commander identities')
     expect(anonymous.call('quick/options'),401,'Quick options require login')
     expect(write(anonymous,'commander/load&id='+own,'PATCH',{}),401,'Public cannot configure loads')
-    check(all(row['id']==own for row in options(viewer)['commanders']),'Commander can select only own identity')
+    check({own,other}.issubset({row['id'] for row in options(viewer)['commanders']}),'Commander can select other identities')
     check(options(viewer)['presets_ready'],'Migration 008 detected')
-    expect(viewer.call('commander/load&id='+other),403,'Commander cannot fetch a third party preset directly')
+    expect(viewer.call('commander/load&id='+other),200,'Commander can fetch a third party preset directly')
     check(operator.call('commander/load&id='+own)[0]==200,'Operator can restore saved commander outside first options page')
     expect(write(viewer,'commander/load&id='+own,'PATCH',{'version':'1'}),422,'Missing quantity cannot accidentally clear an existing preset')
     def profile(identity):return next(row for row in options(admin)['commanders'] if row['id']==identity)
     def save(client,identity,quantity,version=None,key=None):
         return write(client,'commander/load&id='+identity,'PATCH',{'quantity':quantity,'version':version or profile(identity)['load_version']},key)
-    expect(save(viewer,other,'784'),403,'Commander cannot change a third party load')
+    expect(save(viewer,other,'784'),200,'Commander can configure a third party load')
     token=viewer.session()['csrf_token']
     expect(viewer.call('commander/load&id='+own,'PATCH',{'quantity':'784','version':'1'},'bad',key=str(uuid.uuid4())),403,'Preset save requires CSRF')
     for value in ['0','-2','1.5','9223372036854775808']:
@@ -57,8 +57,8 @@ def run_quick_checks(anonymous,admin,viewer,operator,check,command,env,php,root)
     third=expect(write(viewer,route,'POST',preset),201,'Register consecutive load with same commander')
     check(amount()=='1768' and third['exceeds_pending'],'Oversupply is explicit and exact amount remains intact')
     expect(write(viewer,route,'POST',preset|{'quantity':'1'}),422,'Manual and standard amount cannot be mixed')
-    expect(write(viewer,route,'POST',preset|{'commander_id':other}),403,'Commander cannot deliver on behalf of another')
-    expect(write(viewer,subtract,'POST',{'commander_id':other,'quantity':'1','reason':'Forbidden'}),403,'Commander cannot subtract another commander deliveries')
+    expect(write(viewer,route,'POST',{'commander_id':other,'quantity':'1'}),201,'Commander can deliver on behalf of another')
+    expect(write(viewer,subtract,'POST',{'commander_id':other,'quantity':'1','reason':'Third party correction'}),201,'Commander can subtract another commander deliveries')
     expect(write(viewer,subtract,'POST',{'commander_id':own,'quantity':'1769','reason':''}),409,'Optional reason still checks available stock')
     key=str(uuid.uuid4());body={'commander_id':own,'quantity':'800','reason':'Correct an oversized delivery'}
     correction=expect(write(viewer,subtract,'POST',body,key),201,'Subtract across multiple original deliveries')
@@ -72,7 +72,7 @@ def run_quick_checks(anonymous,admin,viewer,operator,check,command,env,php,root)
     check(amount()=='0','Balance reaches zero without becoming negative')
     items=history();originals={row['id']:row for row in items if row['id'] in [first['id'],second['id'],third['id']]}
     check([originals[row['id']]['delta_quantity'] for row in [first,second,third]]==['784','200','784'],'Original delivery amounts are immutable')
-    reversals=[row for row in items if row['movement_type']=='reversal']
+    reversals=[row for row in items if row['movement_type']=='reversal' and row['commander_id']==own]
     check(all(row['reverses_movement_id'] in originals and row['commander_id']==own and row['reason'] for row in reversals),'Every subtraction has original link, commander, actor, timestamp and reason')
     expect(write(viewer,subtract,'POST',{'commander_id':own,'use_standard_load':True,'reason':'Below zero'}),409,'Cannot subtract a load from zero')
     expect(save(viewer,own,None),200,'Commander can clear standard load')

@@ -24,7 +24,7 @@ final class RecipeService
         $version = $id === null ? null : Input::version($input);
         $reason = Input::text($input, 'reason', 1000, true, true);
         $scope = $id === null ? 'planning.recipe.create' : 'planning.recipe.update';
-        return $this->mutations->run($actor, $authVersion, ['admin', 'operator'], $scope, $key, $data + ['id' => $id, 'version' => $version, 'reason' => $reason], function(string $operationId) use ($id, $version, $data, $reason, $actor): array {
+        return $this->mutations->run($actor, $authVersion, ['admin', 'viewer'], $scope, $key, $data + ['id' => $id, 'version' => $version, 'reason' => $reason], function(string $operationId) use ($id, $version, $data, $reason, $actor): array {
             $before = $id === null ? null : $this->recipes->find($id, true);
             if ($before !== null) { self::version($before, $version); self::active($before); }
             foreach ($data['materials'] as $material) { $this->planning->activeCommodity($material['commodity_id']); }
@@ -42,7 +42,7 @@ final class RecipeService
         $version = Input::version($input);
         $reason = Input::text($input, 'reason', 1000, true, true);
         $scope = 'planning.recipe.' . ($restore ? 'restore' : 'archive');
-        return $this->mutations->run($actor, $authVersion, ['admin', 'operator'], $scope, $key, ['id' => $id, 'version' => $version, 'reason' => $reason, 'confirmed' => !$restore], function(string $operationId) use ($id, $version, $reason, $restore, $actor): array {
+        return $this->mutations->run($actor, $authVersion, ['admin', 'viewer'], $scope, $key, ['id' => $id, 'version' => $version, 'reason' => $reason, 'confirmed' => !$restore], function(string $operationId) use ($id, $version, $reason, $restore, $actor): array {
             $before = $this->recipes->find($id, true);
             self::version($before, $version);
             if (($before['archived_at'] === null) === $restore) { throw new HttpError(409, 'archive_state', 'El estado de la receta cambió. Recargá los datos.'); }

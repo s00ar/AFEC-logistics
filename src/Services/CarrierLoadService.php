@@ -23,7 +23,7 @@ final class CarrierLoadService
         if (($data['carrier_id']!==null && $data['carrier_name']!==null) || ($data['carrier_id']===null && $data['carrier_name']===null) || ($data['carrier_code']!==null && $data['carrier_name']===null)) {
             throw new HttpError(422,'validation','Elegí un carrier existente o indicá el nombre de uno nuevo.');
         }
-        return (new MutationService($this->database))->run($actor,$authVersion,['admin','operator','viewer'],'logistics.carrier.load',$key,$data,
+        return (new MutationService($this->database))->run($actor,$authVersion,['admin', 'viewer'],'logistics.carrier.load',$key,$data,
             function(string $op) use($actor,$data): array {
                 $repo=new LogisticsRepository($this->database);
                 $carrier=$data['carrier_id'];

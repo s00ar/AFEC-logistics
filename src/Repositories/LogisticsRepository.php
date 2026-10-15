@@ -87,7 +87,7 @@ final class LogisticsRepository
             FROM movements m JOIN commodities c ON c.id=m.commodity_id JOIN users u ON u.id=m.created_by_user_id LEFT JOIN commanders cmd ON cmd.id=m.commander_id LEFT JOIN carriers car ON car.id=m.carrier_id
             WHERE m.installation_id=? ORDER BY m.id DESC LIMIT 26 OFFSET ' . (($page-1)*25),[$installation]),$page);
         foreach($listing['items'] as &$item) {
-            $item['can_reverse']= $item['delta_quantity'][0]!=='-' && $item['available_quantity']!=='0' && (in_array($actor['role'],['admin','operator'],true) || $actor['id']===$item['created_by_user_id'] || ($actor['commander_id']!==null && $actor['commander_id']===$item['commander_id']));
+            $item['can_reverse']= $item['delta_quantity'][0]!=='-' && $item['available_quantity']!=='0';
         } unset($item);
         return $listing;
     }

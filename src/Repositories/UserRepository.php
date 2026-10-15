@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace Afec\Repositories;
 
 use Afec\Database;
+use Afec\Security\UserRole;
 
 final class UserRepository
 {
@@ -26,7 +27,7 @@ final class UserRepository
     {
         return [
             'id' => (string) $user['id'], 'username' => $user['username'],
-            'display_name' => $user['display_name'], 'role' => $user['role'],
+            'display_name' => $user['display_name'], 'role' => UserRole::canonical($user['role']),
             'commander_id' => $user['commander_id'] === null ? null : (string) $user['commander_id'],
         ];
     }

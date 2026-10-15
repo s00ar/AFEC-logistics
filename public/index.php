@@ -24,7 +24,7 @@ try {
         throw new HttpError(404, 'not_found', 'No se encontró esta página.');
     }
     $user = $app->auth()->current();
-    $canPlan = in_array($user['role'] ?? null, ['admin', 'operator'], true);
+    $canPlan = $user !== null;
     $includeArchived = Request::flag($_GET['include_archived'] ?? null);
     if ($includeArchived) { $app->auth()->requirePlanner(); }
     $listPage = Request::page($_GET['list_page'] ?? null);
@@ -49,11 +49,11 @@ try {
         $app->auth()->requirePlanner();
         $listing = (new RecipeRepository($app->database))->listing($listPage, $includeArchived);
         $recipes = $listing['items'];
-        $catalogue = $user['role'] === 'admin' ? (new RecipeCatalogueService($app->database, new RecipeCatalogue(dirname(__DIR__) . '/resources/catalogue')))->preview() : null;
+        $catalogue = (new RecipeCatalogueService($app->database, new RecipeCatalogue(dirname(__DIR__) . '/resources/catalogue')))->preview();
         $pagination = ['page' => $listPage, 'has_more' => $listing['has_more']];
         $title = 'Facilities y recetas'; $view = 'recipes';
     } elseif ($page === 'commodities') {
-        $app->auth()->requireAdmin();
+        $app->auth()->requireUser();
         $repository = new \Afec\Repositories\CommodityRepository($app->database);
         $inactive = Request::flag($_GET['include_inactive'] ?? null);
         $listing = $repository->listing($listPage, $inactive);

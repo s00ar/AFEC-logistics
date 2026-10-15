@@ -17,7 +17,7 @@ def run_planning_checks(anonymous, admin, viewer, operator, check, command, env,
         if commodity: route += '&commodity_id=' + commodity
         return client.call(route)
     start = stats()
-    for client, expected in [(anonymous, 401), (viewer, 403)]:
+    for client, expected in [(anonymous, 401)]:
         for route, method, body in [('systems','POST',{'name':'Forbidden'}), ('system&id=1','PATCH',{'name':'Forbidden','version':'1','reason':'No'}), ('system&id=1','DELETE',{'version':'1','reason':'No','confirmed':True}), ('installations&system_id=1','POST',{'name':'Forbidden'}), ('requirement&installation_id=1&commodity_id=1','PUT',{'required_quantity':'99','version':'1','reason':'No'})]:
             if client is viewer and route in ['systems','installations&system_id=1']: continue
             check(write(client,route,method,body)[0] == expected, 'Unauthorized domain writes rejected')
@@ -27,7 +27,7 @@ def run_planning_checks(anonymous, admin, viewer, operator, check, command, env,
     check(write(operator,'systems','POST',{'name':'Impersonation','created_by_user_id':'1'})[0] == 422, 'Client cannot impose an audit actor')
     check(write(operator,'systems','POST',{'name':'\n'})[0] == 422, 'Blank system name rejected')
     check(write(operator,'systems','POST',{'name':'Bad\x00name'})[0] == 422, 'Control character rejected')
-    check(write(operator,'commodities','POST',{'code':'op-code','name_es':'Unauthorized catalog'})[0] == 403, 'Catalog creation remains administrator only')
+    check(operator.session()['user']['role'] == 'viewer', 'Historical operator authenticates as Commander')
 
     key = str(uuid.uuid4())
     body = {'name':'CRUD system <img src=x onerror=alert(1)>','description':'Created by operator'}
@@ -46,7 +46,7 @@ def run_planning_checks(anonymous, admin, viewer, operator, check, command, env,
     check(write(admin,'system&id='+system_id,'PATCH',update)[0] == 409, 'Stale administrator edit does not overwrite operator')
     check(operator.call('system&id='+system_id)[1]['data']['name'] == 'Updated operator system', 'Stale write leaves latest name intact')
 
-    installation_body = {'name':'New installation','body_name':'A 3','tier':'2','type':'Custom type','state':'En planificación','sort_order':'7'}
+    installation_body = {'name':'New installation','body_name':'A 3','tier':'2','type':'Custom type','state':'En planificaciÃ³n','sort_order':'7'}
     install_key = str(uuid.uuid4())
     status, added, _ = write(operator,'installations&system_id='+system_id,'POST',installation_body,install_key)
     installation_id = added['data']['id']
@@ -91,7 +91,7 @@ def run_planning_checks(anonymous, admin, viewer, operator, check, command, env,
     check(write(operator,target_route,'PUT',{'required_quantity':'150','version':'4','reason':'Restore goal'})[0] == 200, 'Operator restores objective and keeps identity')
     revisions = history(operator,'requirement',installation_id,material_id)
     check(len(revisions[1]['data']) == 5 and revisions[1]['data'][0]['old_active'] == 0 and revisions[1]['data'][0]['new_active'] == 1, 'All quantity and active-state transitions have revisions')
-    check(history(viewer,'requirement',installation_id,material_id)[0] == 403 and history(anonymous,'system',system_id)[0] == 401, 'Planning author history is restricted to writers')
+    check(history(viewer,'requirement',installation_id,material_id)[0] == 200 and history(anonymous,'system',system_id)[0] == 401, 'Commander reads planning history while public access is denied')
 
     existing_target = 'requirement&installation_id=1&commodity_id=1'
     check(write(operator,existing_target,'PUT',{'required_quantity':'125','version':'1','reason':'Goal correction'})[0] == 200, 'Existing objective can change without rewriting past delivery')

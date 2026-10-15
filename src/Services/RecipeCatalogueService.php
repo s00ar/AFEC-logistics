@@ -22,7 +22,7 @@ final class RecipeCatalogueService
 
     public function import(array $actor, int $authVersion, string $key): array
     {
-        return (new MutationService($this->database))->run($actor, $authVersion, ['admin'], 'planning.catalogue.import', $key,
+        return (new MutationService($this->database))->run($actor, $authVersion, ['admin', 'viewer'], 'planning.catalogue.import', $key,
             ['snapshot_sha256' => $this->catalogue->hash], function(string $operationId) use ($actor): array {
                 $db = $this->database->connection();
                 $query = $db->prepare("SELECT name FROM permission_locks WHERE name = 'recipe_catalogue' FOR UPDATE"); $query->execute();

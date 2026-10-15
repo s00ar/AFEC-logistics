@@ -11,7 +11,7 @@ final class CommodityController
 {
     public static function dispatch(App $app, string $route): never
     {
-        $actor = $app->auth()->requireAdmin();
+        $actor = $app->auth()->requireUser();
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $repository = new CommodityRepository($app->database);
         $id = static fn(): string => Request::positiveId($_GET['id'] ?? null);

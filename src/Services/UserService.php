@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace Afec\Services;
 
 use Afec\Database;
+use Afec\Security\UserRole;
 use Afec\Http\HttpError;
 use Afec\Repositories\PlanningRepository;
 use Afec\Repositories\UserRepository;
@@ -29,7 +30,7 @@ final class UserService
             if (!preg_match('/^[a-zA-Z0-9_.@+-]{3,120}$/D', $data['username'])) { throw new HttpError(422, 'validation', 'El usuario admite letras, números y _.@+-; mínimo 3 caracteres.'); }
             $data['display_name'] = Input::text($input, 'display_name', 160, true);
             $data['role'] = $input['role'] ?? null;
-            if (!in_array($data['role'], ['admin','operator','viewer'], true)) { throw new HttpError(422, 'validation', 'Seleccioná un rol válido.'); }
+            if (!in_array($data['role'], UserRole::ALL, true)) { throw new HttpError(422, 'validation', 'Seleccioná un rol válido.'); }
             if ($action === 'update') {
                 if (!is_bool($input['active'] ?? null)) { throw new HttpError(422, 'validation', 'El estado de la cuenta debe ser verdadero o falso.'); }
                 $data['active'] = $input['active'];
@@ -51,6 +52,7 @@ final class UserService
                     $q->execute([$id]);
                     $row = $q->fetch() ?: throw new HttpError(404, 'not_found', 'No se encontró la cuenta.');
                     $before = UserRepository::adminView($row);
+                    $before['role'] = $row['role']; // Preserve the stored legacy value in the audit trail.
                     if ($before['version'] !== $data['version'] || $data['version'] === '4294967295') { throw new HttpError(409, 'stale_version', 'La cuenta cambió. Actualizá los datos.'); }
                     if ($action !== 'restore' && $row['deleted_at'] !== null) { throw new HttpError(409, 'deleted_user', 'Restaurá la cuenta antes de editarla.'); }
                     $disables = $action === 'delete' || ($action === 'update' && (!$data['active'] || $data['role'] !== 'admin'));
@@ -82,8 +84,10 @@ final class UserService
                     $q = $db->prepare('UPDATE users SET active=1,deleted_at=NULL,version=version+1,auth_version=auth_version+1,updated_at=UTC_TIMESTAMP(6) WHERE id=?');
                     $q->execute([$id]);
                 }
-                $after = UserRepository::adminView((new UserRepository($this->database))->findById($id));
+                $afterRow = (new UserRepository($this->database))->findById($id);
+                $after = UserRepository::adminView($afterRow);
                 $auditAfter = $after + (in_array($action,['create','password'],true) ? ['password_changed'=>true] : []);
+                $auditAfter['role'] = $afterRow['role'];
                 (new PlanningRepository($this->database))->audit('user',$id,$action,$before,$auditAfter,$actor['id'],$data['reason'],$op);
                 return ['data'=>$after,'status'=>$action==='create'?201:200];
             },$data['password']??null);

@@ -16,7 +16,7 @@ final class CommanderLoadService
     public function identity(array $actor,int $authVersion,string $key,array $input): array
     {
         Input::fields($input,[]);
-        return (new MutationService($this->database))->run($actor,$authVersion,['admin','operator','viewer'],'logistics.commander.identity',$key,[],function(string $op) use($actor): array {
+        return (new MutationService($this->database))->run($actor,$authVersion,['admin', 'viewer'],'logistics.commander.identity',$key,[],function(string $op) use($actor): array {
             $id=(new \Afec\Repositories\LogisticsRepository($this->database))->ownCommander($actor);
             return ['data'=>(new CommanderLoadRepository($this->database))->find($id),'status'=>200];
         });
@@ -26,9 +26,8 @@ final class CommanderLoadService
     {
         Input::fields($input,['quantity','version']);
         if (!array_key_exists('quantity',$input)) { throw new HttpError(422,'validation','Indicá la palada o un valor vacío para quitarla.'); }
-        if ($actor['role'] === 'viewer' && $actor['commander_id'] !== $id) { throw new HttpError(403,'forbidden','Solo podés configurar tu propia palada.'); }
         $data=['id'=>$id,'quantity'=>$input['quantity'] === '' || $input['quantity'] === null ? null : L::amount($input),'version'=>Input::version($input)];
-        return (new MutationService($this->database))->run($actor,$authVersion,['admin','operator','viewer'],'logistics.load.save',$key,$data,
+        return (new MutationService($this->database))->run($actor,$authVersion,['admin', 'viewer'],'logistics.load.save',$key,$data,
             function(string $op) use($actor,$id,$data): array {
                 $repo = new CommanderLoadRepository($this->database);
                 $before = $repo->find($id,true);

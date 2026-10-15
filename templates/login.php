@@ -7,7 +7,7 @@
 <section class="login-panel" aria-labelledby="login-title">
     <p class="eyebrow">ACCESO DE COMANDANTES</p>
     <h2 id="login-title">Bienvenido a bordo</h2>
-    <p class="muted">Ingresá con tu cuenta para gestionar las operaciones.</p>
+    <p class="muted">Ingresá como Comandante o Administrador para gestionar las operaciones.</p>
     <form id="login-form">
         <label for="username">Usuario</label>
         <input id="username" name="username" type="text" autocomplete="username" minlength="3" maxlength="120" pattern="[a-zA-Z0-9_.@+\-]+" required autofocus>

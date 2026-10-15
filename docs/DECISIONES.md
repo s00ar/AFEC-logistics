@@ -63,3 +63,9 @@ El repositorio completo se despliega desde su raíz en Hostinger. La entrada HTM
 El propietario solicitó editar nombres/códigos, desactivar y resolver equivalencias, y autorizó publicar en producción al terminar. Conservamos el permiso Administrador del alta anterior. La equivalencia implementada es alias del mismo ID, sin fusión ni suma de cantidades: no se recibió una regla aprobada para fusionar IDs. Se preservan identidades anteriores salvo corrección explícita; las bajas son reversibles y auditadas.
 
 El propietario confirmó que importará el SQL 007 desde phpMyAdmin. El código es compatible con 006 mientras tanto; no hay migración automática al publicar. Alcance, riesgos y validación en [CRUD_MERCANCIAS.md](CRUD_MERCANCIAS.md).
+
+## Dos roles y gestión operativa compartida — 15/10/2026
+
+El propietario pidió eliminar Operador y confirmó: «Comandante también gestiona todo salvo cuentas y roles». Esta decisión sustituye las restricciones por rol de fases anteriores: Comandante y Administrador gestionan planificación completa, estados, objetivos, recetas, mercancías, carga inicial, abastecimiento, paladas y entregas/correcciones de terceros. Administrador conserva cuentas, roles, restablecimientos de contraseñas ajenas y avisos de ayuda. Todos pueden cambiar su propia contraseña. Se conserva el aislamiento de listas personales, cargas de carrier por cuenta y recibos privados.
+
+Solo `admin` y `viewer` son asignables. `operator` histórico se interpreta como `viewer` en sesión, presentación y revalidación transaccional; no se alteran migraciones, movimientos ni cuentas reales al desplegar. Detalle, pruebas y rollback en [ROLES.md](ROLES.md).

@@ -6,6 +6,7 @@ use Afec\Database;
 use Afec\Http\HttpError;
 use Afec\Repositories\UserRepository;
 use Afec\Security\Session;
+use Afec\Security\UserRole;
 
 final class AuthService
 {
@@ -21,7 +22,7 @@ final class AuthService
             return null;
         }
         $user = $this->users->findById($id);
-        if ($user === null || !(bool) $user['active'] || (int) $user['auth_version'] !== $this->session->authVersion() || !in_array($user['role'], ['admin', 'operator', 'viewer'], true)) {
+        if ($user === null || !(bool) $user['active'] || (int) $user['auth_version'] !== $this->session->authVersion() || UserRole::canonical($user['role']) === null) {
             $this->session->logout();
             return null;
         }
@@ -44,11 +45,7 @@ final class AuthService
 
     public function requirePlanner(): array
     {
-        $user = $this->requireUser();
-        if (!in_array($user['role'], ['admin', 'operator'], true)) {
-            throw new HttpError(403, 'forbidden', 'No tenés permiso para modificar la planificación.');
-        }
-        return $user;
+        return $this->requireUser();
     }
 
     public function login(array $input, string $address): array
@@ -90,7 +87,7 @@ final class AuthService
             }
             $user = $this->users->findByUsername($username);
             $verified = password_verify($password, $user['password_hash'] ?? self::DUMMY_HASH);
-            $accepted = $verified && $user !== null && (bool) $user['active'];
+            $accepted = $verified && $user !== null && (bool) $user['active'] && UserRole::canonical($user['role']) !== null;
             $query = $db->prepare('INSERT INTO login_attempts (identity_hash, network_hash, succeeded) VALUES (?, ?, ?)');
             $query->execute([$identity, $network, (int) $accepted]);
             if (!$accepted) {

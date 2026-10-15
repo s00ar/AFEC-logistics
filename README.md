@@ -8,7 +8,7 @@ Fases 1–5 implementadas y verificadas localmente: autenticación, sesiones/CSR
 
 Pendientes: importación completa de Sheets/Apps Script, clasificación de estructuras desconocidas y tiers no confirmados, reservas/cargas en tránsito, pantallas administrativas completas de comandantes/carriers. Se admite selección/alta de identidades al registrar entregas. El código se publicó en `main` y Hostinger lo sirve en [logistica.afec.space](https://logistica.afec.space/). Tras cargar la configuración/importar el esquema por parte del propietario, el 14/10/2026 se verificaron panel y API pública de sistemas con respuesta 200. El propietario confirmó acceso a usuarios y cambio de rol; protección del nombre de cuenta y pruebas en [docs/CORRECCION_ROLES.md](docs/CORRECCION_ROLES.md). El acceso a archivos privados y la importación remota no fueron realizados desde este entorno. Publicación e instalación en [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md). Fuentes y límites del catálogo en [resources/catalogue/SOURCES.md](resources/catalogue/SOURCES.md).
 
-La consulta pública y los aportes registrados por operadores en nombre de terceros están confirmados en [docs/DECISIONES.md](docs/DECISIONES.md). El resto de políticas sigue documentado como pendiente. El material de origen permanece intacto en `AFEC_Logistica_Handoff_Codex/`; el diagnóstico está en `ANALISIS_AFEC_LOGISTICA.md`.
+La consulta pública y los aportes registrados en nombre de terceros están confirmados en [docs/DECISIONES.md](docs/DECISIONES.md). La política vigente de dos roles y sus permisos se documenta en [docs/ROLES.md](docs/ROLES.md). Las reglas de negocio todavía no confirmadas siguen pendientes. El material de origen permanece intacto en `AFEC_Logistica_Handoff_Codex/`; el diagnóstico está en `ANALISIS_AFEC_LOGISTICA.md`.
 
 La adaptación para desplegar la raíz completa está verificada localmente con Apache. Alcance, requisitos y pruebas en [docs/FASE_RAIZ_HOSTINGER.md](docs/FASE_RAIZ_HOSTINGER.md); instalación en [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md).
 
@@ -67,39 +67,39 @@ Entrada HTTP: `/api/index.php?route=...` en ambos modos de despliegue (las opera
 | GET | `installation&id=ID` | Público; metadatos de instalación |
 | GET | `commodities` | Catálogo activo público |
 | POST | `systems` | Autenticado, incluido Comandante; crear sistema |
-| PATCH / DELETE | `system&id=ID` | Operador/admin; editar / archivar |
-| POST | `system/restore&id=ID` | Operador/admin; restaurar |
+| PATCH / DELETE | `system&id=ID` | Comandante/admin; editar / archivar |
+| POST | `system/restore&id=ID` | Comandante/admin; restaurar |
 | POST | `installations&system_id=ID` | Autenticado, incluido Comandante; crear instalación |
-| GET / POST | `facility/recipes` | Autenticado: listar activas; operador/admin: crear o consultar archivadas |
-| GET / PATCH / DELETE | `facility/recipe&id=ID` | Autenticado: consultar activa; operador/admin: editar materiales / archivar receta |
-| POST / GET | `facility/recipe/restore&id=ID` / `facility/recipe/history&id=ID` | Operador/admin; restaurar / auditar receta |
-| GET / POST | `facility/catalogue` / `facility/catalogue/import` | Administrador; revisar / cargar snapshot inicial confirmado |
-| PATCH / DELETE | `installation&id=ID` | Operador/admin; editar / archivar |
-| POST | `installation/restore&id=ID` | Operador/admin; restaurar |
-| PUT / DELETE | `requirement&installation_id=ID&commodity_id=ID` | Operador/admin; guardar/restaurar / retirar objetivo |
-| GET | `planning/history&type=TYPE&id=ID` | Operador/admin; historial de system/installation/requirement; objetivo requiere `commodity_id` |
-| GET / POST | `admin/commodities` | Administrador; listar / crear mercancías (alta compatible también en `commodities`) |
-| GET / PATCH / DELETE | `admin/commodity&id=ID` | Administrador; consultar / editar / desactivar |
-| POST / GET | `admin/commodity/restore&id=ID` / `admin/commodity/history&id=ID` | Administrador; reactivar / historial |
+| GET / POST | `facility/recipes` | Autenticado: listar activas; Comandante/admin: crear o consultar archivadas |
+| GET / PATCH / DELETE | `facility/recipe&id=ID` | Autenticado: consultar activa; Comandante/admin: editar materiales / archivar receta |
+| POST / GET | `facility/recipe/restore&id=ID` / `facility/recipe/history&id=ID` | Comandante/admin; restaurar / auditar receta |
+| GET / POST | `facility/catalogue` / `facility/catalogue/import` | Comandante/admin; revisar / cargar snapshot inicial confirmado |
+| PATCH / DELETE | `installation&id=ID` | Comandante/admin; editar / archivar |
+| POST | `installation/restore&id=ID` | Comandante/admin; restaurar |
+| PUT / DELETE | `requirement&installation_id=ID&commodity_id=ID` | Comandante/admin; guardar/restaurar / retirar objetivo |
+| GET | `planning/history&type=TYPE&id=ID` | Comandante/admin; historial de system/installation/requirement; objetivo requiere `commodity_id` |
+| GET / POST | `admin/commodities` | Comandante/admin; listar / crear mercancías (alta compatible también en `commodities`) |
+| GET / PATCH / DELETE | `admin/commodity&id=ID` | Comandante/admin; consultar / editar / desactivar |
+| POST / GET | `admin/commodity/restore&id=ID` / `admin/commodity/history&id=ID` | Comandante/admin; reactivar / historial |
 | GET / POST | `admin/users` | Administrador; listar / crear cuenta |
 | GET / PATCH / DELETE | `admin/user&id=ID` | Administrador; consultar / editar / eliminar reversiblemente |
 | POST | `admin/user/password&id=ID`, `admin/user/restore&id=ID` | Administrador; contraseña / restauración |
 | GET | `admin/roles` | Administrador; roles incorporados |
-| PATCH | `installation/status&id=ID` | Operador/admin; estado manual de construcción |
+| PATCH | `installation/status&id=ID` | Comandante/admin; estado manual de construcción |
 | GET | `wishlist&scope=SCOPE` | Autenticado; scope personal o fleet, nunca otra cuenta |
 | GET | `wishlist/destinations&scope=SCOPE&commodity_id=ID` | Autenticado; destinos paginados |
 | POST / DELETE | `wishlist/entries&installation_id=ID` / `wishlist/entry&installation_id=ID` | Autenticado; añadir / quitar; scope en JSON |
 | GET / POST | `sources&commodity_id=ID` / `sources` | Autenticado; consultar / agregar abastecimiento |
 | PATCH / DELETE | `source&id=ID` | Autenticado; editar / retirar lugar |
 | POST | `source/restore&id=ID` | Autenticado; restaurar lugar |
-| POST | `deliveries&installation_id=ID&commodity_id=ID` | Autenticado; Comandante propio, operador/admin terceros |
+| POST | `deliveries&installation_id=ID&commodity_id=ID` | Autenticado; entregas propias o de terceros |
 | POST | `movement/withdraw&id=ID` | Autenticado; retiro compensatorio propio o autorizado |
 | GET | `movements&installation_id=ID`, `logistics/options` | Autenticado; historial / identidades activas |
 | GET | `operation&scope=...&key=...` | Autenticado; recibo exclusivo del actor, sin contraseñas |
 
-IDs y cantidades se devuelven como cadenas decimales para conservar precisión. Las entregas guardan `commander_id` y `created_by_user_id` separadamente. `quantity` es una cadena entera positiva hasta el máximo BIGINT firmado; una corrección genera su delta negativo. `construction_status` admite `under_construction` o `completed`; completar requiere motivo y confirmación, incluso con faltantes. Listas/abastecimiento requieren login, mientras el progreso permanece público. El rol técnico `viewer` se presenta como Comandante y dispone de logística propia.
+IDs y cantidades se devuelven como cadenas decimales para conservar precisión. Las entregas guardan `commander_id` y `created_by_user_id` separadamente. `quantity` es una cadena entera positiva hasta el máximo BIGINT firmado; una corrección genera su delta negativo. `construction_status` admite `under_construction` o `completed`; completar requiere motivo y confirmación, incluso con faltantes. Listas/abastecimiento requieren login, mientras el progreso permanece público. Los dos roles son Administrador y Comandante (`viewer` por compatibilidad). Comandante gestiona toda la operación; cuentas, roles y solicitudes de ayuda son exclusivas del administrador. Las cuentas históricas `operator` se reconocen como Comandante sin modificar sus datos ni requerir SQL. Solo se pueden asignar `admin` o `viewer`.
 
-Las escrituras de planificación requieren `X-CSRF-Token` e `Idempotency-Key` (16–100 caracteres ASCII alfanuméricos, `_` o `-`). Editar/retirar/restaurar requiere la `version` recibida al consultar y un `reason`. Un objetivo nuevo usa versión `"0"` y `required_quantity` como cadena decimal; las bajas requieren `confirmed=true`. Repetir exactamente la operación con la misma clave devuelve el resultado guardado. Los listados admiten `list_page`; sistemas e instalaciones archivadas requieren operador/admin e `include_archived=1`.
+Las escrituras de planificación requieren `X-CSRF-Token` e `Idempotency-Key` (16–100 caracteres ASCII alfanuméricos, `_` o `-`). Editar/retirar/restaurar requiere la `version` recibida al consultar y un `reason`. Un objetivo nuevo usa versión `"0"` y `required_quantity` como cadena decimal; las bajas requieren `confirmed=true`. Repetir exactamente la operación con la misma clave devuelve el resultado guardado. Los listados admiten `list_page`; sistemas e instalaciones archivadas requieren Comandante/admin e `include_archived=1`.
 
 Las mercancías usan `version` como fingerprint SHA-256 opaco: enviar el valor recibido sin modificarlo. `aliases` es una lista de hasta 30 nombres/códigos alternativos; `preserve_previous` es un booleano, por defecto verdadero. La lista administrativa admite `include_inactive=1`. Las equivalencias identifican un mismo ID; no fusionan cantidades.
 

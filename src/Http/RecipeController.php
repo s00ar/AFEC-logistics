@@ -19,8 +19,7 @@ final class RecipeController
         $allowed = match ($route) { 'facility/recipes' => ['GET', 'POST'], 'facility/recipe' => ['GET', 'PATCH', 'DELETE'], 'facility/recipe/restore' => ['POST'], 'facility/recipe/history' => ['GET'], 'facility/catalogue' => ['GET'], 'facility/catalogue/import' => ['POST'] };
         if (!in_array($method, $allowed, true)) { header('Allow: ' . implode(', ', $allowed)); throw new HttpError(405, 'method_not_allowed', 'Método no permitido.'); }
         $isCatalogue = str_starts_with($route, 'facility/catalogue');
-        $canSelect = $method === 'GET' && in_array($route, ['facility/recipes','facility/recipe'], true);
-        $actor = $isCatalogue ? $app->auth()->requireAdmin() : ($canSelect ? $app->auth()->requireUser() : $app->auth()->requirePlanner());
+        $actor = $app->auth()->requireUser();
         if ($isCatalogue) {
             $catalogue = new RecipeCatalogue(dirname(__DIR__, 2) . '/resources/catalogue');
             $service = new RecipeCatalogueService($app->database, $catalogue);
@@ -47,7 +46,6 @@ final class RecipeController
                 Response::json(['data' => $listing['items'], 'pagination' => ['page' => $listing['page'], 'has_more' => $listing['has_more']]]);
             }
             $recipe = $recipes->snapshot($id());
-            if ($actor['role'] === 'viewer' && $recipe['archived_at'] !== null) { throw new HttpError(404,'not_found','No se encontró una receta activa.'); }
             Response::json(['data' => $recipe]);
         }
         $app->session()->verifyCsrf();

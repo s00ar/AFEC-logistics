@@ -45,8 +45,8 @@ final class CommanderLoadRepository
         $ready = $this->ready();
         $fields = $ready ? 'standard_load_quantity,load_version' : 'NULL AS standard_load_quantity,1 AS load_version';
         $query = $this->database->connection()->prepare('SELECT id,display_name,active,' . $fields . ' FROM commanders WHERE active=1'
-            . ($actor['role'] === 'viewer' ? ' AND id=?' : '') . ' ORDER BY display_name,id LIMIT 51 OFFSET ' . (($page - 1) * 50));
-        $query->execute($actor['role'] === 'viewer' ? [$actor['commander_id'] ?? '0'] : []);
+            . ' ORDER BY display_name,id LIMIT 51 OFFSET ' . (($page - 1) * 50));
+        $query->execute();
         $rows = $query->fetchAll(); $more = count($rows) > 50; if ($more) { array_pop($rows); }
         $own = $actor['commander_id'] === null ? null : $this->find($actor['commander_id']);
         return ['commanders'=>array_map(fn(array $row): array => $this->find((string)$row['id']),$rows),'own'=>$own,'presets_ready'=>true,'load_columns_ready'=>$ready,'has_more'=>$more,'page'=>$page];

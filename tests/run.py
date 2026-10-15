@@ -199,6 +199,11 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         run_carrier_checks(anonymous,admin,viewer,operator,check,command)
         from account_http import run_account_checks
         run_account_checks(anonymous,admin,viewer,operator,Client,check,command,env,php,ROOT)
+        legacy = admin.call('admin/user&id=3')[1]['data']
+        legacy_saved = admin.call('admin/user&id=3', 'PATCH', {'username':legacy['username'],'display_name':legacy['display_name'],'role':'viewer','active':True,'version':legacy['version']}, admin.session()['csrf_token'], key='normalize-legacy-role-test')
+        check(legacy_saved[0] == 200 and legacy_saved[1]['data']['role'] == 'viewer' and legacy_saved[1]['data']['commander_id'] == legacy['commander_id'], 'Editing a historical operator preserves identity as Commander')
+        legacy_audit = json.loads(command('tests/roles-inspect.php', 'audit'))
+        check(legacy_audit['before']['role'] == 'operator' and legacy_audit['after']['role'] == 'viewer', 'Role normalization preserves actual previous value in audit')
         command('tests/fixture.php','deactivate_viewer')
         check(viewer.session()['user'] is None, 'Deactivation invalidates an existing session')
         operator = Client(); check(operator.login('operator', remember_me=True)[0] == 200, 'Operator can authenticate with a remembered session')

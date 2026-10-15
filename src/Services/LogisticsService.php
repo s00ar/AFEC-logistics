@@ -18,7 +18,7 @@ final class LogisticsService
     {
         $this->repo=new LogisticsRepository($database); $this->planning=new PlanningRepository($database);
     }
-    private function run(array $actor,int $authVersion,string $scope,string $key,array $payload,callable $write,array $roles=['admin','operator','viewer']): array
+    private function run(array $actor,int $authVersion,string $scope,string $key,array $payload,callable $write,array $roles=['admin', 'viewer']): array
     { return (new MutationService($this->database))->run($actor,$authVersion,$roles,$scope,$key,$payload,$write); }
     private function version(array $row,string $version): void
     { if($row['version']!==$version || $version==='4294967295') { throw new HttpError(409,'stale_version','Los datos cambiaron. Actualizá antes de guardar.'); } }
@@ -33,7 +33,7 @@ final class LogisticsService
             $this->repo->execute('UPDATE installations SET construction_status=?,version=version+1,updated_at=UTC_TIMESTAMP(6) WHERE id=?',[$data['construction_status'],$id]);
             $after=$this->planning->installation($id); $this->planning->audit('installation',$id,'status',$before,$after,$actor['id'],$data['reason'],$op);
             return ['data'=>$after,'status'=>200];
-        },['admin','operator']);
+        },['admin', 'viewer']);
     }
     public function listChange(array $actor,int $authVersion,string $key,string $id,array $input,bool $remove=false): array
     {
@@ -103,7 +103,6 @@ final class LogisticsService
         $data=['installation_id'=>$installation,'commodity_id'=>$commodity,'quantity'=>$standard?null:L::amount($input),'commander_id'=>L::id($input,'commander_id',true),'commander_name'=>Input::text($input,'commander_name',160),'carrier_id'=>L::id($input,'carrier_id',true),'carrier_name'=>Input::text($input,'carrier_name',160),'carrier_code'=>Input::text($input,'carrier_code',40),'occurred_at'=>L::date($input),'reason'=>Input::text($input,'reason',1000,false,true)];
         // Keep the exact hash of pre-upgrade manual requests for pending retries.
         if ($standard) { $data['use_standard_load']=true; }
-        if($actor['role']==='viewer' && ($data['commander_name'] || $data['commander_id'] && $data['commander_id']!==$actor['commander_id'])) { throw new HttpError(403,'forbidden','Los comandantes registran sus propias entregas; un operador puede registrar las de terceros.'); }
         if($data['commander_id'] && $data['commander_name'] || $data['carrier_id'] && $data['carrier_name'] || $data['carrier_code'] && !$data['carrier_name']) { throw new HttpError(422,'validation','Elegí una identidad existente o ingresá una nueva, sin combinar ambas.'); }
         return $this->run($actor,$authVersion,'logistics.delivery',$key,$data,function(string $op) use($actor,$data,$installation,$commodity): array {
             [$parent,$place]=$this->planning->lockInstallation($installation);
@@ -136,7 +135,6 @@ final class LogisticsService
             $this->planning->requirement($original['installation_id'],$original['commodity_id'],true);
             $original=$this->repo->movement($id,true);
             if($original['delta_quantity'][0]==='-' || $original['reverses_movement_id']!==null) { throw new HttpError(422,'validation','Seleccioná una entrega o saldo positivo original.'); }
-            if(!in_array($actor['role'],['admin','operator'],true) && $actor['id']!==$original['created_by_user_id'] && ($actor['commander_id']===null || $actor['commander_id']!==$original['commander_id'])) { throw new HttpError(403,'forbidden','No podés corregir entregas de otro comandante.'); }
             $available=$this->repo->reversible($id);
             if($available[0]==='-' || L::compare($data['quantity'],$available)>0) { throw new HttpError(409,'withdrawal_limit','La cantidad supera el saldo que conserva este movimiento.'); }
             $balance=$this->repo->rows('SELECT CAST(COALESCE(SUM(delta_quantity),0) AS CHAR) AS balance_quantity FROM movements WHERE installation_id=? AND commodity_id=?',[$original['installation_id'],$original['commodity_id']])[0]['balance_quantity'];
@@ -161,7 +159,6 @@ final class LogisticsService
         $standard=self::standardFlag($input);
         $data=['installation_id'=>$installation,'commodity_id'=>$commodity,'commander_id'=>L::id($input,'commander_id'),
             'use_standard_load'=>$standard,'quantity'=>$standard?null:L::amount($input),'reason'=>Input::text($input,'reason',1000,false,true) ?? 'Resta de stock desde panel de material'];
-        if ($actor['role']==='viewer' && $actor['commander_id']!==$data['commander_id']) { throw new HttpError(403,'forbidden','Solo podés restar entregas de tu propio comandante.'); }
         return $this->run($actor,$authVersion,'logistics.quick.withdraw',$key,$data,function(string $op) use($actor,$installation,$commodity,$data): array {
             [$parent,$place]=$this->planning->lockInstallation($installation);
             $this->planning->requirement($installation,$commodity,true);
