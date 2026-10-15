@@ -56,7 +56,7 @@ def run_expansion_checks(anonymous,admin,viewer,operator,Client,check,command,en
     expect(write(admin,'admin/users','POST',create|{'username':'forged_actor','created_by_user_id':'2'}),422,'Forged account fields rejected')
     expect(admin.call('admin/roles'),200,'Role definitions available to administrator')
     crew=Client();expect(crew.login('crew_test', remember_me=True),200,'New commander can log in with a remembered session')
-    check('Añadir a mi lista' in crew.page('/?page=system&id=1')[1] and '+ Crear sistema' not in crew.page('/')[1],'Commander sees logistics controls without planning permissions')
+    check('Añadir a mi lista' in crew.page('/?page=system&id=1')[1] and '+ Crear sistema' in crew.page('/')[1],'Commander sees logistics and creation controls')
     html=admin.page('/?page=users')[1]
     check('data-action="user-role"' in html and 'id="form-user-role"' in html and 'data-rename-username' in html,'Account UI separates role changes from explicit username edits')
     expect(write(admin,'admin/user&id='+uid,'PATCH',{'username':'admin','display_name':account['display_name'],'role':'operator','active':True,'version':account['version'],'reason':'Autofill regression'}),409,'Renaming another account to admin is rejected')

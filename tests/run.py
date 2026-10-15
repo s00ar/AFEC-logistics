@@ -191,6 +191,8 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         run_commodity_race(admin,check,env,php,ROOT)
         from quick_http import run_quick_checks
         run_quick_checks(anonymous,admin,viewer,operator,check,command,env,php,ROOT)
+        from commander_planning_http import run_commander_planning_checks
+        run_commander_planning_checks(anonymous,viewer,operator,check,command)
         command('tests/fixture.php','deactivate_viewer')
         check(viewer.session()['user'] is None, 'Deactivation invalidates an existing session')
         operator = Client(); check(operator.login('operator', remember_me=True)[0] == 200, 'Operator can authenticate with a remembered session')

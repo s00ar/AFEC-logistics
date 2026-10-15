@@ -17,7 +17,7 @@ final class PlanningService
         Input::fields($input, ['name', 'description', 'reason']);
         $data = ['name' => Input::text($input, 'name', 255, true), 'description' => Input::text($input, 'description', 4000, false, true)];
         $reason = Input::text($input, 'reason', 1000, false, true) ?? 'Alta de sistema';
-        return $this->mutations->run($actor, $authVersion, ['admin', 'operator'], 'planning.system.create', $key, $data + ['reason' => $reason], function(string $operationId) use ($data, $actor, $reason): array {
+        return $this->mutations->run($actor, $authVersion, ['admin', 'operator', 'viewer'], 'planning.system.create', $key, $data + ['reason' => $reason], function(string $operationId) use ($data, $actor, $reason): array {
             $id = $this->repository->insertSystem($data);
             $after = $this->repository->system($id);
             $this->repository->audit('system', $id, 'create', null, $after, $actor['id'], $reason, $operationId);
@@ -63,7 +63,7 @@ final class PlanningService
         $recipeVersion = $recipeId === null ? null : Input::version(['version' => $input['facility_recipe_version'] ?? null]);
         if ($recipeId === null && !in_array($input['facility_recipe_version'] ?? null, [null, ''], true)) { throw new HttpError(422, 'validation', 'Seleccioná la receta correspondiente a esa versión.'); }
         $reason = Input::text($input, 'reason', 1000, false, true) ?? 'Alta de instalación';
-        return $this->mutations->run($actor, $authVersion, ['admin', 'operator'], 'planning.installation.create', $key, $data + ['system_id' => $systemId, 'reason' => $reason, 'facility_recipe_id' => $recipeId, 'facility_recipe_version' => $recipeVersion], function(string $operationId) use ($systemId, $data, $recipeId, $recipeVersion, $actor, $reason): array {
+        return $this->mutations->run($actor, $authVersion, ['admin', 'operator', 'viewer'], 'planning.installation.create', $key, $data + ['system_id' => $systemId, 'reason' => $reason, 'facility_recipe_id' => $recipeId, 'facility_recipe_version' => $recipeVersion], function(string $operationId) use ($systemId, $data, $recipeId, $recipeVersion, $actor, $reason): array {
             self::active($this->repository->system($systemId, true));
             $recipe = $recipeId === null ? null : $this->recipes->find($recipeId, true);
             if ($recipe !== null) {

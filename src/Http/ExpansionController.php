@@ -30,7 +30,7 @@ final class ExpansionController
                     $row=(new UserRepository($app->database))->findById($id()) ?? throw new HttpError(404,'not_found','No se encontró la cuenta.');
                     Response::json(['data'=>UserRepository::adminView($row)]);
                 case 'admin/roles':
-                    Response::json(['data'=>['admin'=>'Administrador: cuentas, planificación y logística','operator'=>'Operador: planificación y entregas de terceros','viewer'=>'Comandante: entregas propias, listas y abastecimiento']]);
+                    Response::json(['data'=>['admin'=>'Administrador: cuentas, planificación y logística','operator'=>'Operador: planificación y entregas de terceros','viewer'=>'Comandante: crear sistemas/construcciones, entregas propias, listas y abastecimiento']]);
                 case 'wishlist':
                 case 'wishlist/destinations':
                     $allowed=$route==='wishlist'?['route','scope','list_page','selection_page']:['route','scope','commodity_id','list_page'];
@@ -52,7 +52,7 @@ final class ExpansionController
                     Response::json(['data'=>(new \Afec\Repositories\CommanderLoadRepository($app->database))->find($id())]);
                 case 'operation':
                     $key=$_GET['key']??null; $scope=$_GET['scope']??null;
-                    if(!is_string($key)||!preg_match('/^[A-Za-z0-9_-]{16,100}$/D',$key)||!is_string($scope)||!preg_match('/^(planning|logistics|admin\.user)\.[a-z.]{1,60}$/D',$scope)) { throw new HttpError(422,'validation','Operación no válida.'); }
+                    if(!is_string($key)||!preg_match('/^[A-Za-z0-9_-]{16,100}$/D',$key)||!is_string($scope)||!preg_match('/^(planning|logistics|admin\.user|account)\.[a-z.]{1,60}$/D',$scope)) { throw new HttpError(422,'validation','Operación no válida.'); }
                     $db=$app->database->connection(); $db->beginTransaction();
                     try {
                         $q=$db->prepare('SELECT id FROM users WHERE id=? FOR UPDATE'); $q->execute([$actor['id']]);

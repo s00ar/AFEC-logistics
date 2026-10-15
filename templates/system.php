@@ -3,10 +3,10 @@
     <div><p class="eyebrow">SISTEMA DE COLONIZACIÓN</p><h1><?= e($system['name']) ?></h1><?php if ($system['description']): ?><p class="muted"><?= e($system['description']) ?></p><?php endif ?></div>
     <?php if ($system['archived_at']): ?><span class="badge">Archivado</span><?php endif ?>
 </div>
+<?php if ($user !== null): ?><div class="toolbar"><button type="button" class="button-primary" data-action="installation-create" data-record="<?= record_attribute(['system_id' => $system['id']]) ?>" <?= $system['archived_at'] ? 'disabled' : '' ?>>+ Agregar instalación / facility</button></div><?php endif ?>
 <?php if ($canPlan): ?>
 <?php $systemRecord = array_intersect_key($system, array_flip(['id', 'name', 'description', 'archived_at', 'version'])); ?>
 <div class="toolbar">
-    <button type="button" class="button-primary" data-action="installation-create" data-record="<?= record_attribute(['system_id' => $system['id']]) ?>" <?= $system['archived_at'] ? 'disabled' : '' ?>>+ Agregar instalación / facility</button>
     <button type="button" class="button-quiet" data-action="system-edit" data-record="<?= record_attribute($systemRecord) ?>">Editar sistema</button>
     <button type="button" class="button-quiet <?= !$system['archived_at'] ? 'button-danger' : '' ?>" data-action="<?= $system['archived_at'] ? 'system-restore' : 'system-archive' ?>" data-record="<?= record_attribute($systemRecord) ?>"><?= $system['archived_at'] ? 'Restaurar sistema' : 'Eliminar sistema' ?></button>
     <button type="button" class="button-quiet" data-action="history" data-record="<?= record_attribute(['type' => 'system', 'id' => $system['id']]) ?>">Ver cambios del sistema</button>

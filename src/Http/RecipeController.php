@@ -19,7 +19,8 @@ final class RecipeController
         $allowed = match ($route) { 'facility/recipes' => ['GET', 'POST'], 'facility/recipe' => ['GET', 'PATCH', 'DELETE'], 'facility/recipe/restore' => ['POST'], 'facility/recipe/history' => ['GET'], 'facility/catalogue' => ['GET'], 'facility/catalogue/import' => ['POST'] };
         if (!in_array($method, $allowed, true)) { header('Allow: ' . implode(', ', $allowed)); throw new HttpError(405, 'method_not_allowed', 'Método no permitido.'); }
         $isCatalogue = str_starts_with($route, 'facility/catalogue');
-        $actor = $isCatalogue ? $app->auth()->requireAdmin() : $app->auth()->requirePlanner();
+        $canSelect = $method === 'GET' && in_array($route, ['facility/recipes','facility/recipe'], true);
+        $actor = $isCatalogue ? $app->auth()->requireAdmin() : ($canSelect ? $app->auth()->requireUser() : $app->auth()->requirePlanner());
         if ($isCatalogue) {
             $catalogue = new RecipeCatalogue(dirname(__DIR__, 2) . '/resources/catalogue');
             $service = new RecipeCatalogueService($app->database, $catalogue);
@@ -35,7 +36,9 @@ final class RecipeController
         $id = static fn(): string => Request::positiveId($_GET['id'] ?? null);
         if ($method === 'GET') {
             if ($route === 'facility/recipes') {
-                $listing = $recipes->listing(Request::page($_GET['list_page'] ?? null), Request::flag($_GET['include_archived'] ?? null));
+                $archived = Request::flag($_GET['include_archived'] ?? null);
+                if ($archived) { $app->auth()->requirePlanner(); }
+                $listing = $recipes->listing(Request::page($_GET['list_page'] ?? null), $archived);
                 Response::json(['data' => $listing['items'], 'pagination' => ['page' => $listing['page'], 'has_more' => $listing['has_more']]]);
             }
             if ($route === 'facility/recipe/history') {
@@ -43,7 +46,9 @@ final class RecipeController
                 $listing = $planning->history('facility_recipe', $id(), null, Request::page($_GET['list_page'] ?? null));
                 Response::json(['data' => $listing['items'], 'pagination' => ['page' => $listing['page'], 'has_more' => $listing['has_more']]]);
             }
-            Response::json(['data' => $recipes->snapshot($id())]);
+            $recipe = $recipes->snapshot($id());
+            if ($actor['role'] === 'viewer' && $recipe['archived_at'] !== null) { throw new HttpError(404,'not_found','No se encontró una receta activa.'); }
+            Response::json(['data' => $recipe]);
         }
         $app->session()->verifyCsrf();
         $key = $_SERVER['HTTP_IDEMPOTENCY_KEY'] ?? '';

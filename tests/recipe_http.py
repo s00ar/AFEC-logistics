@@ -12,7 +12,7 @@ def run_recipe_checks(anonymous,admin,viewer,operator,check,command):
     def stats():return json.loads(command('tests/recipe-inspect.php','stats'))
     expect(operator.login('operator'),200,'Operator session available for recipe tests')
     expect(anonymous.call('facility/recipes'),401,'Public cannot administer recipes')
-    expect(viewer.call('facility/recipes'),403,'Commander cannot change planning recipes')
+    expect(viewer.call('facility/recipes'),200,'Commander can select active planning recipes')
     check(operator.page('/?page=recipes')[0]==200 and 'Crear receta' in operator.page('/?page=recipes')[1],'Operator has recipe catalog screen')
     check('Eliminar' in operator.page('/')[1] and 'Agregar facility' in operator.page('/')[1] and 'Ver instalaciones' in operator.page('/')[1],'Dashboard exposes deletion and facility shortcuts')
     check('Eliminar instalación' in operator.page('/?page=system&id=1')[1],'Installation exposes clear deletion action')

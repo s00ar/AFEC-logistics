@@ -23,7 +23,7 @@ final class PlanningController
             header('Allow: ' . implode(', ', $allowed));
             throw new HttpError(405, 'method_not_allowed', 'Método no permitido.');
         }
-        $actor = $app->auth()->requirePlanner();
+        $actor = in_array($route, ['systems','installations'], true) ? $app->auth()->requireUser() : $app->auth()->requirePlanner();
         $app->session()->verifyCsrf();
         $key = $_SERVER['HTTP_IDEMPOTENCY_KEY'] ?? '';
         $input = Request::json();

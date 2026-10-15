@@ -60,12 +60,12 @@ Entrada HTTP: `/api/index.php?route=...` en ambos modos de despliegue (las opera
 | GET | `system&id=ID` | Público; instalaciones y requerimientos |
 | GET | `installation&id=ID` | Público; metadatos de instalación |
 | GET | `commodities` | Catálogo activo público |
-| POST | `systems` | Operador/admin; crear sistema |
+| POST | `systems` | Autenticado, incluido Comandante; crear sistema |
 | PATCH / DELETE | `system&id=ID` | Operador/admin; editar / archivar |
 | POST | `system/restore&id=ID` | Operador/admin; restaurar |
-| POST | `installations&system_id=ID` | Operador/admin; crear instalación |
-| GET / POST | `facility/recipes` | Operador/admin; listar / crear receta de facility |
-| GET / PATCH / DELETE | `facility/recipe&id=ID` | Operador/admin; consultar / editar materiales / archivar receta |
+| POST | `installations&system_id=ID` | Autenticado, incluido Comandante; crear instalación |
+| GET / POST | `facility/recipes` | Autenticado: listar activas; operador/admin: crear o consultar archivadas |
+| GET / PATCH / DELETE | `facility/recipe&id=ID` | Autenticado: consultar activa; operador/admin: editar materiales / archivar receta |
 | POST / GET | `facility/recipe/restore&id=ID` / `facility/recipe/history&id=ID` | Operador/admin; restaurar / auditar receta |
 | GET / POST | `facility/catalogue` / `facility/catalogue/import` | Administrador; revisar / cargar snapshot inicial confirmado |
 | PATCH / DELETE | `installation&id=ID` | Operador/admin; editar / archivar |

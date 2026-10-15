@@ -46,7 +46,8 @@ Los roles incorporados son Administrador, Operador y Comandante (identificador t
 | Registrar y corregir entregas de terceros | No | Sí | Sí |
 | Modificar lista personal y lista compartida de la flota | Sí | Sí | Sí |
 | Agregar, editar o retirar lugares de abastecimiento | Sí | Sí | Sí |
-| Crear/editar/archivar/restaurar sistemas, instalaciones y objetivos | No | Sí | Sí |
+| Crear sistemas y construcciones, usando recetas activas | Sí | Sí | Sí |
+| Editar/archivar/restaurar sistemas, instalaciones y objetivos | No | Sí | Sí |
 | Marcar instalaciones terminadas o reabrirlas | No | Sí | Sí |
 | Administrar recetas de facilities | No | Sí | Sí |
 | Administrar mercancías y cargar el catálogo inicial | No | No | Sí |
@@ -58,6 +59,8 @@ Las listas personales pertenecen exclusivamente a su cuenta, incluso frente a op
 
 ## Sistemas
 
+Cualquier usuario autenticado, incluido Comandante, puede crear sistemas y construcciones. Editar, eliminar/restaurar y modificar objetivos sigue reservado a operadores y administradores.
+
 - **Crear:** en **Sistemas**, pulsar **+ Crear sistema**; completar nombre, descripción opcional y motivo opcional; pulsar **Guardar**. Se abre el sistema creado.
 - **Consultar:** pulsar el nombre del sistema o **Ver instalaciones**. Se muestran sus instalaciones, materiales y progreso.
 - **Modificar:** pulsar **Editar** en la tarjeta o **Editar sistema** dentro del sistema; cambiar los datos, completar el motivo y guardar. No se cambian sus IDs ni las instalaciones vinculadas.
@@ -67,7 +70,7 @@ Las listas personales pertenecen exclusivamente a su cuenta, incluso frente a op
 
 ## Instalaciones, bases orbitales y settlements
 
-Se administran como instalaciones dentro de un sistema. Operadores y administradores pueden usar **Facilities y recetas** para definir plantillas por tipo, tier y variante; no se presupone una cantidad exacta del juego sin una fuente confirmada.
+Se administran como instalaciones dentro de un sistema. Un Comandante puede abrir el sistema y pulsar **+ Agregar instalación / facility**, elegir una receta activa, revisar sus materiales y guardar. También dispone de **+ Agregar facility** desde la tarjeta del sistema. Sin receta se crea sin objetivos; un operador/admin deberá completarlos. Operadores y administradores pueden usar **Facilities y recetas** para definir plantillas por tipo, tier y variante; no se presupone una cantidad exacta del juego sin una fuente confirmada.
 
 - **Crear:** desde la tarjeta del sistema, pulsar **+ Agregar facility**, o abrir un sistema activo → **+ Agregar instalación / facility**. Elegir la receta en **Facility / receta** para ver los materiales y cantidades que se cargarán automáticamente. Completar nombre, cuerpo, ubicación y orden visual → **Guardar**. El servidor copia tipo/tier y todos los objetivos de esa versión en una única transacción. Comienza En construcción.
 - **Sin receta:** seleccionar **Sin receta: cargar objetivos manualmente** y completar tipo/tier. Después usar **+ Agregar objetivo**. Si no hay plantillas cargadas, crearlas primero desde **Facilities y recetas** o reutilizar objetivos existentes como se explica abajo.

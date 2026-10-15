@@ -2,11 +2,11 @@
     <div><p class="eyebrow">CENTRO DE OPERACIONES</p><h1>Sistemas de colonización</h1><p class="muted">El avance de nuestras instalaciones, material a material.</p></div>
     <span class="badge"><?= count($systems) ?> sistemas · pág. <?= e($listPage) ?></span>
 </div>
-<?php if ($canPlan): ?>
+<?php if ($user !== null): ?>
 <div class="toolbar">
     <button class="button-primary" type="button" data-action="system-create">+ Crear sistema</button>
     <?php if ($user['role'] === 'admin'): ?><button class="button-quiet" type="button" data-action="commodity-create">Agregar material al catálogo</button><?php endif ?>
-    <a class="button-quiet" href="<?= e($app->url('/?include_archived=' . ($includeArchived ? '0' : '1'))) ?>"><?= $includeArchived ? 'Mostrar activos' : 'Mostrar eliminados / archivados' ?></a>
+    <?php if ($canPlan): ?><a class="button-quiet" href="<?= e($app->url('/?include_archived=' . ($includeArchived ? '0' : '1'))) ?>"><?= $includeArchived ? 'Mostrar activos' : 'Mostrar eliminados / archivados' ?></a><?php endif ?>
 </div>
 <?php endif ?>
 <?php if ($systems === []): ?>
@@ -22,12 +22,12 @@
         <progress max="100" value="<?= e($item['percent'] ?? 0) ?>" aria-label="Progreso de <?= e($item['name']) ?>"></progress>
         <dl class="card-stats"><div><dt>Pendiente</dt><dd><?= units($item['remaining_quantity']) ?></dd></div><div><dt>Entregado</dt><dd><?= units($item['delivered_quantity']) ?></dd></div><div><dt>Sobrante</dt><dd><?= units($item['surplus_quantity']) ?></dd></div></dl>
         <?php if ($item['negative_balances'] > 0): ?><p class="form-error">Hay saldos negativos que requieren revisión.</p><?php endif ?>
-        <?php if ($canPlan): ?>
+        <?php if ($user !== null): ?>
         <div class="card-actions">
             <a class="button-quiet" href="<?= e($app->url('/?page=system&id=' . rawurlencode($item['id']))) ?>">Ver instalaciones</a>
             <?php if (!$item['archived_at']): ?><button type="button" class="button-quiet" data-action="installation-create" data-record="<?= record_attribute(['system_id' => $item['id']]) ?>">+ Agregar facility</button><?php endif ?>
-            <button type="button" class="button-quiet" data-action="system-edit" data-record="<?= record_attribute($item) ?>">Editar</button>
-            <button type="button" class="button-quiet <?= !$item['archived_at'] ? 'button-danger' : '' ?>" data-action="<?= $item['archived_at'] ? 'system-restore' : 'system-archive' ?>" data-record="<?= record_attribute($item) ?>"><?= $item['archived_at'] ? 'Restaurar' : 'Eliminar' ?></button>
+            <?php if ($canPlan): ?><button type="button" class="button-quiet" data-action="system-edit" data-record="<?= record_attribute($item) ?>">Editar</button>
+            <button type="button" class="button-quiet <?= !$item['archived_at'] ? 'button-danger' : '' ?>" data-action="<?= $item['archived_at'] ? 'system-restore' : 'system-archive' ?>" data-record="<?= record_attribute($item) ?>"><?= $item['archived_at'] ? 'Restaurar' : 'Eliminar' ?></button><?php endif ?>
         </div>
         <?php endif ?>
     </article>
