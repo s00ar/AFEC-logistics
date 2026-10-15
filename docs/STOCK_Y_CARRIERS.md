@@ -1,5 +1,15 @@
 # Stock por material y reparto de carriers
 
+## Ampliación del 16/10/2026: carga desde cada material de las listas
+
+Alcance: cantidad y botones de sumar/restar por material en Mi lista y Flota; resumen de carga propia y toneladas que faltan cargar. Se reutilizan `carrier/load`, sus snapshots auditados, versiones e idempotencia. Archivos: `templates/wishlist.php`, `templates/carrier-load.php`, `public/assets/js/carrier-load.js`, `public/assets/css/app.css` y pruebas de carga. No hay DDL ni cambios en entregas.
+
+Verificación: sumas/restas sucesivas, precisión BIGINT, saldo no negativo, recarga, otra lista, operaciones pendientes, aislamiento de cuentas, persistencia y conservación de entregas. Riesgo principal: confundir incremento con total o mover una carga entre listas sin advertencia. Los controles indican carrier, carga a bordo y lista; una carga positiva de ese carrier/material en otra lista requiere moverla expresamente desde el formulario de total. Rollback: revertir esta interfaz/JavaScript conservando snapshots, recibos y auditoría; la pantalla anterior permite seguir editando totales.
+
+Uso: elegir un carrier (o indicar nombre de uno nuevo) y escribir las toneladas junto al material. **+ Cargar** o Enter suma esa cantidad; **−** la resta, con límite cero. **Cargado por vos para esta lista** suma tus carriers asignados a esa lista; **Te falta cargar** calcula el faltante visible menos tu carga, con mínimo cero. Se conservan las cargas al recargar y el carrier elegido durante la sesión. La flota comparte destinos, mientras los registros de carga conservan su propietario. Recargar la página para incorporar entregas/cambios de otros usuarios a los faltantes visibles.
+
+Resultados del 16/10/2026: **864 HTTP y 12 SQL aprobadas** con Apache/FastCGI y `.htaccess`, migrador local simulado/repetido; `node tests/carrier_load.mjs`: **20 comprobaciones** de incrementos sucesivos, resta exacta, límites, precisión, suma de varios carriers y separación de listas/materiales. Navegador en base aislada: 40 + 40 − 25 + 5 = 60 t conservadas al recargar, rechazo de resta de 61 t, protección al cambiar a Flota y carga independiente de 20 t en otro carrier. Los 100 pendientes de entrega se mantuvieron intactos. Escritorio 1280 px y móvil 390 px sin desbordamiento; etiquetas y controles legibles, viewport restaurado y sesión cerrada. Sin errores de consola. No se cargaron cantidades de prueba en producción.
+
 ## Alcance y uso
 
 La tabla muestra material, requerido, entregado, pendiente y sobrante. Seleccionar una fila con clic, Enter o espacio abre un panel lateral compartido. **Palada** tiene botones −/+; **Cantidad** añade un campo de toneladas enteras y botones −/+. Enter suma la cantidad escrita. Los controles de objetivos se encuentran en **Objetivo y cambios**, con los permisos anteriores, incluida su restauración.

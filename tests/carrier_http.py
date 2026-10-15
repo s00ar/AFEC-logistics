@@ -79,4 +79,7 @@ def run_carrier_checks(anonymous,admin,viewer,operator,check,command):
     expect(write(viewer,'carrier/load','POST',body|{'actor_user_id':'1'}),422,'Cannot forge cargo owner')
     html=viewer.page('/?page=wishlist&scope=personal')[1]
     check('data-carrier-form' in html and 'carrier-load.js?v=' in html,'Carrier total and allocation live on the wishlist page')
+    for scope in ['personal','fleet']:
+        html=viewer.page('/?page=wishlist&scope='+scope)[1]
+        check('data-cargo-material="'+material+'"' in html and 'data-cargo-adjust="add"' in html and 'data-cargo-adjust="subtract"' in html,'Each '+scope+' material supports incremental on-board loading')
     check('Entrega detallada / carrier' not in viewer.page('/?page=system&id='+system)[1],'No detailed carrier control on stock rows')

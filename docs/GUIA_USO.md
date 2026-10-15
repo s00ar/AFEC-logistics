@@ -209,6 +209,14 @@ La importación de mercados por CSV ya está disponible con la migración 009; l
 
 Importación completa de sistemas/instalaciones/entregas de Sheets, clasificación de estructuras desconocidas y tiers pendientes, reservas/cargas en tránsito y un módulo completo de edición/retiro de comandantes y carriers. Estos últimos pueden seleccionarse o darse de alta al registrar una entrega; no cuentan todavía con pantalla administrativa completa. No hay sincronización automática de stock externo, registro público de cuentas ni roles personalizados. Las actualizaciones de esquema de producción se aplican expresamente mediante sus paquetes SQL.
 
+## Anotar carga desde Mi lista y Flota
+
+1. En **Tu carga en carrier**, elegir el carrier o indicar el nombre de uno nuevo.
+2. Junto a cada mercancía, escribir las toneladas que se están cargando y pulsar **+ Cargar** o Enter. Las cantidades se suman al total guardado; **−** permite corregirlo sin bajar de cero.
+3. Revisar **Cargado por vos para esta lista** y **Te falta cargar**. Se suman tus carriers vinculados a esa lista; las cargas de otras cuentas quedan separadas. El cálculo usa los faltantes de la página cargada: recargar la lista para incorporar entregas o cambios de otras personas.
+4. El total se conserva al recargar. Si una carga del mismo carrier/material ya pertenece a la otra lista, los botones lo advierten; moverla requiere usar expresamente **Guardar total y repartir**.
+5. Al descargar en el settlement, registrar la entrega en la instalación y actualizar la carga que queda a bordo. Marcar carga en la lista no crea una entrega.
+
 ## Mercados del Sistema
 
 1. Iniciar sesión y abrir **Mercados del Sistema**, o pulsar **Dónde conseguir** junto a un material requerido o en Mi lista/Flota.
