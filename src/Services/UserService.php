@@ -22,7 +22,7 @@ final class UserService
             default => ['version','reason','confirmed'],
         };
         Input::fields($input, $fields);
-        $data = ['reason' => Input::text($input, 'reason', 1000, true, true)];
+        $data = ['reason' => Input::text($input, 'reason', 1000, $action !== 'update', true) ?? 'Actualización de usuario y rol.'];
         if ($action !== 'create') { $data['version'] = Input::version($input); $data['id'] = $id; }
         if (in_array($action, ['create','update'], true)) {
             $data['username'] = Input::text($input, 'username', 120, true);

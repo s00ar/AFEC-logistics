@@ -161,6 +161,7 @@ async function openEditor(action, record = {}, resume = false) {
   if (definition.template === 'list' && action === 'list-add') { form.elements.reason.required = false; form.elements.reason.closest('label').hidden = true; }
   if (definition.template === 'withdraw') form.elements.quantity.value = record.available_quantity;
   if (definition.edit && form.elements.reason && !['system','installation'].includes(definition.template)) form.elements.reason.required = true;
+  if (['user-edit','user-role'].includes(action)) form.elements.reason?.closest('label').remove();
   if (['commodity','requirement','recipe','source','delivery','withdraw'].includes(definition.template)) {
     const reason = form.elements.reason;
     reason.required = false; reason.value = definition.title; reason.closest('label').hidden = true;

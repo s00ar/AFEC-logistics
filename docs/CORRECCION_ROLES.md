@@ -1,5 +1,15 @@
 # Cambio de rol conservando la cuenta
 
+## Edición sin motivo obligatorio — 15/10/2026
+
+Las ventanas **Editar usuario y rol** y **Cambiar rol** no muestran el campo Motivo. `planning.js` retira el control antes de abrirlas; se conserva el formulario compartido de alta. `UserService` permite omitir el motivo solo en la acción `update` y registra automáticamente «Actualización de usuario y rol.». Los clientes que envían un motivo explícito siguen siendo compatibles. La auditoría conserva actor, fecha, valores anteriores/nuevos y operación; permisos, CSRF, versiones, idempotencia y revocación de sesiones siguen vigentes.
+
+No requiere SQL ni cambios de configuración. Rollback: revertir esta corrección de código, conservando las cuentas y toda la auditoría. Pruebas reproducibles: `node tests/account_payload.mjs` y la suite HTTP/SQL documentada debajo; el caso de promoción ahora omite el motivo.
+
+Validación local de esta corrección: 730 comprobaciones HTTP y 12 SQL con Apache/FastCGI y `.htaccess` reales, más cinco aserciones del módulo de identidad. Se comprobó directamente que la promoción sin motivo dejó un evento de auditoría con descripción automática, administrador y operación. Navegador: ambas ventanas sin control Motivo; no se guardaron cambios de cuentas desde esa comprobación visual. Se usaron una copia de trabajo y una base local de pruebas aisladas para preservar los cambios simultáneos del proyecto.
+
+## Antecedente — protección de identidad
+
 14/10/2026. El propietario informó un intento de promoción de Comandante a Operador que devolvía un conflicto de usuario. La captura mostraba `admin` en el campo de acceso mientras se editaba Helirius; posteriormente confirmó que el cambio ya funcionaba al conservar el nombre correcto. El backend ya admitía promociones y degradaciones.
 
 ## Alcance y archivos
