@@ -366,7 +366,10 @@ function remember(operation) {
 function finish(operation, result) {
   try { sessionStorage.removeItem(storageKey); } catch { /* Reconfirming a saved receipt is harmless. */ }
   pending = null;
-  try { sessionStorage.setItem('afec.planning.flash', 'La operación se guardó correctamente.'); } catch { /* Already confirmed. */ }
+  const flash = operation.action === 'delivery-create' && result.data.exceeds_pending
+    ? 'Entrega guardada completa. Supera lo pendiente; el excedente figura como sobrante en la instalación.'
+    : 'La operación se guardó correctamente.';
+  try { sessionStorage.setItem('afec.planning.flash', flash); } catch { /* Already confirmed. */ }
   const definition = definitions[operation.action];
   if (definition.keepPage) { window.location.reload(); return; }
   const destination = new URL(home, window.location.href);

@@ -1027,17 +1027,14 @@ tbody th {
 .carrier-allocation li { display:flex; gap:16px; justify-content:space-between; padding:10px 0; }
 .carrier-allocation li strong { white-space:nowrap; }
 .carrier-allocation span { overflow-wrap:anywhere; }
-.wishlist-cargo { padding:0 24px 20px; }
-.wishlist-cargo p { margin:0 0 10px; }
-.wishlist-cargo label { display:block; margin-bottom:8px; font-size:.85rem; }
-.wishlist-cargo .carrier-message { padding:0; margin-top:10px; }
-.wishlist-cargo-stepper { display:flex; align-items:center; gap:10px; max-width:410px; }
-.wishlist-cargo-stepper input { font:inherit; width:100%; min-width:0; min-height:44px; padding:10px; background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:7px; }
-.wishlist-cargo-stepper button { min-width:44px; min-height:44px; margin:0; flex-shrink:0; }
-.wishlist-cargo-stepper .button-primary { width:auto; }
+.wishlist-carrier { margin:20px 0; }
+.wishlist-carrier>summary { cursor:pointer; padding:14px 0; }
+.wishlist-destination-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:10px; }
+.wishlist-destination-actions button { min-height:44px; margin:0; width:auto; }
 .wishlist-material .installation-heading { flex-wrap:wrap; }
 .wishlist-material .status-badges { flex-wrap:wrap; min-width:0; }
-@media(max-width:480px) { .wishlist-material .status-badges { width:100%; } .wishlist-cargo-stepper input { font-size:16px; } }
+@media(max-width:700px) { .wishlist-destinations li { flex-wrap:wrap; } .wishlist-destination-actions { width:100%; justify-content:flex-start; } }
+@media(max-width:480px) { .wishlist-material .status-badges { width:100%; } }
 .commodity-finder { position:fixed; z-index:15; left:max(20px,env(safe-area-inset-left)); bottom:max(20px,env(safe-area-inset-bottom)); display:flex; flex-direction:column; align-items:flex-start; gap:12px; max-width:calc(100vw - 32px); }
 .commodity-finder-toggle.button-primary { display:flex; align-items:center; justify-content:center; width:52px; height:52px; margin:0; min-height:52px; padding:0; border-radius:50%; box-shadow:0 6px 24px #0008; }
 .commodity-finder-toggle svg { flex-shrink:0; }

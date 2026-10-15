@@ -97,7 +97,16 @@ document.addEventListener('click', async event => {
       const li = element('li'); const link = element('a',`${row.system_name} · ${row.installation_name}`);
       const url = new URL(document.querySelector('meta[name="home-url"]').content,window.location.href);
       url.searchParams.set('page','system'); url.searchParams.set('id',row.system_id); link.href = url;
-      li.append(link,element('strong',units(row.remaining_quantity))); list.append(li);
+      const actions = element('div', undefined, 'wishlist-destination-actions');
+      const delivery = element('button', 'Registrar entrega', 'button-primary');
+      delivery.type = 'button'; delivery.dataset.action = 'delivery-create';
+      delivery.dataset.record = JSON.stringify({...row, name: `${row.commodity_name} · ${row.system_name} · ${row.installation_name}`});
+      delivery.setAttribute('aria-label', `Registrar entrega de ${row.commodity_name} en ${row.installation_name}`);
+      const history = element('button', 'Historial / corregir', 'button-quiet');
+      history.type = 'button'; history.dataset.logistics = 'movements';
+      history.dataset.record = JSON.stringify({installation_id:row.installation_id,name:row.installation_name});
+      actions.append(element('strong', `${units(row.remaining_quantity)} t pendientes`), delivery, history);
+      li.append(link,actions); list.append(li);
     }
     if (!response.data.pagination.has_more) target.remove();
     else {record.list_page++;target.dataset.record=JSON.stringify(record);target.disabled=false;}

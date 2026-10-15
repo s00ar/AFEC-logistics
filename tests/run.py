@@ -197,6 +197,8 @@ with (PRIVATE / 'http-server.log').open('w') as output:
         run_commander_planning_checks(anonymous,viewer,operator,check,command)
         from carrier_http import run_carrier_checks
         run_carrier_checks(anonymous,admin,viewer,operator,check,command)
+        from wishlist_delivery_http import run_wishlist_delivery_checks
+        run_wishlist_delivery_checks(anonymous,admin,viewer,operator,check,command)
         from account_http import run_account_checks
         from market_http import run_market_checks
         run_market_checks(anonymous,admin,viewer,operator,check,command,ROOT,env,php)
