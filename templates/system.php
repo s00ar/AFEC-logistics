@@ -20,6 +20,7 @@
     $requirements = array_values(array_filter($system['requirements'], static fn(array $row): bool => $row['installation_id'] === $installation['id']));
     $editable = !$system['archived_at'] && !$installation['archived_at'];
     $open = $editable && $installation['construction_status'] !== 'completed';
+    $materialsComplete = $installation['required_quantity'] !== '0' && $installation['remaining_quantity'] === '0' && (int)$installation['negative_balances'] === 0;
     $recipeMaterials = array_values(array_map(static fn(array $row): array => ['commodity_id' => $row['commodity_id'], 'required_quantity' => $row['required_quantity']], array_filter($requirements, static fn(array $row): bool => (bool)$row['active'] && (bool)$row['commodity_active'] && $row['required_quantity'] !== '0')));
 ?>
 <section class="installation-panel" data-quick-installation="<?= e($installation['id']) ?>">
@@ -40,6 +41,8 @@
     <?php endif ?>
     <?php if($user!==null): ?><div class="installation-actions"><button type="button" class="button-quiet" data-action="list-add" data-record="<?= record_attribute(['installation_id'=>$installation['id'],'scope'=>'personal','name'=>$installation['name']]) ?>" <?= !$open?'disabled':'' ?>>Añadir a mi lista</button><button type="button" class="button-quiet" data-action="list-add" data-record="<?= record_attribute(['installation_id'=>$installation['id'],'scope'=>'fleet','name'=>$installation['name']]) ?>" <?= !$open?'disabled':'' ?>>Añadir a la flota</button><button type="button" class="button-quiet" data-logistics="movements" data-record="<?= record_attribute(['installation_id'=>$installation['id'],'name'=>$installation['name']]) ?>">Historial de entregas</button></div><?php endif ?>
     <?php if($installation['construction_status']==='completed' && $installation['remaining_quantity']!=='0'): ?><p class="data-note">Terminada manualmente con <?= units($installation['remaining_quantity']) ?> unidades pendientes en el registro. Queda excluida de las listas de deseos.</p><?php endif ?>
+    <details class="materials-disclosure" data-materials-installation="<?= e($installation['id']) ?>" data-materials-complete="<?= $materialsComplete?'1':'0' ?>" <?= !$materialsComplete?'open':'' ?>>
+        <summary><span class="materials-show">Mostrar materiales</span><span class="materials-hide">Ocultar materiales</span><span class="badge complete" data-materials-complete-label <?= !$materialsComplete?'hidden':'' ?>>Todos los materiales completados</span></summary>
     <?php if ($user!==null): require __DIR__.'/quick-load-toolbar.php'; endif ?>
     <p class="table-hint">Deslizá la tabla para ver todas las columnas.</p>
     <div class="table-scroll" tabindex="0" role="region" aria-label="Materiales de <?= e($installation['name']) ?>">
@@ -53,6 +56,7 @@
         </tbody></table>
     </div>
     <?php if ($installation['negative_balances'] > 0): ?><p class="form-error">Hay saldos negativos que requieren revisión.</p><?php endif ?>
+    </details>
 </section>
 <?php endforeach ?>
 <?php $paginationQuery = ['page' => 'system', 'id' => $system['id'], 'include_archived' => $includeArchived ? '1' : '0']; require __DIR__ . '/pagination.php'; ?>

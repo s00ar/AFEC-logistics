@@ -105,6 +105,18 @@ async function initQuickLoad() {
     for (const panel of panels) {
       const installation = data.installations.find(item => item.id === panel.dataset.quickInstallation);
       if (!installation) continue;
+      const materials = panel.querySelector('[data-materials-installation]');
+      const complete = installation.required_quantity !== '0' && installation.remaining_quantity === '0' && Number(installation.negative_balances) === 0;
+      if (materials) {
+        // Preserve a user's disclosure choice until the balance crosses complete/pending.
+        if (materials.dataset.materialsComplete !== (complete ? '1' : '0')) {
+          const restoreFocus = complete && materials.contains(document.activeElement);
+          materials.open = !complete;
+          if (restoreFocus) materials.querySelector('summary').focus({ preventScroll: true });
+        }
+        materials.dataset.materialsComplete = complete ? '1' : '0';
+        materials.querySelector('[data-materials-complete-label]').hidden = !complete;
+      }
       const badge = panel.querySelector('[data-quick-progress]');
       if (badge) badge.textContent = installation.archived_at ? 'Archivada' : installation.percent === null ? 'Sin objetivos' : `${installation.percent.toLocaleString('es', { maximumFractionDigits: 1 })}%`;
       for (const row of data.requirements.filter(item => item.installation_id === installation.id)) {

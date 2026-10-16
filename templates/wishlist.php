@@ -12,8 +12,25 @@
 </li><?php endforeach ?></ul>
 <?php if($item['destinations']['pagination']['has_more']): ?><button type="button" class="button-quiet" data-more-destinations data-record="<?= record_attribute(['scope'=>$scope,'commodity_id'=>$item['commodity_id'],'list_page'=>2]) ?>">Más destinos</button><?php endif ?></div></section>
 <?php endforeach ?>
-<?php if(!$wishlist['commodities']['items']): ?><section class="empty-state"><h2>No hay faltantes en esta página</h2><p>Agregá instalaciones desde su sistema, o consultá las selecciones y páginas siguientes.</p></section><?php endif ?>
+<?php if(!$wishlist['commodities']['items'] && $wishlist['completed']['items']): ?><p class="data-note">No hay faltantes en esta página. Los materiales completados están contraídos abajo; podés consultarlos con «Mostrar materiales».</p>
+<?php elseif(!$wishlist['commodities']['items']): ?><section class="empty-state"><h2>No hay faltantes en esta página</h2><p>Agregá instalaciones desde su sistema, o consultá las selecciones y páginas siguientes.</p></section><?php endif ?>
 <?php $pagination=$wishlist['commodities']['pagination']; $paginationQuery=['page'=>'wishlist','scope'=>$scope]; require __DIR__.'/pagination.php'; ?>
+<?php if($wishlist['completed']['items'] || $wishlist['completed']['pagination']['page']>1): ?>
+<section class="installation-panel completed-materials" id="materiales-completados"><div class="installation-heading"><h2>Materiales completados</h2></div>
+<details class="materials-disclosure" data-completed-materials <?= isset($_GET['completed_page'])?'open':'' ?>>
+    <summary><span class="materials-show">Mostrar materiales</span><span class="materials-hide">Ocultar materiales</span><span class="badge complete">Sin faltantes</span></summary>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Materiales completados de esta lista"><table><thead><tr><th scope="col">Material</th><th scope="col" class="numeric">Requerido</th><th scope="col" class="numeric">Entregado</th><th scope="col" class="numeric">Sobrante</th></tr></thead><tbody>
+    <?php foreach($wishlist['completed']['items'] as $material): ?><tr class="requirement-complete" data-commodity-search="<?= e($material['commodity_name']) ?>"><th scope="row"><?= e($material['commodity_name']) ?></th><td class="numeric"><?= units($material['required_quantity']) ?></td><td class="numeric"><?= units($material['delivered_quantity']) ?></td><td class="numeric"><?= units($material['surplus_quantity']) ?></td></tr><?php endforeach ?>
+    </tbody></table></div>
+    <p class="data-note">Para revisar o corregir una entrega, usá el historial de su instalación seleccionada.</p>
+    <?php $completedPage=$wishlist['completed']['pagination']['page']; $completedQuery=['page'=>'wishlist','scope'=>$scope,'list_page'=>$wishlist['commodities']['pagination']['page'],'selection_page'=>$wishlist['selected']['pagination']['page']]; ?>
+    <?php if($completedPage>1 || $wishlist['completed']['pagination']['has_more']): ?><nav class="pagination" aria-label="Páginas de materiales completados">
+    <?php if($completedPage>1): ?><a class="button-quiet" href="<?= e($app->url('/?'.http_build_query($completedQuery+['completed_page'=>$completedPage-1]).'#materiales-completados')) ?>">Completados anteriores</a><?php endif ?>
+    <span>Página <?= e($completedPage) ?></span>
+    <?php if($wishlist['completed']['pagination']['has_more']): ?><a class="button-quiet" href="<?= e($app->url('/?'.http_build_query($completedQuery+['completed_page'=>$completedPage+1]).'#materiales-completados')) ?>">Más materiales completados</a><?php endif ?>
+    </nav><?php endif ?>
+</details></section>
+<?php endif ?>
 <h2>Instalaciones seleccionadas</h2><div class="selection-list">
 <?php foreach($wishlist['selected']['items'] as $selection): ?><article class="selection-item"><div><strong><?= e($selection['system_name']) ?> · <?= e($selection['installation_name']) ?></strong><?php if($selection['archived_at'] || $selection['system_archived_at'] || $selection['construction_status']==='completed'): ?><p class="muted">Excluida de los totales por archivo o construcción terminada.</p><?php endif ?></div><div class="row-actions"><button type="button" class="button-quiet" data-logistics="movements" data-record="<?= record_attribute(['installation_id'=>$selection['installation_id'],'name'=>$selection['installation_name']]) ?>" aria-label="Historial de entregas de <?= e($selection['installation_name']) ?>">Historial de entregas</button><button type="button" class="button-quiet" data-action="list-remove" data-record="<?= record_attribute($selection+['scope'=>$scope]) ?>">Quitar de esta lista</button></div></article><?php endforeach ?>
 <?php if(!$wishlist['selected']['items']): ?><p class="muted">No hay instalaciones seleccionadas en esta página.</p><?php endif ?></div>

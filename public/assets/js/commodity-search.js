@@ -31,7 +31,7 @@ if (finder) {
   function search() {
     for (const { element } of materials) element.classList.remove('commodity-search-match', 'commodity-search-current');
     const words = normalize(input.value).split(/\s+/u).filter(Boolean);
-    matches = words.length ? materials.filter(({ name }) => words.every(word => name.includes(word))).map(({ element }) => element) : [];
+    matches = words.length ? materials.filter(({ element, name }) => !element.closest('details:not([open])') && words.every(word => name.includes(word))).map(({ element }) => element) : [];
     current = -1;
     for (const row of matches) row.classList.add('commodity-search-match');
     previous.disabled = next.disabled = matches.length < 2;
@@ -63,5 +63,8 @@ if (finder) {
   });
   previous.addEventListener('click', () => select(current - 1));
   next.addEventListener('click', () => select(current + 1));
+  document.addEventListener('toggle', event => {
+    if (!panel.hidden && event.target.matches('.materials-disclosure')) search();
+  }, true);
   finder.hidden = false;
 }

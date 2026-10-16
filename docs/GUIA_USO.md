@@ -149,6 +149,8 @@ Las entregas se registran desde el panel lateral del material, como se describe 
 
 ## Carga de stock y paladas
 
+Al completar todos los materiales de una instalación, su bloque se contrae automáticamente. Pulsar **Mostrar materiales** para revisarlos o corregir una entrega. Si una corrección deja faltantes, vuelve a abrirse. En Mi lista y Flota, los materiales sin faltantes se consultan desde **Materiales completados → Mostrar materiales**; los pendientes permanecen a la vista. El buscador solo recorre materiales desplegados.
+
 La **lupa flotante abajo a la izquierda** abre **Buscar mercancía** para ubicar materiales por nombre en las tablas de los settlements de un sistema, las listas personal/flota y el catálogo. Cerrada muestra solo la lupa. Marca las coincidencias de la página actual y salta a la primera sin ocultar el resto. Usar las flechas o Enter / Mayús + Enter para recorrerlas; Escape cierra y quita las marcas. No distingue mayúsculas ni tildes. En el catálogo también busca por código, nombre en inglés y alias. Los paginadores siguen disponibles para consultar otras páginas.
 
 1. Abrir un sistema y elegir **Comandante** en la instalación. Ambos roles pueden seleccionar su identidad o la de terceros. Si falta la propia, pulsar **Usar mi comandante**.

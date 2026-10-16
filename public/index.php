@@ -79,9 +79,9 @@ try {
         $view = 'users';
     } elseif ($page === 'wishlist') {
         $app->auth()->requireUser();
-        if (array_diff(array_keys($_GET),['page','scope','list_page','selection_page'])) { throw new HttpError(422,'validation','La lista personal corresponde siempre al usuario autenticado.'); }
+        if (array_diff(array_keys($_GET),['page','scope','list_page','selection_page','completed_page'])) { throw new HttpError(422,'validation','La lista personal corresponde siempre al usuario autenticado.'); }
         $scope = LogisticsInput::choice(['scope'=>$_GET['scope']??'personal'],'scope',['personal','fleet']);
-        $wishlist=(new LogisticsRepository($app->database))->wishlist($scope,$user['id'],$listPage,Request::page($_GET['selection_page']??null));
+        $wishlist=(new LogisticsRepository($app->database))->wishlist($scope,$user['id'],$listPage,Request::page($_GET['selection_page']??null),Request::page($_GET['completed_page']??null));
         $title=$scope==='fleet'?'Lista de la flota':'Mi lista de deseos';
         $view='wishlist';
     } elseif ($page === 'system') {

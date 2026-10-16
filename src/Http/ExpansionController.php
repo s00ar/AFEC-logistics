@@ -33,10 +33,10 @@ final class ExpansionController
                     Response::json(['data'=>['admin'=>'Administrador: toda la gestión, incluidas cuentas y roles','viewer'=>'Comandante: planificación, catálogo y logística, incluidos aportes de terceros']]);
                 case 'wishlist':
                 case 'wishlist/destinations':
-                    $allowed=$route==='wishlist'?['route','scope','list_page','selection_page']:['route','scope','commodity_id','list_page'];
+                    $allowed=$route==='wishlist'?['route','scope','list_page','selection_page','completed_page']:['route','scope','commodity_id','list_page'];
                     if(array_diff(array_keys($_GET),$allowed)) { throw new HttpError(422,'validation','La lista personal siempre corresponde a la cuenta autenticada.'); }
                     $scope=Input::choice($_GET,'scope',['personal','fleet']);
-                    $data=$route==='wishlist'?$repo->wishlist($scope,$actor['id'],$page,Request::page($_GET['selection_page']??null)):$repo->destinations($scope,$actor['id'],$commodity(),$page);
+                    $data=$route==='wishlist'?$repo->wishlist($scope,$actor['id'],$page,Request::page($_GET['selection_page']??null),Request::page($_GET['completed_page']??null)):$repo->destinations($scope,$actor['id'],$commodity(),$page);
                     Response::json(['data'=>$data]);
                 case 'sources':
                     Response::json(['data'=>$repo->sources($commodity(),$page,Request::flag($_GET['include_inactive']??null))]);

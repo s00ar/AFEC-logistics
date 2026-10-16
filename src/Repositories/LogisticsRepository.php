@@ -50,7 +50,21 @@ final class LogisticsRepository
             LEFT JOIN (SELECT installation_id,commodity_id,SUM(delta_quantity) AS delivered FROM movements GROUP BY installation_id,commodity_id) m ON m.installation_id=r.installation_id AND m.commodity_id=r.commodity_id
             WHERE w.list_key=? AND w.active=1 AND r.active=1 AND i.archived_at IS NULL AND s.archived_at IS NULL AND (i.construction_status IS NULL OR i.construction_status<>'completed')";
     }
-    public function wishlist(string $scope, string $actor, int $page=1, int $selectionPage=1): array
+    private function completedMaterials(string $key, int $page): array
+    {
+        return $this->page($this->rows('SELECT r.commodity_id,c.name_es AS commodity_name,
+            SUM(CAST(r.required_quantity AS DECIMAL(65,0))) AS required_quantity,
+            SUM(COALESCE(m.delivered,0)) AS delivered_quantity,
+            SUM(GREATEST(COALESCE(m.delivered,0)-CAST(r.required_quantity AS DECIMAL(65,0)),0)) AS surplus_quantity
+            FROM wishlist_entries w JOIN installations i ON i.id=w.installation_id JOIN systems s ON s.id=i.system_id
+            JOIN requirements r ON r.installation_id=i.id JOIN commodities c ON c.id=r.commodity_id
+            LEFT JOIN (SELECT installation_id,commodity_id,SUM(delta_quantity) AS delivered FROM movements GROUP BY installation_id,commodity_id) m ON m.installation_id=r.installation_id AND m.commodity_id=r.commodity_id
+            WHERE w.list_key=? AND w.active=1 AND r.active=1 AND r.required_quantity>0 AND i.archived_at IS NULL AND s.archived_at IS NULL
+            GROUP BY r.commodity_id,c.name_es
+            HAVING SUM(GREATEST(CAST(r.required_quantity AS DECIMAL(65,0))-COALESCE(m.delivered,0),0))=0
+            ORDER BY c.name_es,r.commodity_id LIMIT 26 OFFSET ' . (($page-1)*25),[$key]),$page);
+    }
+    public function wishlist(string $scope, string $actor, int $page=1, int $selectionPage=1, int $completedPage=1): array
     {
         $db=$this->database->connection(); $db->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ'); $db->beginTransaction();
         try {
@@ -61,7 +75,8 @@ final class LogisticsRepository
             foreach($commodities['items'] as &$item) { $item['destinations']=$this->destinations($scope,$actor,$item['commodity_id']); } unset($item);
             $selected=$this->page($this->rows('SELECT w.installation_id,w.version,i.name AS installation_name,i.system_id,s.name AS system_name,i.archived_at,s.archived_at AS system_archived_at,i.construction_status
                 FROM wishlist_entries w JOIN installations i ON i.id=w.installation_id JOIN systems s ON s.id=i.system_id WHERE w.list_key=? AND w.active=1 ORDER BY s.name,i.name,i.id LIMIT 26 OFFSET ' . (($selectionPage-1)*25),[$key]),$selectionPage);
-            $db->commit(); return ['scope'=>$scope,'commodities'=>$commodities,'selected'=>$selected];
+            $completed=$this->completedMaterials($key,$completedPage);
+            $db->commit(); return ['scope'=>$scope,'commodities'=>$commodities,'selected'=>$selected,'completed'=>$completed];
         } catch(\Throwable $error) { if($db->inTransaction()) { $db->rollBack(); } throw $error; }
     }
     public function destinations(string $scope,string $actor,string $commodity,int $page=1): array

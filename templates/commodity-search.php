@@ -3,7 +3,7 @@
         <div class="dialog-heading"><h2>Buscar mercancía</h2><button type="button" class="button-quiet" data-search-close aria-label="Cerrar buscador">×</button></div>
         <label for="commodity-search-input">Nombre de mercancía</label>
         <input id="commodity-search-input" type="search" placeholder="Ej.: acero" autocomplete="off" aria-describedby="commodity-search-help" aria-controls="main">
-        <p id="commodity-search-help">Busca en esta página. Enter: siguiente · Mayús + Enter: anterior.</p>
+        <p id="commodity-search-help">Busca en los materiales desplegados de esta página. Enter: siguiente · Mayús + Enter: anterior.</p>
         <div class="commodity-finder-navigation">
             <button type="button" class="button-quiet" data-search-previous aria-label="Mercancía anterior" disabled>↑</button>
             <output id="commodity-search-status" aria-live="polite" aria-atomic="true">Escribí para buscar.</output>
