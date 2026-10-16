@@ -84,9 +84,9 @@ Se administran como instalaciones dentro de un sistema. Un Comandante puede abri
 - **Restaurar:** **Mostrar eliminadas / archivadas y objetivos retirados** → **Restaurar instalación** → motivo → guardar. El sistema padre debe estar activo; restaurarlo primero si corresponde.
 - **Auditar:** pulsar **Ver cambios** en los controles de la instalación.
 
-**Construcción:** comandantes y administradores pueden pulsar **Marcar terminada**, indicar motivo y confirmar aunque queden faltantes. El distintivo pasa a **Terminada** y queda fuera de ambas listas de deseos. El registro de entregas y el porcentaje real no se alteran. Para volver a recibir entregas, usar **Reabrir construcción** y un motivo.
+**Construcción:** al cubrir todos los materiales, el distintivo cambia automáticamente a **Terminada** y la tabla se contrae. Una corrección que deje faltantes recupera el estado de construcción registrado. Comandantes y administradores también pueden pulsar **Marcar terminada**, indicar motivo y confirmar aunque queden faltantes; ese cierre manual se conserva y excluye la instalación de las listas activas. Para reabrir un cierre manual, usar **Reabrir construcción** y un motivo.
 
-Las instalaciones anteriores a esta fase conservan su estado libre original y aparecen **Sin clasificar** hasta que un comandante o administrador elija **Marcar en construcción** o **Marcar terminada**; no se infiere automáticamente su estado real. Archivar y terminar son acciones distintas.
+Las instalaciones anteriores a esta fase conservan su estado libre original. Si aún tienen faltantes y no se clasificaron manualmente, aparecen **Sin clasificar**; si todos sus materiales están cubiertos, muestran **Terminada**. Archivar y terminar son acciones distintas.
 
 ## Materiales y objetivos
 
@@ -149,7 +149,7 @@ Las entregas se registran desde el panel lateral del material, como se describe 
 
 ## Carga de stock y paladas
 
-Al completar todos los materiales de una instalación, su bloque se contrae automáticamente. Pulsar **Mostrar materiales** para revisarlos o corregir una entrega. Si una corrección deja faltantes, vuelve a abrirse. En Mi lista y Flota, los materiales sin faltantes se consultan desde **Materiales completados → Mostrar materiales**; los pendientes permanecen a la vista. El buscador solo recorre materiales desplegados.
+Al completar todos los materiales de una instalación, su bloque se contrae automáticamente y el estado cambia a **Terminada**. Pulsar **Mostrar materiales** para revisarlos o corregir una entrega. Si una corrección deja faltantes, vuelve a abrirse y recupera su estado de construcción, salvo que se haya cerrado manualmente. En Mi lista y Flota, los materiales sin faltantes se consultan desde **Materiales completados → Mostrar materiales**; los pendientes permanecen a la vista. El buscador solo recorre materiales desplegados.
 
 La **lupa flotante abajo a la izquierda** abre **Buscar mercancía** para ubicar materiales por nombre en las tablas de los settlements de un sistema, las listas personal/flota y el catálogo. Cerrada muestra solo la lupa. Marca las coincidencias de la página actual y salta a la primera sin ocultar el resto. Usar las flechas o Enter / Mayús + Enter para recorrerlas; Escape cierra y quita las marcas. No distingue mayúsculas ni tildes. En el catálogo también busca por código, nombre en inglés y alias. Los paginadores siguen disponibles para consultar otras páginas.
 

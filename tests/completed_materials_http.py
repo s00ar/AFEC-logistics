@@ -45,6 +45,10 @@ def run_completed_material_checks(anonymous, admin, viewer, check):
     check(material not in [r['commodity_id'] for r in listing(viewer,'personal','completed')], 'Surplus at one destination cannot cover another destination')
     before=Disclosures(anonymous.page('/?page=system&id='+system)[1]).installations
     check('open' not in before[places[0]] and 'open' in before[places[1]],'Only an installation with all its materials covered starts collapsed publicly')
+    progress=anonymous.call('system&id='+system)[1]['data']['installations']
+    covered=next(r for r in progress if r['id']==places[0]);pending=next(r for r in progress if r['id']==places[1])
+    check(covered['materials_complete'] and covered['effective_construction_status']=='completed' and covered['construction_status']=='under_construction','Covered materials report completed construction without rewriting the manual status')
+    check(not pending['materials_complete'] and pending['effective_construction_status']=='under_construction','An incomplete installation keeps its construction status')
     write(f'deliveries&installation_id={places[1]}&commodity_id={material}',{'use_remaining':True})
     for scope in ['personal','fleet']:
         completed=listing(viewer,scope,'completed');row=next(r for r in completed if r['commodity_id']==material)
@@ -72,4 +76,12 @@ def run_completed_material_checks(anonymous, admin, viewer, check):
     write(f'quick/withdraw&installation_id={places[1]}&commodity_id={other}',{'quantity':'1','commander_id':commander})
     corrected=Disclosures(viewer.page('/?page=system&id='+system)[1]).installations
     check('open' in corrected[places[1]] and 'open' not in corrected[places[0]],'A compensating correction reopens only the installation with a new deficit')
+    progress=anonymous.call('system&id='+system)[1]['data']['installations']
+    corrected=next(r for r in progress if r['id']==places[1])
+    check(not corrected['materials_complete'] and corrected['effective_construction_status']=='under_construction','Correction returns automatic completion to under construction')
     check(other not in [r['commodity_id'] for r in listing(viewer,'personal','completed')],'Corrected material returns to pending instead of staying in completed')
+    version=viewer.call('installation&id='+places[1])[1]['data']['version']
+    write('installation/status&id='+places[1],{'construction_status':'completed','version':version,'reason':'Cierre manual de prueba con faltante','confirmed':True},'PATCH')
+    progress=anonymous.call('system&id='+system)[1]['data']['installations']
+    manual=next(r for r in progress if r['id']==places[1])
+    check(not manual['materials_complete'] and manual['effective_construction_status']=='completed','Explicit manual completion with deficits remains respected')

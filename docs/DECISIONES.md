@@ -15,6 +15,11 @@
 - Todos los usuarios autenticados pueden agregar, corregir y retirar lugares de abastecimiento compartidos por mercancía.
 - Autorizada la ampliación y el CRUD de usuarios con asignación de roles. Se mantiene administración de cuentas solo para administrador y la prohibición de escrituras públicas.
 
+## Confirmado por el propietario — 16/10/2026
+
+- Al cubrir todos los materiales activos, contraer su bloque y mostrar **Terminada** automáticamente. **Mostrar materiales** permite volver a consultarlos. Una corrección que deje faltantes reabre el bloque y recupera el estado registrado; los cierres manuales explícitos se conservan.
+- En las listas, conservar los materiales sin faltantes en un apartado de completados contraído, consultable por el usuario. Un sobrante en otro destino no cubre un faltante de la misma mercancía.
+
 ## Pendiente para las siguientes fases
 
 - Administración completa de comandantes/carriers y catálogo; por ahora, solo el administrador da de alta materiales de catálogo.

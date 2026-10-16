@@ -114,6 +114,10 @@ final class ProgressRepository
         $row['version'] = (string)$row['version'];
         if (isset($row['system_id'])) { $row['system_id'] = (string)$row['system_id']; }
         $row['negative_balances'] = (int) $row['negative_balances'];
+        if (array_key_exists('construction_status', $row)) {
+            $row['materials_complete'] = $row['required_quantity'] !== '0' && $row['remaining_quantity'] === '0' && $row['negative_balances'] === 0;
+            $row['effective_construction_status'] = $row['materials_complete'] ? 'completed' : $row['construction_status'];
+        }
         $row['percent'] = $row['required_quantity'] === '0' ? null : round(100 * (float) $row['covered_quantity'] / (float) $row['required_quantity'], 2);
         return $row;
     }

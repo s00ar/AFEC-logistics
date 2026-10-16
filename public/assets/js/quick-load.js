@@ -106,7 +106,14 @@ async function initQuickLoad() {
       const installation = data.installations.find(item => item.id === panel.dataset.quickInstallation);
       if (!installation) continue;
       const materials = panel.querySelector('[data-materials-installation]');
-      const complete = installation.required_quantity !== '0' && installation.remaining_quantity === '0' && Number(installation.negative_balances) === 0;
+      const complete = installation.materials_complete;
+      const construction = panel.querySelector('[data-quick-construction]');
+      if (construction) {
+        const state = installation.effective_construction_status;
+        construction.textContent = state === 'completed' ? 'Terminada' : state === 'under_construction' ? 'En construcción' : 'Sin clasificar';
+        construction.classList.toggle('complete', state === 'completed');
+      }
+      for (const button of panel.querySelectorAll('[data-quick-manual-status]')) button.hidden = complete && installation.construction_status !== 'completed';
       if (materials) {
         // Preserve a user's disclosure choice until the balance crosses complete/pending.
         if (materials.dataset.materialsComplete !== (complete ? '1' : '0')) {
